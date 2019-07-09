@@ -1,0 +1,20 @@
+{
+  "name": "qs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": "bin/index.js",
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "commander": "^2.20.0",
+    "nodemon": "^1.19.1",
+    "shelljs": "^0.8.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "nodemon --watch \"bin/index.js\" --exec \"node bin/index.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
