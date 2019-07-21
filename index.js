@@ -1,83 +1,149 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk')
-const pathAbs = path => require('path').join(__dirname, path)
-const program = require('commander');
-const shelljs = require('shelljs')
-
+const fs = require('fs')
+const path = require('path')
+const child_process = require('child_process')
 const util = require('./util.js')
-global.CFG = util.cfg
+const {execFileSync, pathAbs, nodeBin} = util
 
-const js = require('./lib/js.js')
-const init = require('./lib/init.js')
+;(async () => {
+  const moduleManage =  util.cfg.get('moduleManage') || ((await exec('cnpm -v')).error ? 'npm' : 'cnpm')
+  util.cfg.set('moduleManage', moduleManage)
+  const [arg1, ...argMore] = process.argv.slice(2)
+  const hasModules = fs.existsSync(path.join(__dirname, 'node_modules'))
+  if( (arg1 === 'init') && !argMore.length && !hasModules ) {
+    await execFileSync(`${moduleManage} i`)
+  }
 
-const {log} = console
+  if(!hasModules) {
+    console.log('qs init')
+    return
+  }
 
+  // -------------- start
 
-program
-  .version(require('./package').version)
-  .usage('<command> [options]')
+  const program = require('commander')
+  const js = require('./core/js.js')
+  const init = require('./init.js')
 
-program
-  .command('js')
-  .description('Creating JS type applications')
-  .option('--openDir', 'Open the directory')
-  .option('-d, --directory [directoryName]', 'Specify folders', '.')
-  .option('-f, --fileName [fileName]', 'Specify a filename, Select template automatically according to suffix', 'index.js')
-  .option('--es5 [config]', 'Save and convert to Es5 file')
-  .option('-m, --module <moduleName,moduleName2...>', 'Add and automatically install dependencies, separating multiple with commas', list)
-  .action((arg) => {
-    js(cleanArgs(arg))
+  const {log} = console
+
+  program
+    .version(require('./package').version)
+    .usage('<command> [options]')
+
+  program
+    .command('js')
+    .description('Creating JS type applications')
+    .option('--openDir', 'Open the directory')
+    .option('-d, --directory [directoryName]', 'Specify folders', '.')
+    .option('-f, --fileName [fileName]', 'Specify a filename, Select template automatically according to suffix', 'index.js')
+    .option('--es5 [config]', 'Save and convert to Es5 file')
+    .option('-m, --module <moduleName,moduleName2...>', 'Add and automatically install dependencies, separating multiple with commas', list)
+    .action((arg) => {
+      cleanArgs(arg, js)
+    })
+
+  program
+    .command('init')
+    .description('Initializer')
+    .option('-e, --extend', 'Function of Initialization Extendsion')
+    .option('-o, --other', 'Initialize other functions')
+    .action((arg) => {
+      cleanArgs(arg, init)
+    })
+
+  program.on('--help', () => {
+    log()
+    log(`  Run qs <command> --help for detailed usage of given command.`)
+    log()
   })
 
-program
-  .command('init')
-  .description('Functions of Initializer')
-  .action((arg) => {
-    init(arg)
-  })
+  program
+    .command('*')
+    .description('More features')
+    .action(async function(){
+      const cmdFile = {
+        ss: './extend/ss/ss.js',
+      }[arg1]
+      if(cmdFile) { // 扩展功能
+        require(pathAbs(cmdFile))
+      } else { // 其他功能
+        const cmd = `node ${nodeBin(arg1)} ${argMore.join(' ')}`
 
-program
-  .command('ss')
-  .description('Get FREE ss configuration')
-  .action((arg) => {
-    require(pathAbs('./lib/ss/ss.js'))
-  })
+        // 不优雅的判断管道判断
+        const chunk = await new Promise((resolve, reject) => {
+          process.stdin.on('data', chunk => {
+            resolve(String(chunk))
+          })
+          setTimeout(() => resolve(undefined), 10)
+        })
+        if(chunk) {
+          const argStr = argMore.map(item => `'${item}'`).join(' ')
+          const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBin(arg1)} ${argStr}`
+          const {error, stdout, stderr} = await exec(cmd)
+          console.log(stdout)
+        } else {
+          await execFileSync(cmd)
+          process.exit()
+        }
 
-program.on('--help', () => {
-  log()
-  log(`  Run ${chalk.cyan(`qs <command> --help`)} for detailed usage of given command.`)
-  log()
-})
+        // try {
+        //   // 有管道数据时
+        //   let cdata
+        //   process.stdin.on('data', async (chunk) => {
+        //     cdata = String(chunk)
+        //     const argStr = argMore.map(item => `'${item}'`).join(' ')
+        //     const cmd = `echo '${String(chunk).replace(/\n/g, "")}' | node ${nodeBin(arg1)} ${argStr}`
+        //     const {error, stdout, stderr} = await exec(cmd)
+        //     console.log(stdout)
+        //   })
+        //   setTimeout(() => {
+        //     if(!cdata) {
+        //       execFileSync(cmd)
+        //       process.exit()
+        //     }
+        //   }, 10);
+        // } catch (error) {
+        //   console.log('err', error)
+        // }
+      }
 
-program
-  .command('*')
-  .description('More features')
-  .action(function(...arg){
-    // ...
-  })
+    })
 
-program.parse(process.argv)
+  program.parse(process.argv)
 
-if (!process.argv.slice(2).length) {
-  program.outputHelp()
-}
+  if (arg1 === undefined) {
+    program.outputHelp()
+  }
 
-function camelize (str) { // 横线转驼峰
+})();
+
+function camelize (str) { // Conversion of horizontal lines to humps
   return str.replace(/-(\w)/g, (_, c) => c ? c.toUpperCase() : '')
 }
 
-function cleanArgs (cmd) { // Options for paraing user input
+function cleanArgs (obj, cb) { // Options for paraing user input
   const args = {}
-  cmd.options.forEach(o => {
+  obj.options && obj.options.forEach(o => {
     const key = camelize(o.long.replace(/^--/, ''))
-    if (typeof cmd[key] !== 'function' && typeof cmd[key] !== 'undefined') {
-      args[key] = cmd[key]
+    if (typeof obj[key] !== 'function' && typeof obj[key] !== 'undefined') {
+      args[key] = obj[key]
     }
   })
-  return args
+  if(JSON.stringify(args) !== '{}') {
+    cb(args)
+  }
 }
 
 function list(val) {
   return val.split(',').filter(item => item)
+}
+
+function exec(cmd) {
+  return new Promise((resolve, reject) => {
+    child_process.exec(cmd, (error, stdout, stderr) => {
+      resolve({error, stdout, stderr})
+    });
+  })
 }

@@ -3,10 +3,19 @@ const path = require('path')
 const os = require('os')
 const shelljs = require('shelljs')
 const util = require('../util.js')
-const {nodemon, cnpm, npm} = util.nodeBin
+const {
+  dateFormater,
+  createFileOrDir,
+  execFileSync,
+  pathAbs,
+  nodeBin,
+} = util
 const { log } = console
 
-const {openExe} = CFG.get()
+const {
+  openExe,
+  moduleManage,
+} = util.cfg.get()
 
 // Directory of resources
 const baseDir = `${os.homedir()}/.qs/js/`
@@ -29,8 +38,7 @@ coffee: `\
 }
 
 
-module.exports = (arg) => {
-
+module.exports = async (arg) => {
   // process.stdin.resume();
   // process.stdin.setEncoding('utf8');
   // process.stdin.on('data', function(data) {
@@ -39,15 +47,15 @@ module.exports = (arg) => {
   // });
 
   const type = arg.fileName.replace(/.*\.(.*)$/, '$1') // Get the file name suffix
-  const date = util.dateFormater('YYYYMMDDHHmmss', new Date())
+  const date = dateFormater('YYYYMMDDHHmmss', new Date())
   const fileDir = baseDir + date + '/'
   const fileName = fileDir + arg.fileName
   log(fileName)
-  util.createFileOrDir(fileName, template[type] || '')
+  createFileOrDir(fileName, template[type] || '')
 
   if(arg.module) {
-    const cmd = `${cnpm} i ${arg.module.join(' ')}`
-    shelljs.exec(cmd)
+    const cmd = `${moduleManage} i -S ${arg.module.join(' ')}`
+    await execFileSync(cmd, fileDir)
   }
 
   if(arg.openDir) {
@@ -57,6 +65,6 @@ module.exports = (arg) => {
     shelljs.exec(`${openExe} ${fileName}`)
   }
 
-  shelljs.exec(`${nodemon} -q --watch "${fileName}" --exec "node ${fileName}"`)
+  await execFileSync(`${nodeBin('nodemon', './')} -q --watch "${fileName}" --exec "node ${fileName}"`)
 }
 

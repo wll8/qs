@@ -1,11 +1,18 @@
 const fs = require('fs')
 const http = require('http')
-const shelljs = require('shelljs')
 const path = require('path')
+const child_process = require('child_process')
 const os = require('os')
 
+const [arg1, ...argv] = process.argv.slice(2)
+if(arg1 === 'getArgv_json') {console.log(JSON.stringify(argv, null, 2))}
+if(arg1 === 'getArgv_line') {console.log(argv.join(' '))}
 
-function getRes (url, is_down = false) {
+function pathAbs(addr) {
+  return path.join(__dirname, addr)
+}
+
+function getRes(url, is_down = false) {
   // Obtain url from res.
   return new Promise((resolve, reject) => {
     http.get(url, res => {
@@ -59,15 +66,33 @@ function dateFormater(formater, t) { // Formatting time
     .replace(/ss/g, (s < 10 ? '0' : '') + s)
 }
 
-const nodeBin = {
-  // cnpm: `node ${path.join(__dirname, `/node_modules/cnpm/bin/cnpm`)}`,
-  nodemon: `node ${path.join(__dirname, `/node_modules/nodemon/bin/nodemon.js`)}`,
-  // json
-  // http-server
-  // qrcode-terminal
+function nodeBin(cli, dir = './other/') {
+  const binObj = {}
+  const dependencies = require(pathAbs(`${dir}package.json`)).dependencies
+  for (const pkgName in dependencies) {
+    if (dependencies.hasOwnProperty(pkgName)) {
+      const package = require(pathAbs(`${dir}node_modules/${pkgName}/package.json`))
+      const pkgBin = package.bin
+       if(typeof(pkgBin) === 'string') {
+         binObj[package.name] = pkgBin
+         binObj[package.name + '_pkgName'] = pkgName
+       }
+       if(typeof(pkgBin) === 'object') {
+         for (const key2 in pkgBin) {
+           if (pkgBin.hasOwnProperty(key2)) {
+             binObj[key2] = pkgBin[key2]
+             binObj[key2 + '_pkgName'] = pkgName
+           }
+         }
+       }
+    }
+  }
+  const pkgName = binObj[cli + '_pkgName']
+  return pkgName && pathAbs(`${dir}/node_modules/${pkgName}/${binObj[cli]}`)
 }
 
 function createFileOrDir(filepath, str) { // Create file. If there is `/` after the path, it is considered a directory.
+  const shelljs = require('shelljs')
   if(filepath.match(/\/$/)) { // Create directory
     shelljs.mkdir('-p', filepath)
   } else { // Create directory and file
@@ -99,13 +124,14 @@ function deepSet(obj, path, value) {
 }
 
 const cfg = {
+  pathAbs: pathAbs('./config.json'),
   get(path) {
-    const cfg = require('./config.json')
+    const cfg = require(this.pathAbs)
     return path ? deepGet(cfg, path) : cfg
   },
   set(path, value) {
-    const newCfg = deepSet(require('./config.json'), path, value)
-    fs.writeFileSync('./config.json', JSON.stringify(newCfg, null, 2), 'utf-8')
+    const newCfg = deepSet(require(this.pathAbs), path, value)
+    fs.writeFileSync(this.pathAbs, JSON.stringify(newCfg, null, 2), 'utf-8')
     return newCfg
   }
 }
@@ -123,6 +149,33 @@ function isChina() {
   }
 }
 
+function execFileSync(cmd, cwd = pathAbs('./'), option = {stdio: 'inherit'}) {
+  return new Promise(async (resolve, reject) => {
+    const {stdout} = await exec(`node ${pathAbs('./util.js')} getArgv_json ${cmd}`)
+    const [arg1, ...argv] = JSON.parse(stdout)
+    child_process.execFileSync(arg1, argv, {
+      cwd,
+      ...option
+    })
+    resolve()
+  })
+  // child_process.exec(`node ${pathAbs('./util.js')} getArgv_json ${cmd}`, (error, stdout, stderr) => {
+  //   const [arg1, ...argv] = JSON.parse(stdout)
+  //   child_process.execFileSync(arg1, argv, {
+  //     cwd,
+  //     ...option
+  //   })
+  // })
+}
+
+function exec(cmd) {
+  return new Promise((resolve, reject) => {
+    child_process.exec(cmd, (error, stdout, stderr) => {
+      resolve({error, stdout, stderr})
+    });
+  })
+}
+
 
 module.exports = {
   cfg,
@@ -130,4 +183,6 @@ module.exports = {
   createFileOrDir,
   nodeBin,
   isChina,
+  pathAbs,
+  execFileSync,
 }

@@ -6,11 +6,18 @@ const log = console.log
 
 new Promise(async () => {
   const html = await get_res('https://show.freess.info/')
-  const ssList = ((await getHtmlSrInfo(html)) || []).filter(item => item.password && item.port)
-  // console.log('ssList', ssList)
+  let ssList = ((await getHtmlSrInfo(html)) || []).filter(item => item.password && item.port)
+  // log('ssList', ssList)
+  ssList = [ssList[parseInt(Math.random() * ssList.length, 10)]]
   ssList.forEach(item => {
     delete item.img
-    console.log(item)
+    log(`
+      url: ${item.url}
+      ip: ${item.ip}
+      port: ${item.port}
+      password: ${item.password}
+      method: ${item.method}
+    `.split('\n').map(item => item.trim()).join('\n'))
     qrcodeTerminal.generate(item.url, {small: true})
   })
 })
@@ -86,16 +93,16 @@ function srBase64pngDecode(srBase64png, cb) {
       let decodeQR = new qrcodeReader();
       decodeQR.callback = function (errorWhenDecodeQR, result) {
         if (result) {
-          console.log('二维码内容', result.result);  // 结果
+          // log('二维码内容', result.result);  // 结果
           cb(result.result)
         } else {
-          console.log('解码二维码错误')
+          log('解码二维码错误')
           cb('')
         }
       };
       decodeQR.decode(image.bitmap);
     } else {
-      console.log('渲染图片错误')
+      log('渲染图片错误')
     }
   });
 }
@@ -137,8 +144,8 @@ function srDecode(url) {
   } else if (url.startsWith('ss://')) {
     return ssDecode(url)
   } else if (url === '') {
-    console.log('地址为空')
+    log('地址为空')
   } else {
-    console.log('地址错误')
+    log('地址错误')
   }
 }
