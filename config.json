@@ -1,5 +1,11 @@
 {
   "openExe": "code",
   "moduleManage": "",
-  "isChina": ""
+  "defaultOther": [
+    "shx",
+    "nodemon",
+    "json",
+    "http-server",
+    "fkill-cli"
+  ]
 }

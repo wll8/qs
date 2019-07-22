@@ -3,12 +3,16 @@
 const fs = require('fs')
 const path = require('path')
 const child_process = require('child_process')
-const util = require('./util.js')
-const {execFileSync, pathAbs, nodeBin} = util
+const {
+  execFileSync,
+  pathAbs,
+  nodeBin,
+  cfg,
+} = require('./util.js')
 
 ;(async () => {
-  const moduleManage =  util.cfg.get('moduleManage') || ((await exec('cnpm -v')).error ? 'npm' : 'cnpm')
-  util.cfg.set('moduleManage', moduleManage)
+  const moduleManage =  cfg.get().moduleManage || ((await exec('cnpm -v')).error ? 'npm' : 'cnpm')
+  cfg.set('moduleManage', moduleManage)
   const [arg1, ...argMore] = process.argv.slice(2)
   const hasModules = fs.existsSync(path.join(__dirname, 'node_modules'))
   if( (arg1 === 'init') && !argMore.length && !hasModules ) {
@@ -24,7 +28,6 @@ const {execFileSync, pathAbs, nodeBin} = util
 
   const program = require('commander')
   const js = require('./core/js.js')
-  const init = require('./init.js')
 
   const {log} = console
 
@@ -45,12 +48,21 @@ const {execFileSync, pathAbs, nodeBin} = util
     })
 
   program
+    .command('cfg')
+    .description('config')
+    .option('--json [keyVal]', 'View or change configuration')
+    .option('--jsonReset', 'Reset to default configuration')
+    .action((arg) => {
+      cleanArgs(arg, require('./cfg.js'))
+    })
+
+  program
     .command('init')
     .description('Initializer')
     .option('-e, --extend', 'Function of Initialization Extendsion')
     .option('-o, --other', 'Initialize other functions')
     .action((arg) => {
-      cleanArgs(arg, init)
+      cleanArgs(arg, require('./init.js'))
     })
 
   program.on('--help', () => {
@@ -126,13 +138,18 @@ function camelize (str) { // Conversion of horizontal lines to humps
 function cleanArgs (obj, cb) { // Options for paraing user input
   const args = {}
   obj.options && obj.options.forEach(o => {
-    const key = camelize(o.long.replace(/^--/, ''))
+    const long = o.long.replace(/^--/, '')
+    const key = camelize(long)
     if (typeof obj[key] !== 'function' && typeof obj[key] !== 'undefined') {
-      args[key] = obj[key]
+      args[long] = obj[key]
     }
   })
   if(JSON.stringify(args) !== '{}') {
-    cb(args)
+    if(cb) {
+      cb(args)
+    } else {
+      return args
+    }
   }
 }
 

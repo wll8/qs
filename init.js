@@ -1,7 +1,7 @@
 const shelljs = require('shelljs')
 const pathAbs = path => require('path').join(__dirname, path)
 const util = require('./util.js')
-const {execFileSync} = util
+const {execFileSync, cfg} = util
 const path = require('path')
 
 module.exports = async (arg) => {
@@ -11,13 +11,7 @@ module.exports = async (arg) => {
     installFunction = ['ss']
   }
   if(arg.other) {
-    const packages = [
-      'shx',
-      'nodemon',
-      'json',
-      'http-server',
-      'fkill-cli',
-    ]
+    const packages = cfg.get().defaultOther
     await execFileSync(`${moduleManage} i -S ${packages.join(' ')}`, pathAbs('./other/'))
   }
 
