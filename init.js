@@ -5,11 +5,8 @@ const {execFileSync, cfg} = util
 const path = require('path')
 
 module.exports = async (arg) => {
-  const {moduleManage} = util.cfg.get()
-  let installFunction = []
-  if(arg.extend) {
-    installFunction = ['ss']
-  }
+  const {moduleManage, defaultExtend} = util.cfg.get()
+  let installFunction = arg.extend ? defaultExtend : []
   if(arg.other) {
     const packages = cfg.get().defaultOther
     await execFileSync(`${moduleManage} i -S ${packages.join(' ')}`, pathAbs('./other/'))

@@ -8,18 +8,19 @@ const {
   pathAbs,
   nodeBin,
   cfg,
+  hasModules,
+  execAsync,
 } = require('./util.js')
 
 ;(async () => {
-  const moduleManage =  cfg.get().moduleManage || ((await exec('cnpm -v')).error ? 'npm' : 'cnpm')
+  const moduleManage =  cfg.get().moduleManage || ((await execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
   cfg.set('moduleManage', moduleManage)
   const [arg1, ...argMore] = process.argv.slice(2)
-  const hasModules = fs.existsSync(path.join(__dirname, 'node_modules'))
-  if( (arg1 === 'init') && !argMore.length && !hasModules ) {
+  if( (arg1 === 'init') && !argMore.length && !hasModules('./') ) {
     await execFileSync(`${moduleManage} i`)
   }
 
-  if(!hasModules) {
+  if(!hasModules('./')) {
     console.log('qs init')
     return
   }
@@ -50,8 +51,9 @@ const {
   program
     .command('cfg')
     .description('config')
-    .option('--json [keyVal]', 'View or change configuration')
+    .option('--json [key=val]', 'View or change configuration')
     .option('--jsonReset', 'Reset to default configuration')
+    .option('--delModouse', 'Delete all node_modules')
     .action((arg) => {
       cleanArgs(arg, require('./cfg.js'))
     })
@@ -75,50 +77,13 @@ const {
     .command('*')
     .description('More features')
     .action(async function(){
-      const cmdFile = {
+      const extendFile = {
         ss: './extend/ss/ss.js',
       }[arg1]
-      if(cmdFile) { // 扩展功能
-        require(pathAbs(cmdFile))
-      } else { // 其他功能
-        const cmd = `node ${nodeBin(arg1)} ${argMore.join(' ')}`
-
-        // 不优雅的判断管道判断
-        const chunk = await new Promise((resolve, reject) => {
-          process.stdin.on('data', chunk => {
-            resolve(String(chunk))
-          })
-          setTimeout(() => resolve(undefined), 10)
-        })
-        if(chunk) {
-          const argStr = argMore.map(item => `'${item}'`).join(' ')
-          const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBin(arg1)} ${argStr}`
-          const {error, stdout, stderr} = await exec(cmd)
-          console.log(stdout)
-        } else {
-          await execFileSync(cmd)
-          process.exit()
-        }
-
-        // try {
-        //   // 有管道数据时
-        //   let cdata
-        //   process.stdin.on('data', async (chunk) => {
-        //     cdata = String(chunk)
-        //     const argStr = argMore.map(item => `'${item}'`).join(' ')
-        //     const cmd = `echo '${String(chunk).replace(/\n/g, "")}' | node ${nodeBin(arg1)} ${argStr}`
-        //     const {error, stdout, stderr} = await exec(cmd)
-        //     console.log(stdout)
-        //   })
-        //   setTimeout(() => {
-        //     if(!cdata) {
-        //       execFileSync(cmd)
-        //       process.exit()
-        //     }
-        //   }, 10);
-        // } catch (error) {
-        //   console.log('err', error)
-        // }
+      if(extendFile) { // extend function
+        hasModules(`./extend/${arg1}/`) ? require(pathAbs(extendFile)) : console.log('qs init -e')
+      } else { // other function
+        hasModules('./other/') ? require(pathAbs('./other/index.js'))({arg1, argMore}) : console.log('qs init -o')
       }
 
     })
@@ -131,15 +96,11 @@ const {
 
 })();
 
-function camelize (str) { // Conversion of horizontal lines to humps
-  return str.replace(/-(\w)/g, (_, c) => c ? c.toUpperCase() : '')
-}
-
 function cleanArgs (obj, cb) { // Options for paraing user input
   const args = {}
   obj.options && obj.options.forEach(o => {
     const long = o.long.replace(/^--/, '')
-    const key = camelize(long)
+    const key = long.replace(/-(\w)/g, (_, c) => c ? c.toUpperCase() : '')
     if (typeof obj[key] !== 'function' && typeof obj[key] !== 'undefined') {
       args[long] = obj[key]
     }
@@ -157,10 +118,3 @@ function list(val) {
   return val.split(',').filter(item => item)
 }
 
-function exec(cmd) {
-  return new Promise((resolve, reject) => {
-    child_process.exec(cmd, (error, stdout, stderr) => {
-      resolve({error, stdout, stderr})
-    });
-  })
-}

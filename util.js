@@ -149,9 +149,13 @@ function isChina() {
   }
 }
 
+function hasModules(dir) {
+  return fs.existsSync(pathAbs(`./${dir}/node_modules`))
+}
+
 function execFileSync(cmd, cwd = pathAbs('./'), option = {stdio: 'inherit'}) {
   return new Promise(async (resolve, reject) => {
-    const {stdout} = await exec(`node ${pathAbs('./util.js')} getArgv_json ${cmd}`)
+    const {stdout} = await execAsync(`node ${pathAbs('./util.js')} getArgv_json ${cmd}`)
     const [arg1, ...argv] = JSON.parse(stdout)
     child_process.execFileSync(arg1, argv, {
       cwd,
@@ -159,16 +163,9 @@ function execFileSync(cmd, cwd = pathAbs('./'), option = {stdio: 'inherit'}) {
     })
     resolve()
   })
-  // child_process.exec(`node ${pathAbs('./util.js')} getArgv_json ${cmd}`, (error, stdout, stderr) => {
-  //   const [arg1, ...argv] = JSON.parse(stdout)
-  //   child_process.execFileSync(arg1, argv, {
-  //     cwd,
-  //     ...option
-  //   })
-  // })
 }
 
-function exec(cmd) {
+function execAsync(cmd) {
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, (error, stdout, stderr) => {
       resolve({error, stdout, stderr})
@@ -185,4 +182,6 @@ module.exports = {
   isChina,
   pathAbs,
   execFileSync,
+  hasModules,
+  execAsync,
 }
