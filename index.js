@@ -10,11 +10,26 @@ const {
   cfg,
   hasModules,
   execAsync,
+  createFileOrDir,
+  dateFormater,
 } = require('./util.js')
 
 ;(async () => {
-  const moduleManage =  cfg.get().moduleManage || ((await execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
-  cfg.set('moduleManage', moduleManage)
+  let {moduleManage} = cfg.get()
+  if(!moduleManage) {
+    moduleManage = ((await execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
+    cfg.set('moduleManage', moduleManage)
+  }
+
+  {
+    const os = require('os')
+    let {dataDir} = cfg.get()
+    if(!dataDir) {
+      dataDir = `${os.homedir()}/.qs/`
+      cfg.set('dataDir', dataDir)
+    }
+  }
+
   const [arg1, ...argMore] = process.argv.slice(2)
   if( (arg1 === 'init') && !argMore.length && !hasModules('./') ) {
     await execFileSync(`${moduleManage} i`)
@@ -46,6 +61,20 @@ const {
     .option('-m, --module <moduleName,moduleName2...>', 'Add and automatically install dependencies, separating multiple with commas', list)
     .action((arg) => {
       cleanArgs(arg, js)
+    })
+
+  program
+    .command('html')
+    .action(async (arg) => {
+      const shelljs = require('shelljs')
+      // const html = fs.readFileSync(pathAbs('./template/html/html.html')).toString()
+      const date = dateFormater('YYYYMMDDHHmmss', new Date())
+      const dataDir = `${cfg.get().dataDir}/${date}/`
+      shelljs.mkdir('-p', dataDir)
+      shelljs.cp('-r', pathAbs('./template/html/*'), dataDir)
+      shelljs.exec(`code ${dataDir}`)
+      await execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDir)
+      console.log('html', dataDir)
     })
 
   program

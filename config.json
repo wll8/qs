@@ -6,6 +6,7 @@
     "nodemon",
     "json",
     "http-server",
+    "browser-sync",
     "fkill-cli"
   ],
   "defaultExtend": [
