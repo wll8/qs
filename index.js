@@ -78,13 +78,15 @@ const {
     })
 
   program
-    .command('cfg')
-    .description('config')
-    .option('--json [key=val]', 'View or change configuration')
-    .option('--jsonReset', 'Reset to default configuration')
-    .option('--delModouse', 'Delete all node_modules')
+    .command('admin')
+    .description('admin')
+    .option('-c --config <key[=val]>', 'View or change configuration')
+    .option('--resetConfig', 'Reset to default configuration')
+    .option('--deleteNodeModouse', 'Delete all node_modules')
+    // .option('-t --task <cmd[=arg]>', '管理通过 qs 创建的任务列表')
+    .option('-t --task', '管理通过 qs 创建的任务列表')
     .action((arg) => {
-      cleanArgs(arg, require('./cfg.js'))
+      cleanArgs(arg, require('./admin.js')) || arg.outputHelp()
     })
 
   program
@@ -135,11 +137,10 @@ function cleanArgs (obj, cb) { // Options for paraing user input
     }
   })
   if(JSON.stringify(args) !== '{}') {
-    if(cb) {
-      cb(args)
-    } else {
-      return args
-    }
+    cb && cb(args)
+    return args
+  } else {
+    return undefined
   }
 }
 
