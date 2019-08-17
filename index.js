@@ -14,6 +14,8 @@ const {
   dateFormater,
 } = require('./util.js')
 
+const [ARG1, ...ARG_MORE] = process.argv.slice(2)
+
 ;(async () => {
   let {moduleManage} = cfg.get()
   if(!moduleManage) {
@@ -30,8 +32,7 @@ const {
     }
   }
 
-  const [arg1, ...argMore] = process.argv.slice(2)
-  if( (arg1 === 'init') && !argMore.length && !hasModules('./') ) {
+  if( (ARG1 === 'init') && !ARG_MORE.length && !hasModules('./') ) {
     await execFileSync(`${moduleManage} i`)
   }
 
@@ -44,8 +45,12 @@ const {
 
   const program = require('commander')
   const js = require('./core/js.js')
+  const task = require('./task.js')
 
   const {log} = console
+
+  await task({cmd: 'saveProcess'})
+  await task({cmd: 'updateList'})
 
   program
     .version(require('./package').version)
@@ -83,8 +88,7 @@ const {
     .option('-c --config <key[=val]>', 'View or change configuration')
     .option('--resetConfig', 'Reset to default configuration')
     .option('--deleteNodeModouse', 'Delete all node_modules')
-    // .option('-t --task <cmd[=arg]>', '管理通过 qs 创建的任务列表')
-    .option('-t --task', '管理通过 qs 创建的任务列表')
+    .option('-t --task [cmd[=arg]]', '管理通过 qs 创建的任务列表')
     .action((arg) => {
       cleanArgs(arg, require('./admin.js')) || arg.outputHelp()
     })
@@ -110,18 +114,18 @@ const {
     .action(async function(){
       const extendFile = {
         ss: './extend/ss/ss.js',
-      }[arg1]
+      }[ARG1]
       if(extendFile) { // extend function
-        hasModules(`./extend/${arg1}/`) ? require(pathAbs(extendFile)) : console.log('qs init -e')
+        hasModules(`./extend/${ARG1}/`) ? require(pathAbs(extendFile)) : console.log('qs init -e')
       } else { // other function
-        hasModules('./other/') ? require(pathAbs('./other/index.js'))({arg1, argMore}) : console.log('qs init -o')
+        hasModules('./other/') ? require(pathAbs('./other/index.js'))({arg1: ARG1, argMore: ARG_MORE}) : console.log('qs init -o')
       }
 
     })
 
   program.parse(process.argv)
 
-  if (arg1 === undefined) {
+  if (ARG1 === undefined) {
     program.outputHelp()
   }
 

@@ -1,7 +1,6 @@
 const shelljs = require('shelljs')
-const pathAbs = path => require('path').join(__dirname, path)
 const util = require('./util.js')
-const {execFileSync, cfg} = util
+const {execFileSync, cfg, pathAbs} = util
 const path = require('path')
 
 module.exports = async (arg) => {

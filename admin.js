@@ -1,6 +1,11 @@
 const fs = require('fs')
 const shelljs = require('shelljs')
-const {pathAbs, cfg} = require('./util.js')
+const {
+  pathAbs,
+  cfg,
+  execAsync,
+  execFileSync,
+} = require('./util.js')
 
 module.exports = async (arg) => {
   const {
@@ -46,5 +51,21 @@ module.exports = async (arg) => {
       shelljs.rm('-rf', pathAbs('./other/node_modules'))
       cfg.get().defaultExtend.forEach(dir => shelljs.rm('-rf', pathAbs(`./extend/${dir}/node_modules`)))
     }
+  }
+
+  { // task
+    const taskFn = require('./task.js')
+    if(task === true) { // 查看所有任务记录
+      const taskList = await taskFn({cmd: 'get'})
+      taskList.forEach(item => {delete item.ppid; delete item.uid})
+      console.log(taskList)
+    } else if(task) {
+      const [, key, val] = task.match(/(.+?)=(.*)/) || [, task]
+      console.log(key, val)
+      key === 'start' && taskFn({cmd: 'start', arg: +val}); // 启动任务
+      key === 'stop' && taskFn({cmd: 'stop', arg: +val}); // 停止任务
+      // key === 'filter' && taskFn({cmd: 'start', arg: val}); // todo: 以 key 正则匹配过滤任务
+    }
+
   }
 }

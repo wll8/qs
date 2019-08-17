@@ -3,6 +3,7 @@ const path = require('path')
 const os = require('os')
 const shelljs = require('shelljs')
 const util = require('../util.js')
+const task = require('../task.js')
 const {
   dateFormater,
   createFileOrDir,
@@ -64,7 +65,11 @@ module.exports = async (arg) => {
   } else {
     shelljs.exec(`${openExe} ${fileName}`)
   }
+  const cmd = `${nodeBin('nodemon', './')} -q --watch "${fileName}" --exec "node ${fileName}"`
+  await task({cmd: 'updateOne', arg: {data: {
+    rawCmd: cmd
+  }}})
 
-  await execFileSync(`${nodeBin('nodemon', './')} -q --watch "${fileName}" --exec "node ${fileName}"`)
+  await execFileSync(cmd)
 }
 
