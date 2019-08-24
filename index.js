@@ -45,12 +45,20 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
 
   const program = require('commander')
   const js = require('./core/js.js')
-  const task = require('./task.js')
 
   const {log} = console
 
-  await task({cmd: 'saveProcess'})
-  await task({cmd: 'updateList'})
+  {
+    if( // 记录任务的条件
+      ARG1 // 存在参数
+      && !ARG1.match(/^-/) // 这个参数不是选项
+      && !['init', 'admin'].includes(ARG1) // 不包含这些参数
+    ) {
+      const Task = require('./task.js')
+      const task = await new Task()
+      await task.saveProcess()
+    }
+  }
 
   program
     .version(require('./package').version)

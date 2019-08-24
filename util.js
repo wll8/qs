@@ -153,7 +153,7 @@ function hasModules(dir) {
   return fs.existsSync(pathAbs(`./${dir}/node_modules`))
 }
 
-function execFileSync(cmd, cwd = pathAbs('./'), option = {stdio: 'inherit'}) {
+function execFileSync(cmd, cwd = pathAbs('./'), option = {stdio: 'inherit'}) { // 可以实时输出
   return new Promise(async (resolve, reject) => {
     const {stdout} = await execAsync(`node ${pathAbs('./util.js')} getArgv_json ${cmd}`)
     const [arg1, ...argv] = JSON.parse(stdout)
@@ -165,7 +165,7 @@ function execFileSync(cmd, cwd = pathAbs('./'), option = {stdio: 'inherit'}) {
   })
 }
 
-function execAsync(cmd) {
+function execAsync(cmd) { // 同步运行, 不能实时输出
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, (error, stdout, stderr) => {
       resolve({error, stdout, stderr})

@@ -3,10 +3,11 @@ const path = require('path')
 const os = require('os')
 const shelljs = require('shelljs')
 const util = require('../util.js')
-const task = require('../task.js')
+const Task = require('../task.js')
 const {
   dateFormater,
   createFileOrDir,
+  execAsync,
   execFileSync,
   pathAbs,
   nodeBin,
@@ -38,14 +39,9 @@ coffee: `\
 `,
 }
 
-
 module.exports = async (arg) => {
-  // process.stdin.resume();
-  // process.stdin.setEncoding('utf8');
-  // process.stdin.on('data', function(data) {
-  //   console.log('data', data);
-  //   process.stdout.write(data);
-  // });
+  const task = await new Task()
+
 
   const type = arg.fileName.replace(/.*\.(.*)$/, '$1') // Get the file name suffix
   const date = dateFormater('YYYYMMDDHHmmss', new Date())
@@ -66,9 +62,9 @@ module.exports = async (arg) => {
     shelljs.exec(`${openExe} ${fileName}`)
   }
   const cmd = `${nodeBin('nodemon', './')} -q --watch "${fileName}" --exec "node ${fileName}"`
-  await task({cmd: 'updateOne', arg: {data: {
+  await task.updateOne({data: {
     rawCmd: cmd
-  }}})
+  }})
 
   await execFileSync(cmd)
 }

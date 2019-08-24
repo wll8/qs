@@ -54,16 +54,18 @@ module.exports = async (arg) => {
   }
 
   { // task
-    const taskFn = require('./task.js')
+    const Task = require('./task.js')
+    const taskFn = await new Task()
+    await taskFn.updateList()
     if(task === true) { // 查看所有任务记录
-      const taskList = await taskFn({cmd: 'get'})
+      const taskList = await taskFn.get()
       taskList.forEach(item => {delete item.ppid; delete item.uid})
       console.log(taskList)
     } else if(task) {
       const [, key, val] = task.match(/(.+?)=(.*)/) || [, task]
       console.log(key, val)
-      key === 'start' && taskFn({cmd: 'start', arg: +val}); // 启动任务
-      key === 'stop' && taskFn({cmd: 'stop', arg: +val}); // 停止任务
+      key === 'start' && taskFn.start(+val) // 启动任务
+      key === 'stop' && taskFn.stop(+val) // 停止任务
       // key === 'filter' && taskFn({cmd: 'start', arg: val}); // todo: 以 key 正则匹配过滤任务
     }
 
