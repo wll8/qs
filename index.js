@@ -2,16 +2,19 @@
 // -- init global var --
 global.QS = { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
   SRC: __dirname,
+  QS_PATH: function (addr) {
+    return path.join(__dirname, addr)
+  }
 }
 // -- init global var --
 
 let RUN // 运行方法
+const QS_PATH = global.QS.QS_PATH // 获取相对于 qs 的路径
 
 const fs = require('fs')
 const path = require('path')
 const child_process = require('child_process')
 const {
-  qsPath,
   nodeBin,
   cfg,
   hasModules,
@@ -45,6 +48,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
 
   // 初始化命令
   if( (ARG1 === 'init') && !ARG_MORE.length && !hasModules('./') ) {
+    console.log('moduleManage', moduleManage)
     await RUN.execFileSync(`${moduleManage} i`)
   }
 
@@ -92,11 +96,11 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .command('html')
     .action(async (arg) => {
       const shelljs = require('shelljs')
-      // const html = fs.readFileSync(qsPath('./template/html/html.html')).toString()
+      // const html = fs.readFileSync(QS_PATH('./template/html/html.html')).toString()
       const date = dateFormater('YYYYMMDDHHmmss', new Date())
       const dataDir = `${cfg.get().dataDir}/${date}/`
       shelljs.mkdir('-p', dataDir)
-      shelljs.cp('-r', qsPath('./template/html/*'), dataDir)
+      shelljs.cp('-r', QS_PATH('./template/html/*'), dataDir)
       shelljs.exec(`code ${dataDir}`)
       await RUN.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDir)
       console.log('html', dataDir)
@@ -136,9 +140,9 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
         ss: './extend/ss/ss.js',
       }[ARG1]
       if(extendFile) { // extend function
-        hasModules(`./extend/${ARG1}/`) ? require(qsPath(extendFile)) : console.log('qs init -e')
+        hasModules(`./extend/${ARG1}/`) ? require(QS_PATH(extendFile)) : console.log('qs init -e')
       } else { // other function
-        hasModules('./other/') ? require(qsPath('./other/index.js'))({arg1: ARG1, argMore: ARG_MORE}) : console.log('qs init -o')
+        hasModules('./other/') ? require(QS_PATH('./other/index.js'))({arg1: ARG1, argMore: ARG_MORE}) : console.log('qs init -o')
       }
 
     })

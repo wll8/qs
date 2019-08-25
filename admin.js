@@ -1,9 +1,9 @@
 const fs = require('fs')
 const shelljs = require('shelljs')
 const {
-  qsPath,
   cfg,
 } = require('./util/index.js')
+const QS_PATH = global.QS.QS_PATH
 
 module.exports = async (arg) => {
   const {
@@ -41,13 +41,13 @@ module.exports = async (arg) => {
           'ss',
         ],
       }
-      fs.writeFileSync(qsPath('./config.json'), JSON.stringify(defaultCfg, null, 2), 'utf8')
+      fs.writeFileSync(QS_PATH('./config.json'), JSON.stringify(defaultCfg, null, 2), 'utf8')
       console.log(defaultCfg)
     }
     if(deleteNodeModouse === true) { // Remove installed dependencies
-      shelljs.rm('-rf', qsPath('./node_modules'))
-      shelljs.rm('-rf', qsPath('./other/node_modules'))
-      cfg.get().defaultExtend.forEach(dir => shelljs.rm('-rf', qsPath(`./extend/${dir}/node_modules`)))
+      shelljs.rm('-rf', QS_PATH('./node_modules'))
+      shelljs.rm('-rf', QS_PATH('./other/node_modules'))
+      cfg.get().defaultExtend.forEach(dir => shelljs.rm('-rf', QS_PATH(`./extend/${dir}/node_modules`)))
     }
   }
 

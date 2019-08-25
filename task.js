@@ -1,4 +1,5 @@
 const fs = require('fs')
+const QS_PATH = global.QS.QS_PATH
 
 const psList = async () => {
   try {
@@ -11,11 +12,10 @@ const psList = async () => {
   }
 }
 const {
-  qsPath,
   dateFormater,
   cfg,
 } = require('./util/index.js')
-const taskPath = qsPath('./task.json')
+const taskPath = QS_PATH('./task.json')
 
 class Task {
   constructor () {
@@ -31,7 +31,7 @@ class Task {
         const parentProcessInfo = psListData.find(item => item.pid === processInfo.ppid)
         const isAdmin = async cmd => (
           JSON.parse(
-            (await this.RUN.execAsync(`node ${qsPath('./util/index.js')} getArgv_json ${cmd}`)).stdout
+            (await this.RUN.execAsync(`node ${QS_PATH('./util/getArgv.js')} getArgv_json ${cmd}`)).stdout
           )[2] === 'admin'
         )
         const isProcessAdmin = await isAdmin(processInfo.cmd)
@@ -107,7 +107,7 @@ class Task {
   async updateList() { // 刷新任务列表信息
     const psListData = this.PSLIST
     let taskList = this.readTaskList()
-    taskList = taskList.splice(- (cfg.get().taskRecord || 3)) // 保留多少条任务记录
+    taskList = taskList.splice(- (Number(cfg.get().taskRecord) || 3)) // 保留多少条任务记录
     taskList.forEach((tItem, index) => {
       const psData = psListData.find(psItem => ( // todo 匹配方式可能出现错误
         psItem.uid === tItem.uid

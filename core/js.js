@@ -5,7 +5,6 @@ const util = require('../util/index.js')
 const {
   dateFormater,
   createFileOrDir,
-  qsPath,
   nodeBin,
 } = util
 
