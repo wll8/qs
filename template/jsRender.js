@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const os = require('os')
 const QS_PATH = global.QS.QS_PATH
-const util = require('../util/index.js')
+const util = require(QS_PATH('./util/index.js'))
 const {
   dateFormater,
   createFileOrDir,

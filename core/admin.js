@@ -1,9 +1,9 @@
+const QS_PATH = global.QS.QS_PATH
 const fs = require('fs')
 const shelljs = require('shelljs')
 const {
   cfg,
-} = require('./util/index.js')
-const QS_PATH = global.QS.QS_PATH
+} = require(QS_PATH('./util/index.js'))
 
 module.exports = async (arg) => {
   const {
@@ -52,7 +52,7 @@ module.exports = async (arg) => {
   }
 
   { // task
-    const Task = require('./task.js')
+    const Task = require(QS_PATH('./util/task.js'))
     const taskFn = await new Task()
     await taskFn.updateList()
     if(task === true) { // 查看所有任务记录

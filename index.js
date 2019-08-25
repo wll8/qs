@@ -19,14 +19,14 @@ const {
   cfg,
   hasModules,
   dateFormater,
-} = require('./util/index.js')
+} = require(QS_PATH('./util/index.js'))
 
 const [ARG1, ...ARG_MORE] = process.argv.slice(2)
 
 ;(async () => {
 
   { // 初始化运行方法
-    const Run = require('./util/run.js')
+    const Run = require(QS_PATH('./util/run.js'))
     global.QS.RUN = await new Run()
     RUN = global.QS.RUN
   }
@@ -67,7 +67,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
       && !ARG1.match(/^-/) // 这个参数不是选项
       && !['init', 'admin'].includes(ARG1) // 不包含这些参数
     ) {
-      const Task = require('./task.js')
+      const Task = require(QS_PATH('./util/task.js'))
       global.QS.TASK = await new Task()
       const TASK = QS.TASK
       await TASK.saveProcess()
@@ -75,7 +75,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
   }
 
   program
-    .version(require('./package').version)
+    .version(require(QS_PATH('./package')).version)
     .usage('<command> [options]')
 
   program
@@ -91,7 +91,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .option('--local', '保存 cdn 到本地')
     .action((arg) => {
       const argRes = cleanArgs(arg)
-      argRes.template ? require('./tp.js')(argRes) : arg.outputHelp()
+      argRes.template ? require(QS_PATH('./core/tp.js'))(argRes) : arg.outputHelp()
     })
 
   program
@@ -116,7 +116,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .option('--deleteNodeModouse', 'Delete all node_modules')
     .option('-t --task [cmd[=arg]]', '管理通过 qs 创建的任务列表')
     .action((arg) => {
-      cleanArgs(arg, require('./admin.js')) || arg.outputHelp()
+      cleanArgs(arg, require(QS_PATH('./core/admin.js'))) || arg.outputHelp()
     })
 
   program
@@ -125,7 +125,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .option('-e, --extend', 'Function of Initialization Extendsion')
     .option('-o, --other', 'Initialize other functions')
     .action((arg) => {
-      cleanArgs(arg, require('./init.js'))
+      cleanArgs(arg, require(QS_PATH('./core/init.js')))
     })
 
   program.on('--help', () => {

@@ -1,7 +1,8 @@
+const QS_PATH = global.QS.QS_PATH
 const {
   execFileSync,
   execAsync,
-} = require('../util/index.js')
+} = require(QS_PATH('./util/index.js'))
 
 
 class Run {

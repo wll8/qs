@@ -1,8 +1,9 @@
+const QS_PATH = global.QS.QS_PATH
 const {
   execFileSync,
   nodeBin,
   execAsync,
-} = require('./../util.js')
+} = require(QS_PATH('./util/index.js'))
 module.exports = async ({arg1, argMore}) => {
   const cmd = `node ${nodeBin(arg1)} ${argMore.join(' ')}`
   // 不优雅的判断管道判断

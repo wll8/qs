@@ -14,7 +14,7 @@ const psList = async () => {
 const {
   dateFormater,
   cfg,
-} = require('./util/index.js')
+} = require(QS_PATH('./util/index.js'))
 const taskPath = QS_PATH('./task.json')
 
 class Task {
@@ -69,7 +69,7 @@ class Task {
     this.writeTaskList(taskList)
   }
   stop(taskId) { // 停止任务
-    const treeKill = require('./util/treeKill.js')
+    const treeKill = require(QS_PATH('./util/treeKill.js'))
     treeKill(this.get(taskId).pid)
   }
   async start(taskId) { // 重启任务
@@ -91,7 +91,7 @@ class Task {
 
   }
   async runTaskIdCmd(taskId) { // 运行某个任务的 cmd 或 execList
-    const Run = require('./util/run.js')
+    const Run = require(QS_PATH('./util/run.js'))
     const RUN = await new Run()
     const {execList, cmd} = this.get(taskId)
     if(execList.length) {
