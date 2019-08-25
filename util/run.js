@@ -12,21 +12,11 @@ class Run {
   */
 
   constructor () {
-    return (async () => {
-      return this
-    })()
+    return this
   }
 
-  async execFileSync (cmd, arg = [], isSave = false) {
-    arg = typeof(arg) === 'object' ? arg : [arg]
-    isSave && this.save('execFileSync', cmd, arg)
-    return execFileSync(cmd, ...arg)
-  }
-
-  async execAsync (cmd, arg = [], isSave = false) {
-    isSave && this.save('execAsync', cmd, arg)
-    return execAsync(cmd, ...arg)
-  }
+  async execFileSync () {return this.mapFn('execFileSync', arguments)}
+  async execAsync () {return this.mapFn('execAsync', arguments)}
 
   async shelljsExec (cmd, arg = [], isSave = false) {
     const {exec: shelljsExec} = require('shelljs')
@@ -40,6 +30,17 @@ class Run {
     TASK.updateOne(null, {
       execList: (curTask.execList || []).concat({ method, cmd, arg, })
     })
+  }
+
+  mapFn(fnName, argList) {
+    const fnTable = {
+      execAsync,
+      execFileSync,
+    }
+    let [cmd, arg = [], isSave = false] = argList
+    arg = Array.isArray(arg) ? arg : [arg]
+    isSave && this.save(fnName, cmd, arg)
+    return fnTable[fnName](cmd, ...arg)
   }
 
 }

@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
+const QS_PATH = global.QS.QS_PATH
 const util = require('../util/index.js')
 const {
   dateFormater,
@@ -11,10 +12,8 @@ const {
 const {
   openExe,
   moduleManage,
+  dataDir,
 } = util.cfg.get()
-
-// Directory of resources
-const baseDir = `${os.homedir()}/.qs/js/`
 
 // Initialization template
 const template = {
@@ -36,10 +35,11 @@ coffee: `\
 module.exports = async (arg) => {
   const RUN = global.QS.RUN
   const type = arg.fileName.replace(/.*\.(.*)$/, '$1') // Get the file name suffix
-  const date = dateFormater('YYYYMMDDHHmmss', new Date())
-  const fileDir = baseDir + date + '/'
-  const fileName = fileDir + arg.fileName
-  console.log(fileName)
+  const date = dateFormater('YYYY_MM_DD_HH_mmss', new Date())
+  const fileDir = arg.directory ? QS_PATH([process.cwd(), arg.directory]) : `${dataDir}/js__${date}/`
+  const fileName = QS_PATH(fileDir + '/' + arg.fileName)
+
+  process.stdout.write(`fileName: ${fileName}\n`)
   createFileOrDir(fileName, template[type] || '')
 
   if(arg.module) {

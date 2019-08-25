@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // -- init global var --
 global.QS = { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
-  SRC: __dirname,
   QS_PATH: function (addr) {
-    return path.join(__dirname, addr)
+    const {normalize, resolve} = require('path')
+    addr = [__dirname].concat(Array.isArray(addr) ? addr : [addr])
+    return normalize(resolve(...addr))
   }
 }
 // -- init global var --
@@ -12,7 +13,6 @@ let RUN // 运行方法
 const QS_PATH = global.QS.QS_PATH // 获取相对于 qs 的路径
 
 const fs = require('fs')
-const path = require('path')
 const child_process = require('child_process')
 const {
   nodeBin,
@@ -48,7 +48,6 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
 
   // 初始化命令
   if( (ARG1 === 'init') && !ARG_MORE.length && !hasModules('./') ) {
-    console.log('moduleManage', moduleManage)
     await RUN.execFileSync(`${moduleManage} i`)
   }
 
@@ -80,16 +79,19 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .usage('<command> [options]')
 
   program
-    .command('js')
-    .description('Creating JS type applications')
+    .command('tp')
+    .description('Select a template to create a project')
+    .option('-n, --name <taskName>', 'Task Name, No repetition allowed')
+    .option('-t, --template <templateName>', 'Template type')
     .option('--openDir', 'Open the directory')
-    .option('-d, --directory [directoryName]', 'Specify folders', '.')
+    .option('-d, --directory <directoryName>', 'Specify folders (default: "{dataDir}/{template}__{dateFormater}/")')
     .option('-f, --fileName [fileName]', 'Specify a filename, Select template automatically according to suffix', 'index.js')
+    .option('-m, --module <moduleName,moduleName2...>', 'Add and automatically install dependencies, separating multiple with commas', list) // 如果是浏览器环境, 则从 cdn 查找并引用
     .option('--es5 [config]', 'Save and convert to Es5 file')
-    .option('-m, --module <moduleName,moduleName2...>', 'Add and automatically install dependencies, separating multiple with commas', list)
+    .option('--local', '保存 cdn 到本地')
     .action((arg) => {
-      const js = require('./core/js.js')
-      cleanArgs(arg, js)
+      const argRes = cleanArgs(arg)
+      argRes.template ? require('./tp.js')(argRes) : arg.outputHelp()
     })
 
   program
