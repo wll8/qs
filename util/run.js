@@ -18,6 +18,7 @@ class Run {
   }
 
   async execFileSync (cmd, arg = [], isSave = false) {
+    arg = typeof(arg) === 'object' ? arg : [arg]
     isSave && this.save('execFileSync', cmd, arg)
     return execFileSync(cmd, ...arg)
   }
