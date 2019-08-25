@@ -9,6 +9,7 @@
     "browser-sync",
     "fkill-cli"
   ],
+  "taskRecord": 99,
   "defaultExtend": [
     "ss"
   ]

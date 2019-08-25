@@ -1,18 +1,13 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const shelljs = require('shelljs')
-const util = require('../util.js')
-const Task = require('../task.js')
+const util = require('../util/index.js')
 const {
   dateFormater,
   createFileOrDir,
-  execAsync,
-  execFileSync,
-  pathAbs,
+  qsPath,
   nodeBin,
 } = util
-const { log } = console
 
 const {
   openExe,
@@ -40,32 +35,27 @@ coffee: `\
 }
 
 module.exports = async (arg) => {
-  const task = await new Task()
-
-
+  const RUN = global.QS.RUN
   const type = arg.fileName.replace(/.*\.(.*)$/, '$1') // Get the file name suffix
   const date = dateFormater('YYYYMMDDHHmmss', new Date())
   const fileDir = baseDir + date + '/'
   const fileName = fileDir + arg.fileName
-  log(fileName)
+  console.log(fileName)
   createFileOrDir(fileName, template[type] || '')
 
   if(arg.module) {
     const cmd = `${moduleManage} i -S ${arg.module.join(' ')}`
-    await execFileSync(cmd, fileDir)
+    await RUN.execFileSync(cmd, [fileDir], true)
   }
 
   if(arg.openDir) {
-    shelljs.exec(`${openExe} ${fileDir}`)
-    shelljs.exec(`${openExe} ${fileName}`)
+    await RUN.shelljsExec(`${openExe} ${fileDir}`, [], true)
+    await RUN.shelljsExec(`${openExe} ${fileName}`, [], true)
   } else {
-    shelljs.exec(`${openExe} ${fileName}`)
+    await RUN.shelljsExec(`${openExe} ${fileName}`, [], true)
   }
-  const cmd = `${nodeBin('nodemon', './')} -q --watch "${fileName}" --exec "node ${fileName}"`
-  await task.updateOne({data: {
-    rawCmd: cmd
-  }})
 
-  await execFileSync(cmd)
+  const cmd = `${nodeBin('nodemon', './')} -q --watch "${fileName}" --exec "node ${fileName}"`
+  await RUN.execFileSync(cmd, [], true)
 }
 

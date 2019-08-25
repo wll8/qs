@@ -8,8 +8,8 @@ const [arg1, ...argv] = process.argv.slice(2)
 if(arg1 === 'getArgv_json') {console.log(JSON.stringify(argv, null, 2))}
 if(arg1 === 'getArgv_line') {console.log(argv.join(' '))}
 
-function pathAbs(addr) {
-  return path.join(__dirname, addr)
+function qsPath(addr) {
+  return path.join(global.QS.SRC, addr)
 }
 
 function getRes(url, is_down = false) {
@@ -68,10 +68,10 @@ function dateFormater(formater, t) { // Formatting time
 
 function nodeBin(cli, dir = './other/') {
   const binObj = {}
-  const dependencies = require(pathAbs(`${dir}package.json`)).dependencies
+  const dependencies = require(qsPath(`${dir}package.json`)).dependencies
   for (const pkgName in dependencies) {
     if (dependencies.hasOwnProperty(pkgName)) {
-      const package = require(pathAbs(`${dir}node_modules/${pkgName}/package.json`))
+      const package = require(qsPath(`${dir}node_modules/${pkgName}/package.json`))
       const pkgBin = package.bin
        if(typeof(pkgBin) === 'string') {
          binObj[package.name] = pkgBin
@@ -88,7 +88,7 @@ function nodeBin(cli, dir = './other/') {
     }
   }
   const pkgName = binObj[cli + '_pkgName']
-  return pkgName && pathAbs(`${dir}/node_modules/${pkgName}/${binObj[cli]}`)
+  return pkgName && qsPath(`${dir}/node_modules/${pkgName}/${binObj[cli]}`)
 }
 
 function createFileOrDir(filepath, str) { // Create file. If there is `/` after the path, it is considered a directory.
@@ -124,14 +124,14 @@ function deepSet(obj, path, value) {
 }
 
 const cfg = {
-  pathAbs: pathAbs('./config.json'),
+  qsPath: qsPath('./config.json'),
   get(path) {
-    const cfg = require(this.pathAbs)
+    const cfg = require(this.qsPath)
     return path ? deepGet(cfg, path) : cfg
   },
   set(path, value) {
-    const newCfg = deepSet(require(this.pathAbs), path, value)
-    fs.writeFileSync(this.pathAbs, JSON.stringify(newCfg, null, 2), 'utf-8')
+    const newCfg = deepSet(require(this.qsPath), path, value)
+    fs.writeFileSync(this.qsPath, JSON.stringify(newCfg, null, 2), 'utf-8')
     return newCfg
   }
 }
@@ -150,12 +150,12 @@ function isChina() {
 }
 
 function hasModules(dir) {
-  return fs.existsSync(pathAbs(`./${dir}/node_modules`))
+  return fs.existsSync(qsPath(`./${dir}/node_modules`))
 }
 
-function execFileSync(cmd, cwd = pathAbs('./'), option = {stdio: 'inherit'}) { // 可以实时输出
+function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以实时输出
   return new Promise(async (resolve, reject) => {
-    const {stdout} = await execAsync(`node ${pathAbs('./util.js')} getArgv_json ${cmd}`)
+    const {stdout} = await execAsync(`node ${qsPath('./util/index.js')} getArgv_json ${cmd}`)
     const [arg1, ...argv] = JSON.parse(stdout)
     child_process.execFileSync(arg1, argv, {
       cwd,
@@ -180,7 +180,7 @@ module.exports = {
   createFileOrDir,
   nodeBin,
   isChina,
-  pathAbs,
+  qsPath,
   execFileSync,
   hasModules,
   execAsync,

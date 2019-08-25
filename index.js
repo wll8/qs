@@ -1,29 +1,40 @@
 #!/usr/bin/env node
+// -- init global var --
+global.QS = { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
+  SRC: __dirname,
+}
+// -- init global var --
+
+let RUN // 运行方法
 
 const fs = require('fs')
 const path = require('path')
 const child_process = require('child_process')
 const {
-  execFileSync,
-  pathAbs,
+  qsPath,
   nodeBin,
   cfg,
   hasModules,
-  execAsync,
-  createFileOrDir,
   dateFormater,
-} = require('./util.js')
+} = require('./util/index.js')
 
 const [ARG1, ...ARG_MORE] = process.argv.slice(2)
 
 ;(async () => {
+
+  { // 初始化运行方法
+    const Run = require('./util/run.js')
+    global.QS.RUN = await new Run()
+    RUN = global.QS.RUN
+  }
+
   let {moduleManage} = cfg.get()
-  if(!moduleManage) {
-    moduleManage = ((await execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
+  if(!moduleManage) { // 判断应该使用什么包处理器
+    moduleManage = ((await RUN.execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
     cfg.set('moduleManage', moduleManage)
   }
 
-  {
+  { // 初始化数据保存目录
     const os = require('os')
     let {dataDir} = cfg.get()
     if(!dataDir) {
@@ -32,10 +43,12 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     }
   }
 
+  // 初始化命令
   if( (ARG1 === 'init') && !ARG_MORE.length && !hasModules('./') ) {
-    await execFileSync(`${moduleManage} i`)
+    await RUN.execFileSync(`${moduleManage} i`)
   }
 
+  // 判断 qs 依赖目录是否存在, 不存在则提示需要初始化
   if(!hasModules('./')) {
     console.log('qs init')
     return
@@ -44,9 +57,6 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
   // -------------- start
 
   const program = require('commander')
-  const js = require('./core/js.js')
-
-  const {log} = console
 
   {
     if( // 记录任务的条件
@@ -55,8 +65,9 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
       && !['init', 'admin'].includes(ARG1) // 不包含这些参数
     ) {
       const Task = require('./task.js')
-      const task = await new Task()
-      await task.saveProcess()
+      global.QS.TASK = await new Task()
+      const TASK = QS.TASK
+      await TASK.saveProcess()
     }
   }
 
@@ -73,6 +84,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .option('--es5 [config]', 'Save and convert to Es5 file')
     .option('-m, --module <moduleName,moduleName2...>', 'Add and automatically install dependencies, separating multiple with commas', list)
     .action((arg) => {
+      const js = require('./core/js.js')
       cleanArgs(arg, js)
     })
 
@@ -80,13 +92,13 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .command('html')
     .action(async (arg) => {
       const shelljs = require('shelljs')
-      // const html = fs.readFileSync(pathAbs('./template/html/html.html')).toString()
+      // const html = fs.readFileSync(qsPath('./template/html/html.html')).toString()
       const date = dateFormater('YYYYMMDDHHmmss', new Date())
       const dataDir = `${cfg.get().dataDir}/${date}/`
       shelljs.mkdir('-p', dataDir)
-      shelljs.cp('-r', pathAbs('./template/html/*'), dataDir)
+      shelljs.cp('-r', qsPath('./template/html/*'), dataDir)
       shelljs.exec(`code ${dataDir}`)
-      await execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDir)
+      await RUN.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDir)
       console.log('html', dataDir)
     })
 
@@ -111,9 +123,9 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     })
 
   program.on('--help', () => {
-    log()
-    log(`  Run qs <command> --help for detailed usage of given command.`)
-    log()
+    console.log()
+    console.log(`  Run qs <command> --help for detailed usage of given command.`)
+    console.log()
   })
 
   program
@@ -124,9 +136,9 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
         ss: './extend/ss/ss.js',
       }[ARG1]
       if(extendFile) { // extend function
-        hasModules(`./extend/${ARG1}/`) ? require(pathAbs(extendFile)) : console.log('qs init -e')
+        hasModules(`./extend/${ARG1}/`) ? require(qsPath(extendFile)) : console.log('qs init -e')
       } else { // other function
-        hasModules('./other/') ? require(pathAbs('./other/index.js'))({arg1: ARG1, argMore: ARG_MORE}) : console.log('qs init -o')
+        hasModules('./other/') ? require(qsPath('./other/index.js'))({arg1: ARG1, argMore: ARG_MORE}) : console.log('qs init -o')
       }
 
     })
