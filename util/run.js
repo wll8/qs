@@ -2,6 +2,7 @@ const QS_PATH = global.QS.QS_PATH
 const {
   execFileSync,
   execAsync,
+  spawnWrap,
 } = require(QS_PATH('./util/index.js'))
 
 
@@ -18,6 +19,7 @@ class Run {
 
   async execFileSync () {return this.mapFn('execFileSync', arguments)}
   async execAsync () {return this.mapFn('execAsync', arguments)}
+  async spawnWrap () {return this.mapFn('spawnWrap', arguments)}
 
   async shelljsExec (cmd, arg = [], isSave = false) {
     const {exec: shelljsExec} = require('shelljs')
@@ -37,6 +39,7 @@ class Run {
     const fnTable = {
       execAsync,
       execFileSync,
+      spawnWrap,
     }
     let [cmd, arg = [], isSave = false] = argList
     arg = Array.isArray(arg) ? arg : [arg]

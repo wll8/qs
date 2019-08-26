@@ -159,6 +159,18 @@ function execFileSync(cmd, cwd = QS_PATH('./'), option = {stdio: 'inherit'}) { /
   })
 }
 
+function spawnWrap(cmd, cwd = QS_PATH('./'), option = {stdio: 'inherit'}) { // 可以进行交互
+  return new Promise(async (resolve, reject) => {
+    const {stdout} = await execAsync(`node ${QS_PATH('./util/getArgv.js')} getArgv_json ${cmd}`)
+    const [arg1, ...argv] = JSON.parse(stdout)
+    child_process.spawn(arg1, argv, {
+      cwd,
+      ...option
+    })
+    resolve()
+  })
+}
+
 function execAsync(cmd) { // 同步运行, 不能实时输出
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, (error, stdout, stderr) => {
@@ -177,4 +189,5 @@ module.exports = {
   execFileSync,
   hasModules,
   execAsync,
+  spawnWrap,
 }
