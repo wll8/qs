@@ -3,6 +3,7 @@ const fs = require('fs')
 const shelljs = require('shelljs')
 const {
   cfg,
+  print,
 } = require(QS_PATH('./util/index.js'))
 
 module.exports = async (arg) => {
@@ -15,20 +16,21 @@ module.exports = async (arg) => {
 
   { // config resetConfig deleteNodeModouse
     if(config === '') { // View Configuration
-      console.log(cfg.get())
+      print(cfg.get())
     } else if (config) { // View or update configuration
       const [, key, val] = config.match(/(.+?)=(.*)/) || [, config]
       if(val !== undefined) {
         cfg.set(key, val)
-        console.log(cfg.get())
+        print(cfg.get()[key])
       } else {
-        console.log(cfg.get()[key])
+        print(cfg.get()[key])
       }
     }
     if(resetConfig === true) { // Reset default configuration
       const defaultCfg = {
         openExe: 'code',
         moduleManage: '',
+        taskRecord: 99,
         defaultOther: [
           'shx',
           'nodemon',
@@ -42,7 +44,7 @@ module.exports = async (arg) => {
         ],
       }
       fs.writeFileSync(QS_PATH('./config.json'), JSON.stringify(defaultCfg, null, 2), 'utf8')
-      console.log(defaultCfg)
+      print(defaultCfg)
     }
     if(deleteNodeModouse === true) { // Remove installed dependencies
       shelljs.rm('-rf', QS_PATH('./node_modules'))
@@ -58,10 +60,10 @@ module.exports = async (arg) => {
     if(task === true) { // 查看所有任务记录
       const taskList = await taskFn.get()
       taskList.forEach(item => {delete item.ppid; delete item.uid})
-      console.log(taskList)
+      print(taskList)
     } else if(task) {
       const [, key, val] = task.match(/(.+?)=(.*)/) || [, task]
-      console.log(key, val)
+      // console.log(key, val)
       key === 'start' && taskFn.start(+val) // 启动任务
       key === 'stop' && taskFn.stop(+val) // 停止任务
       // key === 'filter' && taskFn({cmd: 'start', arg: val}); // todo: 以 key 正则匹配过滤任务

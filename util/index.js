@@ -3,7 +3,10 @@ const http = require('http')
 const path = require('path')
 const child_process = require('child_process')
 const os = require('os')
+const { Console } = require('console')
+const { inspect } = require('util')
 
+const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
 const QS_PATH = global.QS.QS_PATH
 
 function getRes(url, is_down = false) {
@@ -27,7 +30,7 @@ function getRes(url, is_down = false) {
           let length = ((data.length) / contentLength) * 100;
           let percent = parseInt(((length).toFixed(0)));
           // Terminal progress bar
-          process.stdout.write(`${url.split('/').slice(-1)[0]} downloaded/total = ${data.length}/${contentLength} = ${percent}/100\r`);
+          print(`${url.split('/').slice(-1)[0]} downloaded/total = ${data.length}/${contentLength} = ${percent}/100\r`);
         }
       });
       res.on('end', function () {
@@ -179,6 +182,9 @@ function execAsync(cmd) { // 同步运行, 不能实时输出
   })
 }
 
+function print(info) {
+  PRINT.log(inspect(info, false, null, true))
+}
 
 module.exports = {
   cfg,
@@ -190,4 +196,5 @@ module.exports = {
   hasModules,
   execAsync,
   spawnWrap,
+  print,
 }

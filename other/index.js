@@ -1,6 +1,7 @@
 const QS_PATH = global.QS.QS_PATH
 const {
   nodeBin,
+  print,
 } = require(QS_PATH('./util/index.js'))
 
 const {RUN} = global.QS
@@ -21,7 +22,7 @@ module.exports = async ({arg1, argMore}) => {
       const argStr = argMore.map(item => `'${item}'`).join(' ')
       const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBinFile} ${argStr}`
       const {error, stdout, stderr} = await RUN.execAsync(cmd)
-      process.stdout.write(stdout)
+      print(stdout)
     } else {
       await RUN.execFileSync(cmd, [], true)
       process.exit()
