@@ -75,7 +75,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
   }
 
   program
-    .version(require(QS_PATH('./package')).version)
+    .version(require(QS_PATH('./package')).version , '-v, --vers', 'output the current version')
     .usage('<command> [options]')
 
   program
