@@ -1,5 +1,10 @@
 const fs = require('fs')
-const QS_PATH = global.QS.QS_PATH
+const {
+  qsPath,
+  run,
+  cfg,
+  dateFormater,
+} = global.qs.util
 
 const psList = async () => {
   try {
@@ -11,17 +16,12 @@ const psList = async () => {
     return []
   }
 }
-const {
-  dateFormater,
-  cfg,
-} = require(QS_PATH('./util/index.js'))
-const taskPath = QS_PATH('./task.json')
+const taskPath = qsPath('./task.json')
 
 class Task {
   constructor () {
     return (async () => { // Async/Await Class Constructor
       this.ARG1 = process.argv.slice(2)
-      this.RUN = global.QS.RUN
       this.START_TIME = dateFormater('YYYY-MM-DD HH:mm:ss', new Date())
       this.PSLIST = await psList()
       this.ISADMINTASK = await new Promise(async (resolve) => { // 不是父进程发起的任务
@@ -31,7 +31,7 @@ class Task {
         const parentProcessInfo = psListData.find(item => item.pid === processInfo.ppid)
         const isAdmin = async cmd => (
           JSON.parse(
-            (await this.RUN.execAsync(`node ${QS_PATH('./util/getArgv.js')} getArgv_json ${cmd}`)).stdout
+            (await run.execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)).stdout
           )[2] === 'admin'
         )
         const isProcessAdmin = await isAdmin(processInfo.cmd)
@@ -69,7 +69,7 @@ class Task {
     this.writeTaskList(taskList)
   }
   stop(taskId) { // 停止任务
-    const treeKill = require(QS_PATH('./util/treeKill.js'))
+    const treeKill = require(qsPath('./util/treeKill.js'))
     treeKill(this.get(taskId).pid)
   }
   async start(taskId) { // 重启任务
@@ -91,23 +91,21 @@ class Task {
 
   }
   async runTaskIdCmd(taskId) { // 运行某个任务的 cmd 或 execList
-    const Run = require(QS_PATH('./util/run.js'))
-    const RUN = await new Run()
     const {execList, cmd} = this.get(taskId)
     if(execList.length) {
       execList.forEach(async item => {
         const {method, cmd, arg} = item
-        await RUN[method](cmd, arg)
+        await run[method](cmd, arg)
       })
     } else {
-      await RUN.execFileSync(cmd)
+      await run.execFileSync(cmd)
     }
   }
 
   async updateList() { // 刷新任务列表信息
     const psListData = this.PSLIST
     let taskList = this.readTaskList()
-    taskList = taskList.splice(- (Number(cfg.get().taskRecord) || 3)) // 保留多少条任务记录
+    taskList = taskList.splice(- (Number(cfg.get.taskRecord) || 3)) // 保留多少条任务记录
     taskList.forEach((tItem, index) => {
       const psData = psListData.find(psItem => ( // todo 匹配方式可能出现错误
         psItem.uid === tItem.uid

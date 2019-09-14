@@ -5,9 +5,9 @@ const child_process = require('child_process')
 const os = require('os')
 const { Console } = require('console')
 const { inspect } = require('util')
+const qsPath = require('./qsPath.js')
 
 const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
-const QS_PATH = global.QS.QS_PATH
 
 function getRes(url, is_down = false) {
   // Obtain url from res.
@@ -65,10 +65,10 @@ function dateFormater(formater, t) { // Formatting time
 
 function nodeBin(cli, dir = './other/') {
   const binObj = {}
-  const dependencies = require(QS_PATH(`${dir}package.json`)).dependencies
+  const dependencies = require(qsPath(`${dir}package.json`)).dependencies
   for (const pkgName in dependencies) {
     if (dependencies.hasOwnProperty(pkgName)) {
-      const package = require(QS_PATH(`${dir}node_modules/${pkgName}/package.json`))
+      const package = require(qsPath(`${dir}node_modules/${pkgName}/package.json`))
       const pkgBin = package.bin
        if(typeof(pkgBin) === 'string') {
          binObj[package.name] = pkgBin
@@ -85,7 +85,7 @@ function nodeBin(cli, dir = './other/') {
     }
   }
   const pkgName = binObj[cli + '_pkgName']
-  return pkgName && QS_PATH(`${dir}/node_modules/${pkgName}/${binObj[cli]}`)
+  return pkgName && qsPath(`${dir}/node_modules/${pkgName}/${binObj[cli]}`)
 }
 
 function createFileOrDir(filepath, str) { // Create file. If there is `/` after the path, it is considered a directory.
@@ -121,10 +121,9 @@ function deepSet(obj, path, value) {
 }
 
 const cfg = {
-  qsConfig: QS_PATH('./config.json'),
-  get(path) {
-    const cfg = require(this.qsConfig)
-    return path ? deepGet(cfg, path) : cfg
+  qsConfig: qsPath('./config.json'),
+  get get() {
+    return require(this.qsConfig)
   },
   set(path, value) {
     const newCfg = deepSet(require(this.qsConfig), path, value)
@@ -134,7 +133,7 @@ const cfg = {
 }
 
 function isChina() {
-  const isChina = cfg.get().isChina
+  const isChina = cfg.get.isChina
   if(isChina === '') {
     return new Promise((resolve, reject) => {
       getRes('http://myip.ipip.net').then(res => {
@@ -147,12 +146,12 @@ function isChina() {
 }
 
 function hasModules(dir) {
-  return fs.existsSync(QS_PATH(`./${dir}/node_modules`))
+  return fs.existsSync(qsPath(`./${dir}/node_modules`))
 }
 
-function execFileSync(cmd, cwd = QS_PATH('./'), option = {stdio: 'inherit'}) { // 可以实时输出
+function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以实时输出
   return new Promise(async (resolve, reject) => {
-    const {stdout} = await execAsync(`node ${QS_PATH('./util/getArgv.js')} getArgv_json ${cmd}`)
+    const {stdout} = await execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
     const [arg1, ...argv] = JSON.parse(stdout)
     child_process.execFileSync(arg1, argv, {
       cwd,
@@ -162,9 +161,9 @@ function execFileSync(cmd, cwd = QS_PATH('./'), option = {stdio: 'inherit'}) { /
   })
 }
 
-function spawnWrap(cmd, cwd = QS_PATH('./'), option = {stdio: 'inherit'}) { // 可以进行交互
+function spawnWrap(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以进行交互
   return new Promise(async (resolve, reject) => {
-    const {stdout} = await execAsync(`node ${QS_PATH('./util/getArgv.js')} getArgv_json ${cmd}`)
+    const {stdout} = await execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
     const [arg1, ...argv] = JSON.parse(stdout)
     child_process.spawn(arg1, argv, {
       cwd,
@@ -183,18 +182,24 @@ function execAsync(cmd) { // 同步运行, 不能实时输出
 }
 
 function print(info) {
-  PRINT.log(inspect(info, false, null, true))
+  const type = typeof(info)
+  type === 'undefined' && PRINT.log('')
+  type === 'string' && PRINT.log(info)
+  type === 'object' && PRINT.log(inspect(info || '', false, null, true))
 }
 
-module.exports = {
-  cfg,
-  dateFormater,
-  createFileOrDir,
-  nodeBin,
-  isChina,
-  execFileSync,
-  hasModules,
-  execAsync,
-  spawnWrap,
-  print,
+module.exports = async () => {
+  return {
+    cfg,
+    dateFormater,
+    createFileOrDir,
+    nodeBin,
+    isChina,
+    execFileSync,
+    hasModules,
+    execAsync,
+    spawnWrap,
+    print,
+    qsPath,
+  }
 }

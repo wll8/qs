@@ -1,11 +1,3 @@
-const QS_PATH = global.QS.QS_PATH
-const {
-  execFileSync,
-  execAsync,
-  spawnWrap,
-} = require(QS_PATH('./util/index.js'))
-
-
 class Run {
   /**
   * @param {Stirng} cmd - 要执行的命令
@@ -13,7 +5,8 @@ class Run {
   * @param {Boolean} [isSave=false] - 是否保存到任务中命令历史
   */
 
-  constructor () {
+  constructor (runTable) {
+    this.runTable = runTable
     return this
   }
 
@@ -27,24 +20,19 @@ class Run {
     return shelljsExec(cmd, ...arg)
   }
 
-  async save (method, cmd, arg) { // 注意, 请确保 TASK 已初始化
-    const TASK = global.QS.TASK
-    const curTask = await TASK.getCurlTask()
-    TASK.updateOne(null, {
-      execList: (curTask.execList || []).concat({ method, cmd, arg, })
+  async save (method, cmd, arg) { // 注意, 请确保 task 已初始化
+    const task = global.qs.task
+    const curtask = await task.getCurlTask()
+    task.updateOne(null, {
+      execList: (curtask.execList || []).concat({ method, cmd, arg, })
     })
   }
 
   mapFn(fnName, argList) {
-    const fnTable = {
-      execAsync,
-      execFileSync,
-      spawnWrap,
-    }
     let [cmd, arg = [], isSave = false] = argList
     arg = Array.isArray(arg) ? arg : [arg]
     isSave && this.save(fnName, cmd, arg)
-    return fnTable[fnName](cmd, ...arg)
+    return this.runTable[fnName](cmd, ...arg)
   }
 
 }

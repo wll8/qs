@@ -1,59 +1,35 @@
 #!/usr/bin/env node
-// -- init global var --
-global.QS = { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
-  QS_PATH: function (addr) {
-    const {normalize, resolve} = require('path')
-    addr = [__dirname].concat(Array.isArray(addr) ? addr : [addr])
-    return normalize(resolve(...addr))
-  }
-}
-// -- init global var --
-
-let RUN // 运行方法
-const QS_PATH = global.QS.QS_PATH // 获取相对于 qs 的路径
-
-const fs = require('fs')
-const child_process = require('child_process')
-const {
-  nodeBin,
-  cfg,
-  hasModules,
-  dateFormater,
-} = require(QS_PATH('./util/index.js'))
-
-const [ARG1, ...ARG_MORE] = process.argv.slice(2)
 
 ;(async () => {
-
-  { // 初始化运行方法
-    const Run = require(QS_PATH('./util/run.js'))
-    global.QS.RUN = await new Run()
-    RUN = global.QS.RUN
-  }
-
-  let {moduleManage} = cfg.get()
-  if(!moduleManage) { // 判断应该使用什么包处理器
-    moduleManage = ((await RUN.execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
-    cfg.set('moduleManage', moduleManage)
-  }
-
-  { // 初始化数据保存目录
-    const os = require('os')
-    let {dataDir} = cfg.get()
-    if(!dataDir) {
-      dataDir = `${os.homedir()}/.qs/`
-      cfg.set('dataDir', dataDir)
-    }
-  }
+  global.qs = await globalInit()
+  const {
+    util: {
+      print,
+      run,
+      nodeBin,
+      cfg: {
+        get: {
+          moduleManage,
+          dataDir,
+        }
+      },
+      hasModules,
+      dateFormater,
+      qsPath,
+    },
+    arg1,
+    argMore,
+  } = global.qs
 
   // 初始化命令
-  if( (ARG1 === 'init') && !ARG_MORE.length && !hasModules('./') ) {
-    await RUN.execFileSync(`${moduleManage} i`)
+  if( (arg1 === 'init') && !argMore.length && !hasModules('./') ) {
+    await run.execFileSync(`${moduleManage} i`)
+    return
   }
 
   // 判断 qs 依赖目录是否存在, 不存在则提示需要初始化
   if(!hasModules('./')) {
-    console.log('qs init')
+    print('qs init')
     return
   }
 
@@ -63,19 +39,19 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
 
   {
     if( // 记录任务的条件
-      ARG1 // 存在参数
-      && !ARG1.match(/^-/) // 这个参数不是选项
-      && !['init', 'admin'].includes(ARG1) // 不包含这些参数
+      arg1 // 存在参数
+      && !arg1.match(/^-/) // 这个参数不是选项
+      && !['init', 'admin'].includes(arg1) // 不包含这些参数
     ) {
-      const Task = require(QS_PATH('./util/task.js'))
-      global.QS.TASK = await new Task()
-      const TASK = QS.TASK
-      await TASK.saveProcess()
+      const Task = require(qsPath('./util/task.js'))
+      const task = await new Task()
+      global.qs.task = task
+      await task.saveProcess()
     }
   }
 
   program
-    .version(require(QS_PATH('./package')).version , '-v, --vers', 'output the current version')
+    .version(require(qsPath('./package')).version , '-v, --vers', 'output the current version')
     .usage('<command> [options]')
 
   program
@@ -91,21 +67,20 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .option('--local', '保存 cdn 到本地')
     .action((arg) => {
       const argRes = cleanArgs(arg)
-      argRes.template ? require(QS_PATH('./core/tp.js'))(argRes) : arg.outputHelp()
+      argRes.template ? require(qsPath('./core/tp.js'))(argRes) : arg.outputHelp()
     })
 
   program
     .command('html')
     .action(async (arg) => {
       const shelljs = require('shelljs')
-      // const html = fs.readFileSync(QS_PATH('./template/html/html.html')).toString()
+      // const html = fs.readFileSync(qsPath('./template/html/html.html')).toString()
       const date = dateFormater('YYYYMMDDHHmmss', new Date())
-      const dataDir = `${cfg.get().dataDir}/${date}/`
-      shelljs.mkdir('-p', dataDir)
-      shelljs.cp('-r', QS_PATH('./template/html/*'), dataDir)
-      shelljs.exec(`code ${dataDir}`)
-      await RUN.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDir)
-      console.log('html', dataDir)
+      const dataDirDate = `${dataDir}/${date}/`
+      shelljs.mkdir('-p', dataDirDate)
+      shelljs.cp('-r', qsPath('./template/html/*'), dataDirDate)
+      shelljs.exec(`code ${dataDirDate}`)
+      await run.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDirDate)
     })
 
   program
@@ -116,7 +91,7 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .option('--deleteNodeModouse', 'Delete all node_modules')
     .option('-t --task [cmd[=arg]]', '管理通过 qs 创建的任务列表')
     .action((arg) => {
-      cleanArgs(arg, require(QS_PATH('./core/admin.js'))) || arg.outputHelp()
+      cleanArgs(arg, require(qsPath('./core/admin.js'))) || arg.outputHelp()
     })
 
   program
@@ -125,13 +100,13 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .option('-e, --extend', 'Function of Initialization Extendsion')
     .option('-o, --other', 'Initialize other functions')
     .action((arg) => {
-      cleanArgs(arg, require(QS_PATH('./core/init.js')))
+      cleanArgs(arg, require(qsPath('./core/init.js')))
     })
 
   program.on('--help', () => {
-    console.log()
-    console.log(`  Run qs <command> --help for detailed usage of given command.`)
-    console.log()
+    print()
+    print(`  Run qs <command> --help for detailed usage of given command.`)
+    print()
   })
 
   program
@@ -140,18 +115,18 @@ const [ARG1, ...ARG_MORE] = process.argv.slice(2)
     .action(async function(){
       const extendFile = {
         ss: './extend/ss/ss.js',
-      }[ARG1]
+      }[arg1]
       if(extendFile) { // extend function
-        hasModules(`./extend/${ARG1}/`) ? require(QS_PATH(extendFile)) : console.log('qs init -e')
+        hasModules(`./extend/${arg1}/`) ? require(qsPath(extendFile)) : print('qs init -e')
       } else { // other function
-        hasModules('./other/') ? require(QS_PATH('./other/index.js'))({arg1: ARG1, argMore: ARG_MORE}) : console.log('qs init -o')
+        hasModules('./other/') ? require(qsPath('./other/index.js'))({arg1: arg1, argMore: argMore}) : print('qs init -o')
       }
 
     })
 
   program.parse(process.argv)
 
-  if (ARG1 === undefined) {
+  if (arg1 === undefined) {
     program.outputHelp()
   }
 
@@ -178,3 +153,38 @@ function list(val) {
   return val.split(',').filter(item => item)
 }
 
+async function globalInit() { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
+  const [arg1, ...argMore] = process.argv.slice(2)
+  const util = await require('./util/index.js')()
+  const qs = Object.create({}, {
+    arg1: {value: arg1},
+    argMore: {value: argMore},
+    util: {value: {
+      ...util,
+      run: await new (require(util.qsPath('./util/run.js')))({
+        execAsync: util.execAsync,
+        execFileSync: util.execFileSync,
+        spawnWrap: util.spawnWrap,
+      }),
+    }},
+  })
+  await initCfg()
+  async function initCfg() {
+    { // moduleManage 包管理工具
+      let {moduleManage} = util.cfg.get
+      if(!moduleManage) { // 判断应该使用什么包管理工具
+        moduleManage = ((await qs.run.execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
+        util.cfg.set('moduleManage', moduleManage)
+      }
+    }
+    { // dataDir 初始化数据保存目录
+      const os = require('os')
+      let {dataDir} = util.cfg.get
+      if(!dataDir) {
+        dataDir = `${os.homedir()}/.qs/`
+        util.cfg.set('dataDir', dataDir)
+      }
+    }
+  }
+  return qs
+}

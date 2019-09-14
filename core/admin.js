@@ -1,10 +1,10 @@
-const QS_PATH = global.QS.QS_PATH
-const fs = require('fs')
-const shelljs = require('shelljs')
 const {
+  qsPath,
   cfg,
   print,
-} = require(QS_PATH('./util/index.js'))
+ } = global.qs.util
+const fs = require('fs')
+const shelljs = require('shelljs')
 
 module.exports = async (arg) => {
   const {
@@ -16,14 +16,14 @@ module.exports = async (arg) => {
 
   { // config resetConfig deleteNodeModouse
     if(config === '') { // View Configuration
-      print(cfg.get())
+      print(cfg.get)
     } else if (config) { // View or update configuration
       const [, key, val] = config.match(/(.+?)=(.*)/) || [, config]
       if(val !== undefined) {
         cfg.set(key, val)
-        print(cfg.get()[key])
+        print(cfg.get[key])
       } else {
-        print(cfg.get()[key])
+        print(cfg.get[key])
       }
     }
     if(resetConfig === true) { // Reset default configuration
@@ -43,18 +43,18 @@ module.exports = async (arg) => {
           'ss',
         ],
       }
-      fs.writeFileSync(QS_PATH('./config.json'), JSON.stringify(defaultCfg, null, 2), 'utf8')
+      fs.writeFileSync(qsPath('./config.json'), JSON.stringify(defaultCfg, null, 2), 'utf8')
       print(defaultCfg)
     }
     if(deleteNodeModouse === true) { // Remove installed dependencies
-      shelljs.rm('-rf', QS_PATH('./node_modules'))
-      shelljs.rm('-rf', QS_PATH('./other/node_modules'))
-      cfg.get().defaultExtend.forEach(dir => shelljs.rm('-rf', QS_PATH(`./extend/${dir}/node_modules`)))
+      shelljs.rm('-rf', qsPath('./node_modules'))
+      shelljs.rm('-rf', qsPath('./other/node_modules'))
+      cfg.get.defaultExtend.forEach(dir => shelljs.rm('-rf', qsPath(`./extend/${dir}/node_modules`)))
     }
   }
 
   { // task
-    const Task = require(QS_PATH('./util/task.js'))
+    const Task = require(qsPath('./util/task.js'))
     const taskFn = await new Task()
     await taskFn.updateList()
     if(task === true) { // 查看所有任务记录

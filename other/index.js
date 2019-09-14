@@ -1,10 +1,8 @@
-const QS_PATH = global.QS.QS_PATH
 const {
   nodeBin,
   print,
-} = require(QS_PATH('./util/index.js'))
-
-const {RUN} = global.QS
+  run,
+} = global.qs.util
 
 module.exports = async ({arg1, argMore}) => {
   const nodeBinFile = nodeBin(arg1)
@@ -21,14 +19,14 @@ module.exports = async ({arg1, argMore}) => {
     if(chunk) { // 管道内容
       const argStr = argMore.map(item => `'${item}'`).join(' ')
       const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBinFile} ${argStr}`
-      const {error, stdout, stderr} = await RUN.execAsync(cmd)
+      const {error, stdout, stderr} = await run.execAsync(cmd)
       print(stdout)
     } else {
-      await RUN.execFileSync(cmd, [], true)
+      await run.execFileSync(cmd, [], true)
       process.exit()
     }
   } else { // run system command
     const cmd = `${arg1} ${argMoreStr}`
-    await RUN.spawnWrap(cmd, [], true)
+    await run.spawnWrap(cmd, [], true)
   }
 }
