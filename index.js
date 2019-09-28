@@ -74,7 +74,18 @@
     .command('html')
     .action(async (arg) => {
       const shelljs = require('shelljs')
-      // const html = fs.readFileSync(qsPath('./template/html/html.html')).toString()
+      const date = dateFormater('YYYYMMDDHHmmss', new Date())
+      const dataDirDate = `${dataDir}/${date}/`
+      shelljs.mkdir('-p', dataDirDate)
+      shelljs.cp('-r', qsPath('./template/html/*'), dataDirDate)
+      shelljs.exec(`code ${dataDirDate}`)
+      await run.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDirDate)
+    })
+
+  program
+    .command('vue')
+    .action(async (arg) => {
+      const shelljs = require('shelljs')
       const date = dateFormater('YYYYMMDDHHmmss', new Date())
       const dataDirDate = `${dataDir}/${date}/`
       shelljs.mkdir('-p', dataDirDate)

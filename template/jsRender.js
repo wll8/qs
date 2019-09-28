@@ -16,8 +16,7 @@ const {
 const template = {
 js: `\
 ;(async () => {
-const {log} = console
-log(new Date().toLocaleString())
+console.log('hi qs')
 
 })();
 `,

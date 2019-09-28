@@ -62,6 +62,7 @@ qs tp -t js # 使用 js 模版运行创建项目，并自动启动
 qs tp -t js --openDir # 使用 js 模版运行创建项目，使用默认编辑器打开项目目录，并自动启动,
 qs tp -t js -d . # 在当前目录创建项目
 qs tp -t js -f abc.js # 设置入口文件名为 abc.js
+qs tp -t js -f abc.ts # 以 ts 为模版创建项目
 qs tp -t js -m lodash axios # 添加并自动安装依赖到项目目录
 qs init # 初始化 qs 核心功能
 qs init -e # 初始化 qs 扩展功能(使用 qs api 编写于 qs 目录, 如 qs ss)
