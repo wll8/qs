@@ -184,7 +184,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
     { // moduleManage 包管理工具
       let {moduleManage} = util.cfg.get
       if(!moduleManage) { // 判断应该使用什么包管理工具
-        moduleManage = ((await qs.run.execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
+        moduleManage = ((await qs.util.run.execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
         util.cfg.set('moduleManage', moduleManage)
       }
     }
