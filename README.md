@@ -1,78 +1,32 @@
 # qs - quick start
-快速开始调试或者工作。
+快速开始行动, 不必担心环境.
 
-- 立刻创建所需目录结构, 自动安装相关依赖, 并且启动项目。
-- 跨平台使用常用 linux 工具。
-- 任务存储及管理。
+- 立刻创建所需目录结构, 自动安装相关依赖, 并且启动项目甚至打开编辑器.
+- 跨平台使用常用工具, 例: ssh, scp.
+- 任务存储及管理.
 
-```
-bash-3.2$ qs
-Usage: qs <command> [options]
+## 选项
 
-Options:
-  -v, --vers       output the version number
-  -h, --help       output usage information
+- [x] `qs -v --vers` -- 显示版本号
+- [x] `qs -h --help` -- 显示帮助信息
+- [ ] `qs --explicit` -- 查找内容时使用精确匹配
+- [ ] `qs --case` -- 查找内容时使用大小写敏感匹配
+- [ ] `qs --task [kv...]` -- 显示或查找、修改任务
+- [x] `qs -a --task-add` -- 添加到任务记录
+  - 例: `qs -a echo 123` 保存 `echo 123` 这条记录, 以方便再次运行
+- [ ] `qs -n --task-name <name>` -- 添加任务时创建任务名称
+- [ ] `qs -s --task-start <id|name>` -- 启动任务
+- [ ] `qs -k --task-kill <id|name>` -- 停止任务
+- [ ] `qs --task-remove <id|name>` -- 删除任务
+- [ ] `qs --config [kv...]` -- 显示或查找、修改配置
+- [ ] `qs --config-reset` -- 重置配置
+- [ ] `qs --node-modules-remove` -- 删除 qs 中的 node_modules
+- [ ] `qs --init` -- 初始化 qs, 不包含命令
+- [ ] `qs --init-extend` -- 初始化默认的扩展命令, 使用了 qs 内部方法的工具, 如 tp, ss
+- [ ] `qs --init-outside` -- 初始化默认的外部命令, 可以独立运行的第三方程序, 如 ssh, scp, shx
+- [ ] `qs --add <执行器|系统> <name1, name2...>` -- 添加一个功能, 默认为 node 执行器或当前系统, 执行器存在时忽略系统
+  -  例: `qs --add python shadowsocks` 则表示 `pip install shadowsocks` 到 qs 的 python 执行器下, 执行器可在配置中添加.
+  -  例: `qs --add win32 ssh` 则表示 下载适用于 win32 的 ssh 工具.
 
-Commands:
-  tp [options]     Select a template to create a project
-  html
-  admin [options]  admin
-  init [options]   Initializer
-  *                More features
-
-  Run qs <command> --help for detailed usage of given command.
-``` 
-
-```
-bash-3.2$ qs tp
-Usage: tp [options]
-
-Select a template to create a project
-
-Options:
-  -n, --name <taskName>                     Task Name, No repetition allowed
-  -t, --template <templateName>             Template type
-  --openDir                                 Open the directory
-  -d, --directory <directoryName>           Specify folders (default: "{dataDir}/{template}__{dateFormater}/")
-  -f, --fileName [fileName]                 Specify a filename, Select template automatically according to suffix (default: "index.js")
-  -m, --module <moduleName,moduleName2...>  Add and automatically install dependencies, separating multiple with commas
-  --es5 [config]                            Save and convert to Es5 file
-  --local                                   保存 cdn 到本地
-  -h, --help                                output usage information
-```
-
-```
-bash-3.2$ qs admin
-Usage: admin [options]
-
-admin
-
-Options:
-  -c --config <key[=val]>  View or change configuration
-  --resetConfig            Reset to default configuration
-  --deleteNodeModouse      Delete all node_modules
-  -t --task [cmd[=arg]]    管理通过 qs 创建的任务列表
-  -h, --help               output usage information
-```
-
-``` sh
-# 以下通过示例解释部分命令功能
-
-qs tp -t js # 使用 js 模版运行创建项目，并自动启动
-qs tp -t js --openDir # 使用 js 模版运行创建项目，使用默认编辑器打开项目目录，并自动启动,
-qs tp -t js -d . # 在当前目录创建项目
-qs tp -t js -f abc.js # 设置入口文件名为 abc.js
-qs tp -t js -f abc.ts # 以 ts 为模版创建项目
-qs tp -t js -m lodash axios # 添加并自动安装依赖到项目目录
-qs init # 初始化 qs 核心功能
-qs init -e # 初始化 qs 扩展功能(使用 qs api 编写于 qs 目录, 如 qs ss)
-qs init -o # 初始化 qs 其他功能(安装到 qs 目录的第三方工具, 如 qs ssh)
-qs admin -c '' # 查看当前所有 qs 配置
-qs admin -c openExe # 查看当前 qs 所配置的默认编辑器
-qs admin -c openExe=code # 修改 qs 默认的编辑器为 vscode, 你可以配置为绝对路径, 或环境命令
-qs admin --resetConfig  # 重置 qs 的所有配置
-qs admin --deleteNodeModouse # 删除 qs 的所有相关的 node_modules, 你可以使用 qs init 重新获取
-qs admin -t # 查看所有任务列表
-qs admin -t stop=64 # 停止 ID 为 64 的任务
-qs admin -t start=64 # 启动 ID 为 64 的任务
-```
+提示: 
+  - kv: `k` 是显示 `v` 的值, `k=v` 是修改, `k==v` 是查找, `name==xw age=23` 是把 name 为 xw 的数据的 age 修改为 23.

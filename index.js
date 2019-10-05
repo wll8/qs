@@ -19,129 +19,88 @@
     },
     arg1,
     argMore,
+    argParse: {
+      taskName,
+      taskAdd,
+    },
   } = global.qs
 
-  // 初始化命令
-  if( (arg1 === 'init') && !argMore.length && !hasModules('./') ) {
-    await run.execFileSync(`${moduleManage} i`)
-    return
-  }
-
-  // 判断 qs 依赖目录是否存在, 不存在则提示需要初始化
-  if(!hasModules('./')) {
-    print('qs init')
-    return
-  }
-
-  // -------------- start
-
-  const program = require('commander')
-
   {
-    if( // 记录任务的条件
-      arg1 // 存在参数
-      && !arg1.match(/^-/) // 这个参数不是选项
-      && !['init', 'admin'].includes(arg1) // 不包含这些参数
-    ) {
-      const Task = require(qsPath('./util/task.js'))
-      const task = await new Task()
-      global.qs.task = task
-      await task.saveProcess()
+    // console.log('argParse', {taskName, argMore, arg1})
+    if(/^-/.test(arg1)) { // 没有可运行的命令
+      return
+    }
+
+    const extendFile = {
+      ss: './extend/ss/ss.js',
+    }[arg1]
+    if(extendFile) { // extend function
+      hasModules(`./extend/${arg1}/`) ? require(qsPath(extendFile)) : print('qs init -e')
+    } else { // other function
+      hasModules('./other/') ? require(qsPath('./other/index.js'))({ arg1, argMore }) : print('qs init -o')
     }
   }
 
-  program
-    .version(require(qsPath('./package')).version , '-v, --vers', 'output the current version')
-    .usage('<command> [options]')
-
-  program
-    .command('tp')
-    .description('Select a template to create a project')
-    .option('-n, --name <taskName>', 'Task Name, No repetition allowed')
-    .option('-t, --template <templateName>', 'Template type')
-    .option('--openDir', 'Open the directory')
-    .option('-d, --directory <directoryName>', 'Specify folders (default: "{dataDir}/{template}__{dateFormater}/")')
-    .option('-f, --fileName [fileName]', 'Specify a filename, Select template automatically according to suffix', 'index.js')
-    .option('-m, --module <moduleName,moduleName2...>', 'Add and automatically install dependencies, separating multiple with commas', list) // 如果是浏览器环境, 则从 cdn 查找并引用
-    .option('--es5 [config]', 'Save and convert to Es5 file')
-    .option('--local', '保存 cdn 到本地')
-    .action((arg) => {
-      const argRes = cleanArgs(arg)
-      argRes.template ? require(qsPath('./core/tp.js'))(argRes) : arg.outputHelp()
-    })
-
-  program
-    .command('html')
-    .action(async (arg) => {
-      const shelljs = require('shelljs')
-      const date = dateFormater('YYYYMMDDHHmmss', new Date())
-      const dataDirDate = `${dataDir}/${date}/`
-      shelljs.mkdir('-p', dataDirDate)
-      shelljs.cp('-r', qsPath('./template/html/*'), dataDirDate)
-      shelljs.exec(`code ${dataDirDate}`)
-      await run.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDirDate)
-    })
-
-  program
-    .command('vue')
-    .action(async (arg) => {
-      const shelljs = require('shelljs')
-      const date = dateFormater('YYYYMMDDHHmmss', new Date())
-      const dataDirDate = `${dataDir}/${date}/`
-      shelljs.mkdir('-p', dataDirDate)
-      shelljs.cp('-r', qsPath('./template/html/*'), dataDirDate)
-      shelljs.exec(`code ${dataDirDate}`)
-      await run.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDirDate)
-    })
-
-  program
-    .command('admin')
-    .description('admin')
-    .option('-c --config <key[=val]>', 'View or change configuration')
-    .option('--resetConfig', 'Reset to default configuration')
-    .option('--deleteNodeModouse', 'Delete all node_modules')
-    .option('-t --task [cmd[=arg]]', '管理通过 qs 创建的任务列表')
-    .action((arg) => {
-      cleanArgs(arg, require(qsPath('./core/admin.js'))) || arg.outputHelp()
-    })
-
-  program
-    .command('init')
-    .description('Initializer')
-    .option('-e, --extend', 'Function of Initialization Extendsion')
-    .option('-o, --other', 'Initialize other functions')
-    .action((arg) => {
-      cleanArgs(arg, require(qsPath('./core/init.js')))
-    })
-
-  program.on('--help', () => {
-    print()
-    print(`  Run qs <command> --help for detailed usage of given command.`)
-    print()
-  })
-
-  program
-    .command('*')
-    .description('More features')
-    .action(async function(){
-      const extendFile = {
-        ss: './extend/ss/ss.js',
-      }[arg1]
-      if(extendFile) { // extend function
-        hasModules(`./extend/${arg1}/`) ? require(qsPath(extendFile)) : print('qs init -e')
-      } else { // other function
-        hasModules('./other/') ? require(qsPath('./other/index.js'))({arg1: arg1, argMore: argMore}) : print('qs init -o')
-      }
-
-    })
-
-  program.parse(process.argv)
-
-  if (arg1 === undefined) {
-    program.outputHelp()
-  }
-
 })();
+
+async function initArgs ({util}) {
+  const {
+    qsPath,
+    print,
+  } = util
+  return new Promise((resolve, reject) => {
+    const program = require('commander')
+    program.unknownOption = () => {} // 避免 `qs ls -l` 出现 `error: unknown option '-l'`
+    let arg1 = ''
+    let argMore = []
+
+    program
+      .version(require(qsPath('./package')).version , '-v, --vers', '显示当前版本')
+      .helpOption('-h, --help', '显示帮助')
+      .option('--explicit', '查找内容时使用精确匹配')
+      .option('--case', '查找内容时使用大小写敏感匹配')
+      .option('--task [kv...]', '显示或查找、修改任务')
+      .option('-a, --task-add', '添加到任务记录')
+      .option('-n, --task-name <name>', '添加任务记录并创建任务名称, 包含 -a')
+      .option('-s, --task-start <id|name>', '启动任务')
+      .option('-k, --task-kill <id|name>', '停止任务')
+      .option('--task-remove <id|name>', '删除任务')
+      .option('--config [kv...]', '显示或查找、修改配置')
+      .option('--config-reset', '重置配置')
+      .option('--node-modules-remove', '删除 qs 中的 node_modules')
+      .option('--init', '初始化 qs, 不包含命令')
+      .option('--init-extend', '初始化默认的扩展命令, 如 tp')
+      .option('--init-outside', '初始化默认的外部命令, 如 ssh')
+      .action(async arg => {
+        const argParse = cleanArgs(arg) || {}
+        let {taskAdd, taskName} = argParse
+        let [rawArg1, ...rawArgMore] = process.argv.slice(2)
+        if((rawArg1 === '-n') || (rawArg1 === '--task-name')) {
+          taskAdd = true
+          taskName = rawArgMore[0]
+          arg1 = rawArgMore[1]
+          argMore = rawArgMore.slice(2)
+        }
+        if((rawArg1 === '-a') || (rawArg1 === '--task-add')) {
+          taskAdd = true
+          taskName = undefined
+          arg1 = rawArgMore[0]
+          argMore = rawArgMore.slice(1)
+        }
+        arg1 = arg1 || rawArg1
+        argMore = /^-/.test(rawArg1) ? argMore : rawArgMore // 如果第一个参数直接是命令的时候
+        argParse.taskName = taskName
+        argParse.taskAdd = taskAdd
+        resolve({argParse, arg1, argMore})
+      })
+
+    if(!process.argv[2]) {
+      program.outputHelp(txt => txt)
+      process.exit()
+    }
+    program.parse(process.argv)
+  })
+}
 
 function cleanArgs (obj, cb) { // Options for paraing user input
   const args = {}
@@ -149,7 +108,8 @@ function cleanArgs (obj, cb) { // Options for paraing user input
     const long = o.long.replace(/^--/, '')
     const key = long.replace(/-(\w)/g, (_, c) => c ? c.toUpperCase() : '')
     if (typeof obj[key] !== 'function' && typeof obj[key] !== 'undefined') {
-      args[long] = obj[key]
+      // args[long] = obj[key]
+      args[key] = obj[key]
     }
   })
   if(JSON.stringify(args) !== '{}') {
@@ -165,21 +125,35 @@ function list(val) {
 }
 
 async function globalInit() { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
-  const [arg1, ...argMore] = process.argv.slice(2)
-  const util = await require('./util/index.js')()
+  let util = await require('./util/index.js')()
+  util.run = await new (require(util.qsPath('./util/run.js')))({
+    execAsync: util.execAsync,
+    execFileSync: util.execFileSync,
+    spawnWrap: util.spawnWrap,
+  })
+  let {
+    argParse,
+    arg1,
+    argMore,
+  } = await initArgs({util})
+  let task = await initTask()
   const qs = Object.create({}, {
     arg1: {value: arg1},
+    argParse: {value: argParse},
     argMore: {value: argMore},
-    util: {value: {
-      ...util,
-      run: await new (require(util.qsPath('./util/run.js')))({
-        execAsync: util.execAsync,
-        execFileSync: util.execFileSync,
-        spawnWrap: util.spawnWrap,
-      }),
-    }},
+    util: {value: util},
+    task: {value: task},
   })
   await initCfg()
+
+  async function initTask() {
+    if(argParse.taskAdd) { // 初始化任务模块
+      const Task = require(util.qsPath('./util/task.js'))({util, arg1})
+      const task = await new Task()
+      await task.saveProcess()
+      return task
+    }
+  }
   async function initCfg() {
     { // moduleManage 包管理工具
       let {moduleManage} = util.cfg.get

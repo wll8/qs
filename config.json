@@ -1,6 +1,6 @@
 {
   "openExe": "code",
-  "moduleManage": "",
+  "moduleManage": "cnpm",
   "defaultOther": [
     "shx",
     "nodemon",
@@ -12,5 +12,6 @@
   "taskRecord": 99,
   "defaultExtend": [
     "ss"
-  ]
+  ],
+  "dataDir": "/Users/xw/.qs/"
 }

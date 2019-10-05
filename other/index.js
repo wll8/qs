@@ -1,8 +1,13 @@
 const {
-  nodeBin,
-  print,
-  run,
-} = global.qs.util
+  util: {
+    nodeBin,
+    print,
+    run,
+  },
+  argParse: {
+    taskAdd,
+  },
+} = global.qs
 
 module.exports = async ({arg1, argMore}) => {
   const nodeBinFile = nodeBin(arg1)
@@ -22,11 +27,11 @@ module.exports = async ({arg1, argMore}) => {
       const {error, stdout, stderr} = await run.execAsync(cmd)
       print(stdout)
     } else {
-      await run.execFileSync(cmd, [], true)
+      await run.execFileSync(cmd, [], taskAdd)
       process.exit()
     }
   } else { // run system command
     const cmd = `${arg1} ${argMoreStr}`
-    await run.spawnWrap(cmd, [], true)
+    await run.spawnWrap(cmd, [], taskAdd)
   }
 }
