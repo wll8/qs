@@ -14,7 +14,7 @@
 - [ ] `qs --task [kv...]` -- 显示或查找、修改任务
 - [x] `qs -a --task-add` -- 添加到任务记录
   - 例: `qs -a echo 123` 保存 `echo 123` 这条记录, 以方便再次运行
-- [ ] `qs -n --task-name <name>` -- 添加任务时创建任务名称
+- [x] `qs -n --task-name <name>` -- 添加任务时创建任务名称
 - [ ] `qs -s --task-start <id|name>` -- 启动任务
 - [ ] `qs -k --task-kill <id|name>` -- 停止任务
 - [ ] `qs --task-remove <id|name>` -- 删除任务

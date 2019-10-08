@@ -21,9 +21,10 @@ class Run {
   }
 
   async save (method, cmd, arg) { // 注意, 请确保 task 已初始化
-    const task = global.qs.task
+    const {task, argParse: {taskName}} = global.qs
     const curtask = await task.getCurlTask()
     task.updateOne(null, {
+      taskName,
       execList: (curtask.execList || []).concat({ method, cmd, arg, })
     })
   }
