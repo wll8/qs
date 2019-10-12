@@ -10,10 +10,13 @@ module.exports = ({util, arg1}) => {
   const psList = async () => {
     try {
       let list = await require('ps-list')()
-      list.forEach(item => {delete item.cpu; delete item.memory; delete item.name})
+      list.forEach(item => {
+        delete item.cpu
+        delete item.memory
+        delete item.name
+      })
       return list
     } catch (error) {
-      // ...console.log('no ps-list')
       return []
     }
   }
@@ -122,13 +125,18 @@ module.exports = ({util, arg1}) => {
       this.writeTaskList(taskList)
     }
     async updateOne(taskId, data) { // 使用 taskId 更新任务记录
-      taskId = taskId || this.getCurlTaskId()
       let taskList = this.readTaskList()
       taskList.forEach((tItem, index) => {
         if(tItem.taskId === taskId) {
           taskList[index] = {...tItem, ...data}
         }
       })
+      this.writeTaskList(taskList)
+    }
+    removeOne(taskId) {
+      let taskList = this.readTaskList()
+      const findIndex = taskList.findIndex(item => item.taskId === taskId)
+      taskList.splice(findIndex, 1)
       this.writeTaskList(taskList)
     }
     getCurlTaskId() {

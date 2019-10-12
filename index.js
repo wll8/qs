@@ -57,11 +57,12 @@ async function initArgs ({util}) {
     program
       .version(require(qsPath('./package')).version , '-v, --vers', '显示当前版本')
       .helpOption('-h, --help', '显示帮助')
-      .option('--explicit', '查找内容时使用精确匹配')
-      .option('--case', '查找内容时使用大小写敏感匹配')
+      .option('--explicit', '查找任务时使用精确匹配')
+      .option('--regexp', '查找任务时使用正则匹配', true)
       .option('--task [kv...]', '显示或查找、修改任务')
       .option('-a, --task-add', '添加到任务记录')
       .option('-n, --task-name <name>', '添加任务记录并创建任务名称, 包含 -a')
+      .option('-d, --task-des <info>', '添加任务记录并创建任务描述, 包含 -a')
       .option('-s, --task-start <id|name>', '启动任务')
       .option('-k, --task-kill <id|name>', '停止任务')
       .option('--task-remove <id|name>', '删除任务')
@@ -91,7 +92,7 @@ async function initArgs ({util}) {
         argMore = /^-/.test(rawArg1) ? argMore : rawArgMore // 如果第一个参数直接是命令的时候
         argParse.taskName = taskName
         argParse.taskAdd = taskAdd
-        resolve({argParse, arg1, argMore})
+        resolve({argParse, arg1, argMore, rawArg1, rawArgMore})
       })
 
     if(!process.argv[2]) {
@@ -134,25 +135,139 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
   let {
     argParse,
     arg1,
+    rawArg1,
     argMore,
+    rawArgMore,
   } = await initArgs({util})
   let task = await initTask()
   const qs = Object.create({}, {
     arg1: {value: arg1},
+    rawArg1: {value: rawArg1},
     argParse: {value: argParse},
     argMore: {value: argMore},
+    rawArgMore: {value: rawArgMore},
     util: {value: util},
     task: {value: task},
   })
   await initCfg()
 
   async function initTask() {
-    if(argParse.taskAdd) { // 初始化任务模块
-      const Task = require(util.qsPath('./util/task.js'))({util, arg1})
-      const task = await new Task()
-      await task.saveProcess()
-      return task
+    const {
+      taskAdd,
+      task,
+      explicit,
+      regexp,
+    } = argParse
+    const {
+      print,
+      qsPath,
+    } = util
+    let taskFn
+    if(taskAdd || task) {
+      const Task = require(qsPath('./util/task.js'))({argParse, util, arg1})
+      taskFn = await new Task()
+      if(taskAdd) { // 初始化保存任务
+        await taskFn.saveProcess() // 保存当前运行的进程信息再补充参数
+      }
+      await taskFn.updateList()
     }
+    if(task === true) {
+      const taskList = await taskFn.get()
+      taskList.forEach(item => {delete item.ppid; delete item.uid})
+      print(taskList)
+    }
+    if(task && typeof(task) === 'string') { // 任务的查询及修改
+      function parseKeyVal(str) {
+        // 解析参数为 get,set 对象, 如果仅有 get 为空时, set 作为 get (为了符合单个=号习惯, 避免误修改)
+        // 'a==1,c=2' => {get: {a: 1}, set: {c: 2}}
+        // 'a=1' => {get: {a: 1}, set: {}}
+        let get = {}
+        let set = {}
+        str.split(',').forEach(item => {
+          {
+            const [,key,val] = (item.match(/(.*)==(.*)/) || [])
+            key && (get[key] = val)
+          }
+          {
+            const [,key,val] = item.includes('==') ? [] : (item.match(/(.*)=(.*)/) || [])
+            key && (set[key] = val)
+          }
+        })
+        if(!Object.keys(get).length && Object.keys(set).length) {
+          get = [set, set=get][0] // 无临时变量交换
+        }
+        return {get, set}
+      }
+      const {get, set} = task.includes(',') ? parseKeyVal(task) : parseKeyVal(rawArgMore.join(','))
+      const taskList = await taskFn.get()
+      let newTaskList = []
+      taskList.forEach(item => {delete item.ppid; delete item.uid})
+      const getKeys = Object.keys(get)
+      const setKeys = Object.keys(set)
+      if(getKeys.length > 0) { // 如果输入查询项才进行过滤, 否则显示全部
+        newTaskList = taskList.filter(item => { // get
+          let isFind = false
+          getKeys.forEach(key => {
+            if(item[key] === undefined) { // 仅使用输入的 key 进行匹配
+              isFind = false
+              return
+            } else if (explicit) {
+              isFind = item[key] === get[key]
+            } else if(regexp) {
+              const re = new RegExp(get[key])
+              isFind = re.test(item[key])
+            }
+          })
+          return isFind
+        })
+      }
+      newTaskList = await (async () => {
+        let list = []
+        function MyError({code, msg}) {
+          this.code = code
+          this.msg = msg
+          this.stack = (new Error()).stack
+        }
+        MyError.prototype = Object.create(Error.prototype)
+        MyError.prototype.constructor = MyError
+        try {
+          list = newTaskList.map(item => { // set
+            setKeys.forEach(key => {
+              if(
+                key === 'taskId'
+                || key === 'execList'
+              ) {
+                throw new MyError({code: 1, msg: `不允许直接修改 ${key} 字段`})
+              }
+              if(
+                key === 'taskName'
+                && (
+                  newTaskList.length > 1
+                  || taskList.some(taskItem => taskItem.taskName === set.taskName)
+                )
+              ) {
+                throw new MyError({code: 2, msg: `不能修改为多个相同的 ${key}`})
+              }
+              item[key] = set[key]
+            })
+            return item
+          })
+        } catch (err) {
+          print({
+            code: err.code,
+            msg: err.msg,
+          })
+        }
+        return list
+      })()
+
+      for (let index = 0; index < newTaskList.length; index++) {
+        const element = newTaskList[index]
+        await taskFn.updateOne(element.taskId, element)
+      }
+      print(newTaskList)
+    }
+    return taskFn
   }
   async function initCfg() {
     { // moduleManage 包管理工具

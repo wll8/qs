@@ -9,12 +9,13 @@
 
 - [x] `qs -v --vers` -- 显示版本号
 - [x] `qs -h --help` -- 显示帮助信息
-- [ ] `qs --explicit` -- 查找内容时使用精确匹配
-- [ ] `qs --case` -- 查找内容时使用大小写敏感匹配
-- [ ] `qs --task [kv...]` -- 显示或查找、修改任务
+- [x] `qs --explicit` -- 查找内容时使用精确匹配
+- [x] `qs --regexp` -- 查找内容时使用正则匹配(默认)
+- [x] `qs --task [kv...]` -- 显示或查找、修改任务
 - [x] `qs -a --task-add` -- 添加到任务记录
   - 例: `qs -a echo 123` 保存 `echo 123` 这条记录, 以方便再次运行
-- [x] `qs -n --task-name <name>` -- 添加任务时创建任务名称
+- [x] `qs -n --task-name <name>` -- 添加任务时创建任务名称, 包含 -a
+- [ ] `qs -d --task-des <info>` -- 添加任务记录并创建任务描述, 包含 -a
 - [ ] `qs -s --task-start <id|name>` -- 启动任务
 - [ ] `qs -k --task-kill <id|name>` -- 停止任务
 - [ ] `qs --task-remove <id|name>` -- 删除任务

@@ -21,12 +21,21 @@ class Run {
   }
 
   async save (method, cmd, arg) { // 注意, 请确保 task 已初始化
-    const {task, argParse: {taskName}} = global.qs
+    const {util: {print}, task, argParse: {taskName}} = global.qs
     const curtask = await task.getCurlTask()
-    task.updateOne(null, {
+    const curlTaskId = task.getCurlTaskId()
+    task.updateOne(curlTaskId, {
       taskName,
       execList: (curtask.execList || []).concat({ method, cmd, arg, })
     })
+    if(taskName) {
+      const taskList = task.get()
+      const findEd = taskList.filter(item => item.taskName === taskName)
+      if(findEd.length > 1) {
+        print(`已存在相同名称的任务, 忽略保存`)
+        task.removeOne(curlTaskId)
+      }
+    }
   }
 
   mapFn(fnName, argList) {
