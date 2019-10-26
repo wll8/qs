@@ -25,31 +25,11 @@ class Run {
       util: {
         print
       },
-      task,
-      argParse: {
-        taskName,
-        taskDes,
-      },
+      task: taskFn,
     } = global.qs
-    const curtask = await task.getCurlTask()
-    const curlTaskId = task.getCurlTaskId()
-    const newTask = {
-      execList: (curtask.execList || []).concat({ method, cmd, arg, })
-    }
-    if(taskName || taskDes) {
-      const taskList = await task.get()
-      const find = taskList.find(item => (
-        (taskName && (item.taskName === taskName))
-        || (taskName && (item.taskId === Number(taskName)))
-      ))
-      if(find) {
-        print(`存在相同任务名称或ID , 已保存但忽略此属性`)
-      } else {
-        newTask.taskName = taskName
-        newTask.taskDes = taskDes
-      }
-    }
-    task.updateOne(curlTaskId, newTask)
+    let curtask = await taskFn.getCurlTask()
+    curtask.execList = (curtask.execList || []).concat({ method, cmd, arg, })
+    taskFn.updateOne(curtask.taskId, curtask)
   }
 
   mapFn(fnName, argList) {
@@ -60,13 +40,6 @@ class Run {
   }
 
 }
-
-// new Promise(async () => {
-//   const run = await new Run()
-//   await run.execFileSync('ls /', ['/var'], true)
-//   await run.execFileSync('ls', ['/home'], true)
-//   await run.execFileSync('ls', ['/home'], true)
-// })
 
 module.exports = Run
 

@@ -107,8 +107,9 @@ function deepGet(object, path, defaultValue) { // todo: bug, When using path, a 
   ).reduce((o, k) => (o || {})[k], object) || defaultValue;
 }
 
-function findNextMin(arr) { // 从数组中找到一个不存在的最小的数
+function findNextMin(arr, sub = 1) { // 从数组中找到一个不存在的最小的数, 至少从 sub 数开始
   const sortArr = arr.sort((a, b) => a - b) // 从小到大排序
+  if(sortArr[0] > sub) {sortArr.unshift(sub - 1)}
   const nextId = (sortArr.find((item, index) => (item+1 !== arr[index+1])) || 0) + 1 // 找到第一个不连续的数并加1
   return nextId
 }

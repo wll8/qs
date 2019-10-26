@@ -20,11 +20,8 @@
     arg1,
     argMore,
     argParse: {
-      taskName,
-      taskAdd,
       taskStart,
     },
-    task,
   } = global.qs
 
   {
@@ -38,9 +35,6 @@
       } else { // other function
         hasModules('./other/') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [process.cwd()] }) : print('qs init -o')
       }
-    } else if(!arg1 && !taskStart) { // 没有主程序时不运行
-      // console.log('没有可执行的命令')
-      // return process.exit()
     }
 
   }
@@ -236,10 +230,6 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
     ) {
       const Task = require(qsPath('./util/task.js'))({argParse, util, arg1})
       taskFn = await new Task()
-      if(taskAdd) { // 初始化保存任务
-        await taskFn.saveProcess() // 保存当前运行的进程信息再补充参数
-        print(`taskId: ${taskFn.getCurlTaskId()}\n`)
-      }
     }
     return taskFn
   }

@@ -5,7 +5,7 @@ const {
     print,
   },
   argParse: {
-    task,
+    task: taskArg,
     taskAdd,
     taskName,
     taskDes,
@@ -22,13 +22,13 @@ const fs = require('fs')
 const shelljs = require('shelljs')
 
 module.exports = async () => {
-  if(task && task.length === 0) { // 获取所有任务
+  if(taskArg && taskArg.length === 0) { // 获取所有任务
     const taskList = await taskFn.get()
     taskList.forEach(item => {delete item.ppid; delete item.uid})
     print(taskList)
   }
 
-  if(task && task.length) { // 任务的查询及修改
+  if(taskArg && taskArg.length) { // 任务的查询及修改
     function parseKeyVal(str) {
       // 解析参数为 get,set 对象, 如果仅有 get 为空时, set 作为 get (为了符合单个=号习惯, 避免误修改)
       // 'a==1,c=2' => {get: {a: 1}, set: {c: 2}}
@@ -50,7 +50,7 @@ module.exports = async () => {
       }
       return {get, set}
     }
-    const {get, set} = task.includes(',') ? parseKeyVal(task) : parseKeyVal(rawArgMore.join(','))
+    const {get, set} = taskArg.includes(',') ? parseKeyVal(taskArg) : parseKeyVal(rawArgMore.join(','))
     const taskList = await taskFn.get()
     let newTaskList = []
     taskList.forEach(item => {delete item.ppid; delete item.uid})
@@ -130,6 +130,26 @@ module.exports = async () => {
       }
     }
 
+    if(taskAdd) { // 初始化任务记录
+      await taskFn.saveProcess() // 保存当前运行的进程信息, 其他的信息例如 taskName 都是补充参数
+      print(`taskId: ${taskFn.getCurlTaskId()}\n`)
+    }
+
+    if(taskName || taskDes) { // 添加任务名称或描述
+      const taskList = await taskFn.get()
+      const find = taskList.find(item => (
+        (taskName && (item.taskName === taskName))
+        || (taskName && (item.taskId === Number(taskName)))
+      ))
+      if(find) {
+        print(`存在与 ${taskName} 相同任务名称或ID, 忽略此属性: ${taskName}`)
+      } else {
+        const curtask = await taskFn.getCurlTask()
+        curtask.taskName = taskName
+        curtask.taskDes = taskDes
+        taskFn.updateOne(curtask.taskId, curtask)
+      }
+    }
     taskStart && taskManage(taskStart, 'start')
     taskKill && taskManage(taskKill, 'stop')
     taskRemove && taskManage(taskRemove, 'removeOne')
