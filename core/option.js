@@ -19,11 +19,12 @@ const fs = require('fs')
 const shelljs = require('shelljs')
 
 module.exports = async () => {
-  if(task && task.length === 0) {
+  if(task && task.length === 0) { // 获取所有任务
     const taskList = await taskFn.get()
     taskList.forEach(item => {delete item.ppid; delete item.uid})
     print(taskList)
   }
+
   if(task && task.length) { // 任务的查询及修改
     function parseKeyVal(str) {
       // 解析参数为 get,set 对象, 如果仅有 get 为空时, set 作为 get (为了符合单个=号习惯, 避免误修改)
@@ -116,7 +117,7 @@ module.exports = async () => {
     print(newTaskList)
   }
 
-  if(taskStart) {
+  if(taskStart) { // 启动任务
     let {taskId} = await taskFn.get(taskStart)
     if(taskId !== undefined) {
       taskFn.start(taskId)
@@ -124,4 +125,5 @@ module.exports = async () => {
       print(`没有找到任务 ${taskStart}`)
     }
   }
+
 }

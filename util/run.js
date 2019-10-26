@@ -2,7 +2,7 @@ class Run {
   /**
   * @param {Stirng} cmd - 要执行的命令
   * @param {*[]} arg - 传给函数的其他参数
-  * @param {Boolean} [isSave=false] - 是否保存到任务中命令历史
+  * @param {Boolean} [isSave=false] - 是否保存到任务命令历史中
   */
 
   constructor (runTable) {

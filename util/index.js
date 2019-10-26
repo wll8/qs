@@ -174,7 +174,11 @@ function spawnWrap(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // å
     child_process.spawn(arg1, argv, {
       cwd,
       ...option
+    }).on('error', err => {
+      delete err.stack
+      print(err)
     })
+
     resolve()
   })
 }

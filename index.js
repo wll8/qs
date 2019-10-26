@@ -22,16 +22,14 @@
     argParse: {
       taskName,
       taskAdd,
+      taskStart,
     },
     task,
   } = global.qs
 
   {
     await require(qsPath('./core/option.js'))()
-    if(!arg1) { // 没有主程序时不运行
-      console.log('没有可执行的命令')
-      // return process.exit()
-    } else {
+    if(arg1 && !taskStart) { // 没有主程序时不运行
       const extendFile = {
         ss: './extend/ss/ss.js',
       }[arg1]
@@ -40,6 +38,9 @@
       } else { // other function
         hasModules('./other/') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [process.cwd()] }) : print('qs init -o')
       }
+    } else if(!arg1 && !taskStart) { // 没有主程序时不运行
+      // console.log('没有可执行的命令')
+      // return process.exit()
     }
 
   }
