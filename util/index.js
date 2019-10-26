@@ -175,6 +175,7 @@ function spawnWrap(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // �
       cwd,
       ...option
     }).on('error', err => {
+      // 查看错误码对应的信息: http://man7.org/linux/man-pages/man3/errno.3.html
       delete err.stack
       print(err)
     })

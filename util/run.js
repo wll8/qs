@@ -21,19 +21,32 @@ class Run {
   }
 
   async save (method, cmd, arg) { // 注意, 请确保 task 已初始化
-    const {util: {print}, task, argParse: {taskName}} = global.qs
+    const {
+      util: {
+        print
+      },
+      task,
+      argParse: {
+        taskName,
+        taskDes,
+      },
+    } = global.qs
     const curtask = await task.getCurlTask()
     const curlTaskId = task.getCurlTaskId()
     const newTask = {
       execList: (curtask.execList || []).concat({ method, cmd, arg, })
     }
-    if(taskName) {
+    if(taskName || taskDes) {
       const taskList = await task.get()
-      const find = taskList.find(item => item.taskName === taskName)
+      const find = taskList.find(item => (
+        (taskName && (item.taskName === taskName))
+        || (taskName && (item.taskId === Number(taskName)))
+      ))
       if(find) {
-        print(`已存在相同名称的任务, 名称保存被忽略`)
+        print(`存在相同任务名称或ID , 已保存但忽略此属性`)
       } else {
         newTask.taskName = taskName
+        newTask.taskDes = taskDes
       }
     }
     task.updateOne(curlTaskId, newTask)

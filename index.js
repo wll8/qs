@@ -142,7 +142,9 @@ async function initArgs ({util}) {
       //   a: true,
       // })
       .argv
-      argParse.taskName && (argParse.taskAdd = true)
+      if((argParse.taskName || argParse.taskDes)) {
+        argParse.taskAdd = true
+      }
       return {argParse, yargs}
     }
     const {argParse, yargs} = getArgs()
@@ -221,7 +223,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
       qsPath,
     } = util
     let taskFn
-    if(
+    if( // 如果与 task 相关的参数存在, 则初始化 task
       [
         task,
         taskAdd,
@@ -230,7 +232,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
         taskStart,
         taskKill,
         taskRemove,
-      ].filter(Boolean).length
+      ].filter(item => item !== undefined).length
     ) {
       const Task = require(qsPath('./util/task.js'))({argParse, util, arg1})
       taskFn = await new Task()

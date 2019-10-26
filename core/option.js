@@ -5,10 +5,13 @@ const {
     print,
   },
   argParse: {
-    taskName,
-    taskAdd,
-    taskStart,
     task,
+    taskAdd,
+    taskName,
+    taskDes,
+    taskStart,
+    taskKill,
+    taskRemove,
     explicit,
     regexp,
   },
@@ -117,13 +120,19 @@ module.exports = async () => {
     print(newTaskList)
   }
 
-  if(taskStart) { // 启动任务
-    let {taskId} = await taskFn.get(taskStart)
-    if(taskId !== undefined) {
-      taskFn.start(taskId)
-    } else {
-      print(`没有找到任务 ${taskStart}`)
+  { // 任务管理
+    async function taskManage(taskIdOrName, method) {
+      let {taskId} = (await taskFn.get(taskIdOrName)) || {}
+      if(taskId !== undefined) {
+        taskFn[method](taskId)
+      } else {
+        print(`没有找到任务 ${taskIdOrName}`)
+      }
     }
+
+    taskStart && taskManage(taskStart, 'start')
+    taskKill && taskManage(taskKill, 'stop')
+    taskRemove && taskManage(taskRemove, 'removeOne')
   }
 
 }

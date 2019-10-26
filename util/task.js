@@ -63,7 +63,7 @@ module.exports = ({util, arg1}) => {
     }
     async stop(taskId) { // 停止任务
       const treeKill = require(qsPath('./util/treeKill.js'))
-      treeKill(await this.get(taskId).pid)
+      treeKill((await this.get(taskId)).pid)
     }
     async start(taskId) { // 重启任务
 
@@ -77,7 +77,6 @@ module.exports = ({util, arg1}) => {
         ppid,
         uid,
         status: 'runing',
-        updateTime: dateFormater('YYYY-MM-DD HH:mm:ss', new Date()),
       })
 
       await this.runTaskIdCmd(taskId)
@@ -122,7 +121,11 @@ module.exports = ({util, arg1}) => {
       let taskInfo
       taskList.forEach((tItem, index) => {
         if(tItem.taskId === taskId) {
-          taskInfo = {...tItem, ...data}
+          taskInfo = {
+            ...tItem,
+            ...data,
+            updateTime: dateFormater('YYYY-MM-DD HH:mm:ss', new Date()),
+          }
           taskList[index] = taskInfo
         }
       })
