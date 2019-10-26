@@ -235,6 +235,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
       taskFn = await new Task()
       if(taskAdd) { // 初始化保存任务
         await taskFn.saveProcess() // 保存当前运行的进程信息再补充参数
+        print(`taskId: ${taskFn.getCurlTaskId()}\n`)
       }
     }
     return taskFn
