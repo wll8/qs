@@ -16,7 +16,7 @@
   - 例: `qs -a echo 123` 保存 `echo 123` 这条记录, 以方便再次运行
 - [x] `qs -n --task-name <name>` -- 添加任务时创建任务名称, 包含 -a
 - [ ] `qs -d --task-des <info>` -- 添加任务记录并创建任务描述, 包含 -a
-- [ ] `qs -s --task-start <id|name>` -- 启动任务
+- [x] `qs -s --task-start <id|name>` -- 启动任务
 - [ ] `qs -k --task-kill <id|name>` -- 停止任务
 - [ ] `qs --task-remove <id|name>` -- 删除任务
 - [ ] `qs --config [kv...]` -- 显示或查找、修改配置

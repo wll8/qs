@@ -118,7 +118,6 @@ module.exports = async () => {
 
   if(taskStart) {
     let {taskId} = await taskFn.get(taskStart)
-    console.log('taskId', taskId)
     if(taskId !== undefined) {
       taskFn.start(taskId)
     } else {
