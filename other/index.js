@@ -9,7 +9,7 @@ const {
   },
 } = global.qs
 
-module.exports = async ({arg1, argMore}) => {
+module.exports = async ({arg1, argMore, arg = []}) => {
   const nodeBinFile = nodeBin(arg1)
   const argMoreStr = argMore.join(' ')
   if(nodeBinFile) { // run nodejs command
@@ -24,14 +24,14 @@ module.exports = async ({arg1, argMore}) => {
     if(chunk) { // 管道内容
       const argStr = argMore.map(item => `'${item}'`).join(' ')
       const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBinFile} ${argStr}`
-      const {error, stdout, stderr} = await run.execAsync(cmd)
+      const {error, stdout, stderr} = await run.execAsync(cmd, arg, taskAdd)
       print(stdout)
     } else {
-      await run.execFileSync(cmd, [], taskAdd)
+      await run.execFileSync(cmd, arg, taskAdd)
       process.exit()
     }
   } else { // run system command
     const cmd = `${arg1} ${argMoreStr}`
-    await run.spawnWrap(cmd, [], taskAdd)
+    await run.spawnWrap(cmd, arg, taskAdd)
   }
 }

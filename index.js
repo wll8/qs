@@ -23,22 +23,25 @@
       taskName,
       taskAdd,
     },
+    task,
   } = global.qs
 
   {
-    // console.log('argParse', {taskName, argMore, arg1})
-    if(/^-/.test(arg1)) { // 没有可运行的命令
-      return
+    await require(qsPath('./core/option.js'))()
+    if(!arg1) { // 没有主程序时不运行
+      console.log('没有可执行的命令')
+      // return process.exit()
+    } else {
+      const extendFile = {
+        ss: './extend/ss/ss.js',
+      }[arg1]
+      if(extendFile) { // extend function
+        hasModules(`./extend/${arg1}/`) ? require(qsPath(extendFile)) : print('qs init -e')
+      } else { // other function
+        hasModules('./other/') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [process.cwd()] }) : print('qs init -o')
+      }
     }
 
-    const extendFile = {
-      ss: './extend/ss/ss.js',
-    }[arg1]
-    if(extendFile) { // extend function
-      hasModules(`./extend/${arg1}/`) ? require(qsPath(extendFile)) : print('qs init -e')
-    } else { // other function
-      hasModules('./other/') ? require(qsPath('./other/index.js'))({ arg1, argMore }) : print('qs init -o')
-    }
   }
 
 })();
@@ -49,57 +52,106 @@ async function initArgs ({util}) {
     print,
   } = util
   return new Promise((resolve, reject) => {
-    const program = require('commander')
-    program.unknownOption = () => {} // 避免 `qs ls -l` 出现 `error: unknown option '-l'`
-    let arg1 = ''
-    let argMore = []
-
-    program
-      .version(require(qsPath('./package')).version , '-v, --vers', '显示当前版本')
-      .helpOption('-h, --help', '显示帮助')
-      .option('--explicit', '查找任务时使用精确匹配')
-      .option('--regexp', '查找任务时使用正则匹配', true)
-      .option('--task [kv...]', '显示或查找、修改任务')
-      .option('-a, --task-add', '添加到任务记录')
-      .option('-n, --task-name <name>', '添加任务记录并创建任务名称, 包含 -a')
-      .option('-d, --task-des <info>', '添加任务记录并创建任务描述, 包含 -a')
-      .option('-s, --task-start <id|name>', '启动任务')
-      .option('-k, --task-kill <id|name>', '停止任务')
-      .option('--task-remove <id|name>', '删除任务')
-      .option('--config [kv...]', '显示或查找、修改配置')
-      .option('--config-reset', '重置配置')
-      .option('--node-modules-remove', '删除 qs 中的 node_modules')
-      .option('--init', '初始化 qs, 不包含命令')
-      .option('--init-extend', '初始化默认的扩展命令, 如 tp')
-      .option('--init-outside', '初始化默认的外部命令, 如 ssh')
-      .action(async arg => {
-        const argParse = cleanArgs(arg) || {}
-        let {taskAdd, taskName} = argParse
-        let [rawArg1, ...rawArgMore] = process.argv.slice(2)
-        if((rawArg1 === '-n') || (rawArg1 === '--task-name')) {
-          taskAdd = true
-          taskName = rawArgMore[0]
-          arg1 = rawArgMore[1]
-          argMore = rawArgMore.slice(2)
-        }
-        if((rawArg1 === '-a') || (rawArg1 === '--task-add')) {
-          taskAdd = true
-          taskName = undefined
-          arg1 = rawArgMore[0]
-          argMore = rawArgMore.slice(1)
-        }
-        arg1 = arg1 || rawArg1
-        argMore = /^-/.test(rawArg1) ? argMore : rawArgMore // 如果第一个参数直接是命令的时候
-        argParse.taskName = taskName
-        argParse.taskAdd = taskAdd
-        resolve({argParse, arg1, argMore, rawArg1, rawArgMore})
+    function getArgs() {
+      const yargs = require('yargs')
+      const argParse = yargs
+      .parserConfiguration({
+        // 'short-option-groups': false, // 是否合并短参数为数组
+        'halt-at-non-option': true, // 在第一个位置参数(不可解析的)处停止解析
+        'strip-dashed': true, // 删除虚线值
       })
-
-    if(!process.argv[2]) {
-      program.outputHelp(txt => txt)
-      process.exit()
+      .option({
+        'v': {
+          alias: ['vers', 'version'],
+          type: 'boolean',
+        },
+        'h': {
+          alias: 'help',
+          type: 'boolean',
+        },
+        'explicit': {
+          describe: '查找任务时使用精确匹配',
+          type: 'boolean',
+        },
+        'regexp': {
+          describe: '查找任务时使用正则匹配',
+          type: 'boolean',
+          default: true,
+        },
+        'task': {
+          describe: '显示或查找、修改任务 [kv...]',
+          type: 'array',
+        },
+        'a': {
+          alias: 'task-add',
+          describe: '添加到任务记录',
+          type: 'boolean',
+        },
+        'n': {
+          alias: 'task-name',
+          describe: '添加任务记录并创建任务名称, 隐含 -a',
+          type: 'string',
+        },
+        'd': {
+          alias: 'task-des',
+          describe: '添加任务记录并创建任务描述, 隐含 -a',
+          type: 'string',
+        },
+        's': {
+          alias: 'task-start',
+          describe: '启动任务 <id|name>',
+          type: 'string',
+        },
+        'k': {
+          alias: 'task-kill',
+          describe: '停止任务 <id|name>',
+          type: 'string',
+        },
+        'task-remove': {
+          describe: '删除任务 <id|name>',
+          type: 'string',
+        },
+        'config': {
+          describe: '显示或查找、修改配置 [kv...]',
+          type: 'array',
+        },
+        'config-reset': {
+          describe: '重置配置',
+          type: 'boolean',
+        },
+        'node-modules-remove': {
+          describe: '删除 qs 中的 node_modules',
+          type: 'boolean',
+        },
+        'init': {
+          describe: '初始化 qs, 不包含命令',
+          type: 'boolean',
+        },
+        'init-extend': {
+          describe: '初始化默认的扩展命令, 如 tp',
+          type: 'boolean',
+        },
+        'init-outside': {
+          describe: '初始化默认的外部命令, 如 ssh',
+          type: 'boolean',
+        },
+      })
+      .conflicts('explicit', 'regexp') // 互斥
+      // .implies('n', { // todo 隐含
+      //   a: true,
+      // })
+      .argv
+      argParse.taskName && (argParse.taskAdd = true)
+      return {argParse, yargs}
     }
-    program.parse(process.argv)
+    const {argParse, yargs} = getArgs()
+    let [arg1, ...argMore] = argParse._
+    let [rawArg1, ...rawArgMore] = process.argv.slice(2)
+    if(!rawArg1) { // 没有任何参数时显示帮助
+      yargs.showHelp()
+    } else {
+      resolve({argParse, arg1, argMore, rawArg1, rawArgMore})
+    }
   })
 }
 
@@ -153,8 +205,13 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
 
   async function initTask() {
     const {
-      taskAdd,
       task,
+      taskAdd,
+      taskName,
+      taskDes,
+      taskStart,
+      taskKill,
+      taskRemove,
       explicit,
       regexp,
     } = argParse
@@ -163,109 +220,22 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
       qsPath,
     } = util
     let taskFn
-    if(taskAdd || task) {
+    if(
+      [
+        task,
+        taskAdd,
+        taskName,
+        taskDes,
+        taskStart,
+        taskKill,
+        taskRemove,
+      ].filter(Boolean).length
+    ) {
       const Task = require(qsPath('./util/task.js'))({argParse, util, arg1})
       taskFn = await new Task()
       if(taskAdd) { // 初始化保存任务
         await taskFn.saveProcess() // 保存当前运行的进程信息再补充参数
       }
-      await taskFn.updateList()
-    }
-    if(task === true) {
-      const taskList = await taskFn.get()
-      taskList.forEach(item => {delete item.ppid; delete item.uid})
-      print(taskList)
-    }
-    if(task && typeof(task) === 'string') { // 任务的查询及修改
-      function parseKeyVal(str) {
-        // 解析参数为 get,set 对象, 如果仅有 get 为空时, set 作为 get (为了符合单个=号习惯, 避免误修改)
-        // 'a==1,c=2' => {get: {a: 1}, set: {c: 2}}
-        // 'a=1' => {get: {a: 1}, set: {}}
-        let get = {}
-        let set = {}
-        str.split(',').forEach(item => {
-          {
-            const [,key,val] = (item.match(/(.*)==(.*)/) || [])
-            key && (get[key] = val)
-          }
-          {
-            const [,key,val] = item.includes('==') ? [] : (item.match(/(.*)=(.*)/) || [])
-            key && (set[key] = val)
-          }
-        })
-        if(!Object.keys(get).length && Object.keys(set).length) {
-          get = [set, set=get][0] // 无临时变量交换
-        }
-        return {get, set}
-      }
-      const {get, set} = task.includes(',') ? parseKeyVal(task) : parseKeyVal(rawArgMore.join(','))
-      const taskList = await taskFn.get()
-      let newTaskList = []
-      taskList.forEach(item => {delete item.ppid; delete item.uid})
-      const getKeys = Object.keys(get)
-      const setKeys = Object.keys(set)
-      if(getKeys.length > 0) { // 如果输入查询项才进行过滤, 否则显示全部
-        newTaskList = taskList.filter(item => { // get
-          let isFind = false
-          getKeys.forEach(key => {
-            if(item[key] === undefined) { // 仅使用输入的 key 进行匹配
-              isFind = false
-              return
-            } else if (explicit) {
-              isFind = item[key] === get[key]
-            } else if(regexp) {
-              const re = new RegExp(get[key])
-              isFind = re.test(item[key])
-            }
-          })
-          return isFind
-        })
-      }
-      newTaskList = await (async () => {
-        let list = []
-        function MyError({code, msg}) {
-          this.code = code
-          this.msg = msg
-          this.stack = (new Error()).stack
-        }
-        MyError.prototype = Object.create(Error.prototype)
-        MyError.prototype.constructor = MyError
-        try {
-          list = newTaskList.map(item => { // set
-            setKeys.forEach(key => {
-              if(
-                key === 'taskId'
-                || key === 'execList'
-              ) {
-                throw new MyError({code: 1, msg: `不允许直接修改 ${key} 字段`})
-              }
-              if(
-                key === 'taskName'
-                && (
-                  newTaskList.length > 1
-                  || taskList.some(taskItem => taskItem.taskName === set.taskName)
-                )
-              ) {
-                throw new MyError({code: 2, msg: `不能修改为多个相同的 ${key}`})
-              }
-              item[key] = set[key]
-            })
-            return item
-          })
-        } catch (err) {
-          print({
-            code: err.code,
-            msg: err.msg,
-          })
-        }
-        return list
-      })()
-
-      for (let index = 0; index < newTaskList.length; index++) {
-        const element = newTaskList[index]
-        await taskFn.updateOne(element.taskId, element)
-      }
-      print(newTaskList)
     }
     return taskFn
   }

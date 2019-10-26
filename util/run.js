@@ -24,18 +24,19 @@ class Run {
     const {util: {print}, task, argParse: {taskName}} = global.qs
     const curtask = await task.getCurlTask()
     const curlTaskId = task.getCurlTaskId()
-    task.updateOne(curlTaskId, {
-      taskName,
+    const newTask = {
       execList: (curtask.execList || []).concat({ method, cmd, arg, })
-    })
+    }
     if(taskName) {
-      const taskList = task.get()
-      const findEd = taskList.filter(item => item.taskName === taskName)
-      if(findEd.length > 1) {
-        print(`已存在相同名称的任务, 忽略保存`)
-        task.removeOne(curlTaskId)
+      const taskList = await task.get()
+      const find = taskList.find(item => item.taskName === taskName)
+      if(find) {
+        print(`已存在相同名称的任务, 名称保存被忽略`)
+      } else {
+        newTask.taskName = taskName
       }
     }
+    task.updateOne(curlTaskId, newTask)
   }
 
   mapFn(fnName, argList) {
