@@ -4,6 +4,7 @@ module.exports = ({util, arg1}) => {
     qsPath,
     run,
     cfg,
+    findNextMin,
     dateFormater,
   } = util
 
@@ -45,7 +46,7 @@ module.exports = ({util, arg1}) => {
         const findInex = taskList.findIndex(item => item.pid === process.pid)
         if(findInex > -1) {taskList.splice(findInex,  1)}
       }
-      const newTaskId = taskList.length ? Math.max.apply(null, taskList.map(item => item.taskId)) + 1 : 0
+      const newTaskId = findNextMin(taskList.map(item => item.taskId))
       const psListData = this.PSLIST
       const processInfo = psListData.find(item => item.pid === process.pid)
 

@@ -107,6 +107,12 @@ function deepGet(object, path, defaultValue) { // todo: bug, When using path, a 
   ).reduce((o, k) => (o || {})[k], object) || defaultValue;
 }
 
+function findNextMin(arr) { // 从数组中找到一个不存在的最小的数
+  const sortArr = arr.sort((a, b) => a - b) // 从小到大排序
+  const nextId = (sortArr.find((item, index) => (item+1 !== arr[index+1])) || 0) + 1 // 找到第一个不连续的数并加1
+  return nextId
+}
+
 function deepSet(obj, path, value) {
   if (Object(obj) !== obj) return obj;
   if (!Array.isArray(path)) path = path.toString().match(/[^.[\]]+/g) || [];
@@ -192,6 +198,7 @@ module.exports = async () => {
   return {
     cfg,
     dateFormater,
+    findNextMin,
     createFileOrDir,
     nodeBin,
     isChina,
