@@ -120,7 +120,7 @@ module.exports = async () => {
     print(newTaskList)
   }
 
-  { // 任务管理
+  { // 任务管理 add, name, des, start, kill, remove
     async function taskManage(taskIdOrName, method) {
       let {taskId} = (await taskFn.get(taskIdOrName)) || {}
       if(taskId !== undefined) {
