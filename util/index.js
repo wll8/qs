@@ -209,7 +209,29 @@ function print(info) {
   type === 'object' && PRINT.log(inspect(info || '', false, null, true))
 }
 
+function resetLog() {
+  const log = console.log
+  console.log = (...arg) => {
+    const getStackTrace = () => {
+      const obj = {}
+      Error.captureStackTrace(obj, getStackTrace)
+      return obj.stack
+    }
+    const stack = getStackTrace() || ''
+    const matchResult = stack.match(/\(.*?\)/g) || []
+    const line = (matchResult[1] || '()').match(/^\((.*)\)$/)[1]
+    log.apply(console, [
+      new Date().toLocaleString(),
+      '\r\n',
+      line,
+      '\r\n',
+      ...arg,
+    ])
+  }
+}
+
 module.exports = async () => {
+  resetLog()
   return {
     cfg,
     dateFormater,
