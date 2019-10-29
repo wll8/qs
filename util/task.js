@@ -97,7 +97,7 @@ module.exports = ({util, arg1}) => {
     async updateList() { // 刷新任务列表信息
       const psListData = this.PSLIST
       let taskList = this.readTaskList()
-      taskList = taskList.splice(- (Number(cfg.get.taskRecord) || 3)) // 保留多少条任务记录
+      taskList = taskList.splice(- (Number(cfg.get().taskRecord) || 3)) // 保留多少条任务记录
       taskList.forEach((tItem, index) => {
         const psData = psListData.find(psItem => ( // todo 匹配方式可能出现错误: 把旧列表与新列表对比 uid pid , 找不到则视为已停止
           psItem.uid === tItem.uid

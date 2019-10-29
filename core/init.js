@@ -5,10 +5,10 @@ const {
 } = global.qs.util
 
 module.exports = async (arg) => {
-  const {moduleManage, defaultExtend} = cfg.get
+  const {moduleManage, defaultExtend} = cfg.get()
   let installFunction = arg.extend ? defaultExtend : []
   if(arg.other) {
-    const packages = cfg.get.defaultOther
+    const packages = cfg.get().defaultOther
     await run.execFileSync(`${moduleManage} i -S ${packages.join(' ')}`, qsPath('./other/'))
   }
 

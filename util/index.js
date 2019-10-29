@@ -99,12 +99,15 @@ function createFileOrDir(filepath, str) { // Create file. If there is `/` after 
 }
 
 
-function deepGet(object, path, defaultValue) { // todo: bug, When using path, a value can be converted to fales, undefined is obtained
-  return (
-    !Array.isArray(path)
-    ? path.replace(/\[/g, '.').replace(/\]/g, '').split('.')
+function deepGet(object, path, defaultValue) {
+  let res = (!Array.isArray(path)
+    ? path
+      .replace(/\[/g, '.')
+      .replace(/\]/g, '')
+      .split('.')
     : path
-  ).reduce((o, k) => (o || {})[k], object) || defaultValue;
+  ).reduce((o, k) => (o || {})[k], object)
+  return res !== undefined ? res : defaultValue
 }
 
 function findNextMin(arr, sub = 1) { // 从数组中找到一个不存在的最小的数, 至少从 sub 数开始
@@ -114,33 +117,39 @@ function findNextMin(arr, sub = 1) { // 从数组中找到一个不存在的最�
   return nextId
 }
 
-function deepSet(obj, path, value) {
-  if (Object(obj) !== obj) return obj;
-  if (!Array.isArray(path)) path = path.toString().match(/[^.[\]]+/g) || [];
-  path.slice(0, -1).reduce((a, c, i) =>
-    Object(a[c]) === a[c]
-      ? a[c]
-      : a[c] = Math.abs(path[i + 1]) >> 0 === +path[i + 1]
-        ? []
-        : {},
-    obj)[path[path.length - 1]] = value;
-  return obj;
+function deepSet(object, keys, val) {
+  keys = Array.isArray(keys) ? keys : keys
+    .replace(/\[/g, '.')
+    .replace(/\]/g, '')
+    .split('.');
+  if (keys.length > 1) {
+    object[keys[0]] = object[keys[0]] || {}
+    deepSet(object[keys[0]], keys.slice(1), val)
+    return object
+  }
+  object[keys[0]] = val
+  return object
 }
 
 const cfg = {
   qsConfig: qsPath('./config.json'),
-  get get() {
-    return require(this.qsConfig)
+  get(keys) {
+    let obj = require(this.qsConfig)
+    if(keys === undefined) {
+      return obj
+    }
+    let res = deepGet(obj, keys, '')
+    return res
   },
   set(path, value) {
-    const newCfg = deepSet(require(this.qsConfig), path, value)
+    const newCfg = value ? deepSet(require(this.qsConfig), path, value) : path
     fs.writeFileSync(this.qsConfig, JSON.stringify(newCfg, null, 2), 'utf-8')
     return newCfg
   }
 }
 
 function isChina() {
-  const isChina = cfg.get.isChina
+  const isChina = cfg.get().isChina
   if(isChina === '') {
     return new Promise((resolve, reject) => {
       getRes('http://myip.ipip.net').then(res => {

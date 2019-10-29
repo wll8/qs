@@ -10,7 +10,7 @@ const {
   dataDir,
   openExe,
   moduleManage,
-} = cfg.get
+} = cfg.get()
 
 // Initialization template
 const template = {

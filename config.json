@@ -1,6 +1,7 @@
 {
   "openExe": "code",
   "moduleManage": "cnpm",
+  "taskRecord": "99",
   "defaultOther": [
     "shx",
     "nodemon",
@@ -9,7 +10,6 @@
     "browser-sync",
     "fkill-cli"
   ],
-  "taskRecord": 99,
   "defaultExtend": [
     "ss"
   ],

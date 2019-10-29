@@ -16,14 +16,14 @@ module.exports = async (arg) => {
 
   { // config resetConfig deleteNodeModouse
     if(config === '') { // View Configuration
-      print(cfg.get)
+      print(cfg.get())
     } else if (config) { // View or update configuration
       const [, key, val] = config.match(/(.+?)=(.*)/) || [, config]
       if(val !== undefined) {
         cfg.set(key, val)
-        print(cfg.get[key])
+        print(cfg.get()[key])
       } else {
-        print(cfg.get[key])
+        print(cfg.get()[key])
       }
     }
     if(resetConfig === true) { // Reset default configuration
@@ -49,7 +49,7 @@ module.exports = async (arg) => {
     if(deleteNodeModouse === true) { // Remove installed dependencies
       shelljs.rm('-rf', qsPath('./node_modules'))
       shelljs.rm('-rf', qsPath('./other/node_modules'))
-      cfg.get.defaultExtend.forEach(dir => shelljs.rm('-rf', qsPath(`./extend/${dir}/node_modules`)))
+      cfg.get().defaultExtend.forEach(dir => shelljs.rm('-rf', qsPath(`./extend/${dir}/node_modules`)))
     }
   }
 

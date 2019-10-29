@@ -14,6 +14,8 @@ const {
     taskRemove,
     explicit,
     regexp,
+    config,
+    configReset,
   },
   rawArgMore,
   task: taskFn,
@@ -22,6 +24,39 @@ const fs = require('fs')
 const shelljs = require('shelljs')
 
 module.exports = async () => {
+  if(config === '') { // 查看所有配置
+    print(`path: ${qsPath('./config.json')}`)
+    print(cfg.get())
+  } else if (config) { // 查看或修改配置
+    const [, key, val] = config.match(/(.+?)=(.*)/) || [, config]
+    if(val !== undefined) {
+      cfg.set(key, val)
+      print(cfg.get(key))
+    } else {
+      print(cfg.get(key))
+    }
+  }
+
+  if(configReset) {
+    cfg.set({
+      openExe: 'code',
+      moduleManage: '',
+      taskRecord: '99',
+      defaultOther: [
+        'shx',
+        'nodemon',
+        'json',
+        'http-server',
+        'browser-sync',
+        'fkill-cli',
+      ],
+      defaultExtend: [
+        'ss',
+      ],
+    })
+    print(cfg.get())
+  }
+
   if(taskArg && taskArg.length === 0) { // 获取所有任务
     const taskList = await taskFn.get()
     taskList.forEach(item => {delete item.ppid; delete item.uid})

@@ -107,8 +107,8 @@ async function initArgs ({util}) {
           type: 'string',
         },
         'config': {
-          describe: '显示或查找、修改配置 [kv...]',
-          type: 'array',
+          describe: '查看、修改配置 [k[=v]]',
+          type: 'string',
         },
         'config-reset': {
           describe: '重置配置',
@@ -235,7 +235,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
   }
   async function initCfg() {
     { // moduleManage 包管理工具
-      let {moduleManage} = util.cfg.get
+      let {moduleManage} = util.cfg.get()
       if(!moduleManage) { // 判断应该使用什么包管理工具
         moduleManage = ((await qs.util.run.execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
         util.cfg.set('moduleManage', moduleManage)
@@ -243,7 +243,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
     }
     { // dataDir 初始化数据保存目录
       const os = require('os')
-      let {dataDir} = util.cfg.get
+      let {dataDir} = util.cfg.get()
       if(!dataDir) {
         dataDir = `${os.homedir()}/.qs/`
         util.cfg.set('dataDir', dataDir)
