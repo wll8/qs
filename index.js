@@ -7,6 +7,7 @@
       print,
       run,
       nodeBin,
+      nodeBinNoMainPackage,
       cfg: {
         get: {
           moduleManage,
@@ -26,13 +27,11 @@
 
   {
     await require(qsPath('./core/option.js'))()
-    if(arg1 && !taskStart) { // 没有主程序时不运行
-      const extendFile = {
-        ss: './extend/ss/ss.js',
-      }[arg1]
-      if(extendFile) { // extend function
-        hasModules(`./extend/${arg1}/`) ? require(qsPath(extendFile)) : print('qs init -e')
-      } else { // other function
+    if(arg1 && !taskStart) {
+      const bin = nodeBinNoMainPackage(arg1)
+      if(bin) { // 扩展功能, 运行 extend 目录中的程序
+        run.spawnWrap(`node ${bin} ${argMore.join(' ')}`)
+      } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: package.json > exelist.json > system
         hasModules('./other/') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [process.cwd()] }) : print('qs init -o')
       }
     }

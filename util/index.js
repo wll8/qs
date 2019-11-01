@@ -46,6 +46,15 @@ function getRes(url, is_down = false) {
   })
 }
 
+function hasFile(filePath) {
+  try {
+    fs.accessSync(filePath)
+    return true
+  } catch (err) {
+    return false
+  }
+}
+
 function dateFormater(formater, t) { // Formatting time
   let date = t ? new Date(t) : new Date(),
     Y = date.getFullYear() + '',
@@ -63,29 +72,121 @@ function dateFormater(formater, t) { // Formatting time
     .replace(/ss/g, (s < 10 ? '0' : '') + s)
 }
 
-function nodeBin(cli, dir = './other/') {
-  const binObj = {}
-  const dependencies = require(qsPath(`${dir}package.json`)).dependencies
-  for (const pkgName in dependencies) {
-    if (dependencies.hasOwnProperty(pkgName)) {
-      const package = require(qsPath(`${dir}node_modules/${pkgName}/package.json`))
-      const pkgBin = package.bin
-       if(typeof(pkgBin) === 'string') {
-         binObj[package.name] = pkgBin
-         binObj[package.name + '_pkgName'] = pkgName
-       }
-       if(typeof(pkgBin) === 'object') {
-         for (const key2 in pkgBin) {
-           if (pkgBin.hasOwnProperty(key2)) {
-             binObj[key2] = pkgBin[key2]
-             binObj[key2 + '_pkgName'] = pkgName
-           }
-         }
-       }
+function nodeBin(cli, dir = './other/', useMainPackage = true) { // 查找存在于 package.bin 中的 cli, 也就是 bin 的键名, 并给出对应的路径, 键值
+  // useMainPackage: true, 从给定目录的 package.dependencies 所涉及到的 node_modules 中去查找 bin
+  // useMainPackage: false, 已经知道 cli 所在的 package.json 目录, 不再从 node_modules 中查找
+
+  let binObj = {}
+  const getBin = (pkgName, package) => { // pkgName 是包名, 如包名为 fkill-cli 的 bin 是 fkill, node_modules 下的是 fkill-cli, 命令行中运行的是 fkill
+    const binObj = {}
+    const pkgBin = package.bin
+    if(typeof(pkgBin) === 'string') {
+      binObj[package.name] = pkgBin
+      binObj[package.name + '_pkgName'] = pkgName
+    } else if(typeof(pkgBin) === 'object') {
+      for (const key2 in pkgBin) {
+        if (pkgBin.hasOwnProperty(key2)) {
+          binObj[key2] = pkgBin[key2]
+          binObj[key2 + '_pkgName'] = pkgName
+        }
+      }
+    }
+    return binObj
+  }
+
+  if(useMainPackage === false) {
+    const package = require(qsPath(`${dir}/package.json`))
+    binObj = getBin(dir, package)
+  } else {
+    const dependencies = require(qsPath(`${dir}/package.json`)).dependencies
+    for (const pkgName in dependencies) {
+      if (dependencies.hasOwnProperty(pkgName)) {
+        const package = require(qsPath(`${dir}/node_modules/${pkgName}/package.json`))
+        binObj = getBin(pkgName, package)
+      }
     }
   }
+
   const pkgName = binObj[cli + '_pkgName']
-  return pkgName && qsPath(`${dir}/node_modules/${pkgName}/${binObj[cli]}`)
+  if(useMainPackage === false) {
+    return pkgName === undefined ? undefined : qsPath(`${dir}/${binObj[cli]}`)
+  } else {
+    return pkgName === undefined ? undefined : qsPath(`${dir}/node_modules/${pkgName}/${binObj[cli]}`)
+  }
+}
+
+function nodeBinNoMainPackage (cli, dir = './extend/') { // 从指定目录中以最大程度返回 cli 路径
+  // 取值顺序:
+  // - 当前目录下的同名 js 文件
+  // - 同名目录中 package 中的 bin
+  // - 同名目录中 package 中的 main
+  // - 同名目录中 index.js
+  // - 不同名目录中的 bin
+  dir = qsPath(dir)
+  let res // 获取到的 cli 路径
+  fs.readdirSync(qsPath(dir)).map(item => path.join(dir, item)).find(item => { // 遍历当前目录
+
+    const testJs = (new RegExp(`${cli}\\.js$`)).test(item)
+    if(testJs) { // 同名 js
+      return (res = item)
+    }
+    const sameDir = qsPath(`${dir}/${cli}`)
+
+    if(hasFile(sameDir)) { // 如果与 cli 同名目录存在
+      const sameDirIndex = qsPath(`/${sameDir}/index.js`)
+      const packagePath = qsPath(`/${sameDir}/package.json`)
+      const hasPackage = hasFile(packagePath)
+      if(!hasPackage && hasFile(sameDirIndex)) { // 不存在 package 则取 index.js
+        return (res = sameDirIndex)
+      }
+      if(hasPackage) { // 存在 package 时取 bin
+        const bin = nodeBin(cli, sameDir, false)
+        if(bin) {
+          return (res = bin)
+        } else { // bin 不存在时取 main
+          const packageMan = require(packagePath).main
+          if(packageMan) {
+            return (res = qsPath(`/${sameDir}/${packageMan}`))
+          } else { // main 不存在时取 index
+            return (res = qsPath(`/${sameDir}/index.js`))
+          }
+        }
+      }
+
+    } else if(hasFile(qsPath(`/${item}/package.json`))) { // 如果与 cli 同名目录不存在, 则在所有存在 package 的目录中找 bin
+      const bin = nodeBin(cli, item, false)
+      if(bin) { // 存在 package 时获取 package 中的 bin
+        return (res = bin)
+      }
+    }
+
+  })
+  return res
+}
+
+function getFiles(dirPath, filterReStr) {
+  let res = []
+  function findFile(getPath) {
+    let files = fs.readdirSync(getPath)
+    files.forEach(function(item, index) {
+      let fPath = path.join(getPath, item)
+      let stat = fs.statSync(fPath)
+      if (stat.isDirectory() === true) {
+        console.log('fPath', fPath)
+        findFile(fPath)
+      }
+      if (stat.isFile() === true) {
+        res.push(fPath)
+      }
+    })
+  }
+  findFile(dirPath)
+  if(filterReStr) {
+    let re = new RegExp(filterReStr)
+    console.log('re', re)
+    res = res.filter(item => re.test(item))
+  }
+  console.log(res)
 }
 
 function createFileOrDir(filepath, str) { // Create file. If there is `/` after the path, it is considered a directory.
@@ -238,6 +339,7 @@ module.exports = async () => {
     findNextMin,
     createFileOrDir,
     nodeBin,
+    nodeBinNoMainPackage,
     isChina,
     execFileSync,
     hasModules,
