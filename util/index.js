@@ -78,7 +78,6 @@ function nodeBin(cli, dir = './other/', useMainPackage = true) { // 查找存在
 
   let binObj = {}
   const getBin = (pkgName, package) => { // pkgName 是包名, 如包名为 fkill-cli 的 bin 是 fkill, node_modules 下的是 fkill-cli, 命令行中运行的是 fkill
-    const binObj = {}
     const pkgBin = package.bin
     if(typeof(pkgBin) === 'string') {
       binObj[package.name] = pkgBin
