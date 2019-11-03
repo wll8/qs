@@ -21,6 +21,7 @@
     arg1,
     argMore,
     argParse: {
+      taskAdd,
       taskStart,
     },
   } = global.qs
@@ -30,7 +31,7 @@
     if(arg1 && !taskStart) {
       const bin = nodeBinNoMainPackage(arg1)
       if(bin) { // 扩展功能, 运行 extend 目录中的程序
-        run.spawnWrap(`node ${bin} ${argMore.join(' ')}`)
+        run.spawnWrap(['node', bin, ...argMore], [process.cwd()], taskAdd)
       } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: package.json > exelist.json > system
         hasModules('./other/') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [process.cwd()] }) : print('qs init -o')
       }

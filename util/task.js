@@ -83,7 +83,7 @@ module.exports = ({util, arg1}) => {
 
     }
     async runTaskIdCmd(taskId) { // 运行某个任务的 cmd 或 execList
-      const {execList, cmd} = await this.get(taskId)
+      const {execList = [], cmd} = await this.get(taskId)
       if(execList.length) {
         execList.forEach(async item => {
           const {method, cmd, arg} = item

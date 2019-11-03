@@ -265,10 +265,14 @@ function hasModules(dir) {
   return fs.existsSync(qsPath(`./${dir}/node_modules`))
 }
 
+async function cmdToArr(cmd) {
+  const {stdout} = await execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
+  return Array.isArray(cmd) ? cmd : JSON.parse(stdout)
+}
+
 function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以实时输出
   return new Promise(async (resolve, reject) => {
-    const {stdout} = await execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
-    const [arg1, ...argv] = JSON.parse(stdout)
+    const [arg1, ...argv] = await cmdToArr(cmd)
     child_process.execFileSync(arg1, argv, {
       cwd,
       ...option
@@ -279,8 +283,7 @@ function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { //
 
 function spawnWrap(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以进行交互
   return new Promise(async (resolve, reject) => {
-    const {stdout} = await execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
-    const [arg1, ...argv] = JSON.parse(stdout)
+    const [arg1, ...argv] = await cmdToArr(cmd)
     child_process.spawn(arg1, argv, {
       cwd,
       ...option

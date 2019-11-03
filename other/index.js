@@ -27,11 +27,10 @@ module.exports = async ({arg1, argMore, arg = []}) => {
       const {error, stdout, stderr} = await run.execAsync(cmd, arg, taskAdd)
       print(stdout)
     } else {
-      await run.execFileSync(cmd, arg, taskAdd)
+      await run.execFileSync(['node', nodeBinFile, ...argMore], arg, taskAdd)
       process.exit()
     }
   } else { // run system command
-    const cmd = `${arg1} ${argMoreStr}`
-    await run.spawnWrap(cmd, arg, taskAdd)
+    await run.spawnWrap([arg1, ...argMore], arg, taskAdd)
   }
 }
