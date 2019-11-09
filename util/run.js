@@ -21,7 +21,7 @@ class Run {
   async execAsync () {return this.mapFn('execAsync', arguments)}
   async spawnWrap () {return this.mapFn('spawnWrap', arguments)}
 
-  async shelljsExec (cmd, arg = [], isSave = false) {
+  async shelljsExec (cmd, arg = [], isSave = false) { // 可以实时输出, 不能交互
     const {exec: shelljsExec} = require('shelljs')
     isSave && this.save('shelljsExec', cmd, arg)
     return shelljsExec(cmd, ...arg)

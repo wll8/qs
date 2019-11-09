@@ -6,15 +6,10 @@
     util: {
       print,
       run,
+      hasFile,
       nodeBin,
       nodeBinNoMainPackage,
-      cfg: {
-        get: {
-          moduleManage,
-          dataDir,
-        }
-      },
-      hasModules,
+      cfg,
       dateFormater,
       qsPath,
     },
@@ -31,9 +26,23 @@
     if(arg1 && !taskStart) {
       const bin = nodeBinNoMainPackage(arg1)
       if(bin) { // 扩展功能, 运行 extend 目录中的程序
-        run.spawnWrap(['node', bin, ...argMore], [process.cwd()], taskAdd)
+        { // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
+          let extendPath = qsPath('./extend')
+          let re =  new RegExp(`${extendPath}/(.*?)/`)
+          let dirName = (bin.match(re) || [])[1]
+          if(dirName) {
+            let package = extendPath + '/' + dirName + '/package.json'
+            let node_modules = extendPath + '/' + dirName + '/node_modules'
+
+            if(hasFile(package) && require(package).dependencies && !hasFile(node_modules)) {
+              let cmd = `${cfg.get('moduleManage')} i --production`
+              await run.spawnWrap(cmd, qsPath(extendPath + '/' + dirName))
+            }
+          }
+        }
+        await run.spawnWrap(['node', bin, ...argMore], [process.cwd()], taskAdd)
       } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: package.json > exelist.json > system
-        hasModules('./other/') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [process.cwd()] }) : print('qs init -o')
+        hasFile('./other/node_modules') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [process.cwd()] }) : print('qs init -o')
       }
     }
 

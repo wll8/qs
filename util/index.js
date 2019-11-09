@@ -47,12 +47,7 @@ function getRes(url, is_down = false) {
 }
 
 function hasFile(filePath) {
-  try {
-    fs.accessSync(filePath)
-    return true
-  } catch (err) {
-    return false
-  }
+  return fs.existsSync(qsPath(filePath))
 }
 
 function dateFormater(formater, t) { // Formatting time
@@ -163,7 +158,7 @@ function nodeBinNoMainPackage (cli, dir = './extend/') { // 从指定目录中�
   return res
 }
 
-function getFiles(dirPath, filterReStr) {
+function getFiles(dirPath, filterReStr) { // 获取指定目录下所有文件, 包含子目录
   let res = []
   function findFile(getPath) {
     let files = fs.readdirSync(getPath)
@@ -171,7 +166,6 @@ function getFiles(dirPath, filterReStr) {
       let fPath = path.join(getPath, item)
       let stat = fs.statSync(fPath)
       if (stat.isDirectory() === true) {
-        console.log('fPath', fPath)
         findFile(fPath)
       }
       if (stat.isFile() === true) {
@@ -182,10 +176,8 @@ function getFiles(dirPath, filterReStr) {
   findFile(dirPath)
   if(filterReStr) {
     let re = new RegExp(filterReStr)
-    console.log('re', re)
     res = res.filter(item => re.test(item))
   }
-  console.log(res)
 }
 
 function createFileOrDir(filepath, str) { // Create file. If there is `/` after the path, it is considered a directory.
@@ -261,16 +253,12 @@ function isChina() {
   }
 }
 
-function hasModules(dir) {
-  return fs.existsSync(qsPath(`./${dir}/node_modules`))
-}
-
 async function cmdToArr(cmd) {
   const {stdout} = await execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
   return Array.isArray(cmd) ? cmd : JSON.parse(stdout)
 }
 
-function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以实时输出
+function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以实时输出, 但不能交互
   return new Promise(async (resolve, reject) => {
     const [arg1, ...argv] = await cmdToArr(cmd)
     child_process.execFileSync(arg1, argv, {
@@ -284,16 +272,22 @@ function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { //
 function spawnWrap(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以进行交互
   return new Promise(async (resolve, reject) => {
     const [arg1, ...argv] = await cmdToArr(cmd)
-    child_process.spawn(arg1, argv, {
+    const sp = child_process.spawn(arg1, argv, {
       cwd,
       ...option
-    }).on('error', err => {
+    })
+
+    sp.on('error', err => {
       // 查看错误码对应的信息: http://man7.org/linux/man-pages/man3/errno.3.html
       delete err.stack
       print(err)
+      resolve()
     })
 
-    resolve()
+    sp.on('close', (code) => {
+      resolve()
+    })
+
   })
 }
 
@@ -305,14 +299,14 @@ function execAsync(cmd) { // 同步运行, 不能实时输出
   })
 }
 
-function print(info) {
+function print(info) { // 用于输出有用信息, 而不是调试信息
   const type = typeof(info)
   type === 'undefined' && PRINT.log('')
   type === 'string' && PRINT.log(info)
   type === 'object' && PRINT.log(inspect(info || '', false, null, true))
 }
 
-function resetLog() {
+function resetLog() { // 重写 console.log 方法, 打印时附带日期, 所在行
   const log = console.log
   console.log = (...arg) => {
     const getStackTrace = () => {
@@ -344,10 +338,10 @@ module.exports = async () => {
     nodeBinNoMainPackage,
     isChina,
     execFileSync,
-    hasModules,
     execAsync,
     spawnWrap,
     print,
     qsPath,
+    hasFile,
   }
 }
