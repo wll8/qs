@@ -18,8 +18,7 @@ describe('qs 测试', () => {
     }))
   })
   describe('显示帮助信息', () => {
-    // q: 为什么 `qs` 获取不到输出?
-    const options = ['qs -h', 'qs --help']
+    const options = ['qs', 'qs -h', 'qs --help']
     options.forEach(cmd => it(cmd, () => {
       assert.ok(
         execSync(cmd).includes('查找任务时使用精确匹配')
@@ -118,7 +117,7 @@ describe('qs 测试', () => {
       'qs -k ${taskId}',
       'qs --task-kill ${taskId}',
     ]
-    options.forEach(item => it('qs -k ${taskId}', async () => {
+    options.forEach(item => it(item, async () => {
       let tempCmd = `qs -n ${uuid()} ping localhost`
       spawn(tempCmd.split(' '))
       await sleep()
