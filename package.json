@@ -6,15 +6,19 @@
   "bin": "index.js",
   "dependencies": {
     "browser-sync": "^2.26.7",
-    "chalk": "^2.4.2",
     "nodemon": "^1.19.1",
     "ps-list": "^6.3.0",
     "shelljs": "^0.8.3",
     "yargs": "^14.2.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "^6.2.2",
+    "mochawesome": "^4.1.0"
+  },
   "scripts": {
-    "start": "nodemon --watch \"index.js\" --exec \"node index.js\""
+    "reset": "qs --config-reset",
+    "start": "nodemon --watch \"index.js\" --exec \"node index.js\"",
+    "test": "mocha -R mochawesome -t 9999"
   },
   "keywords": [],
   "author": "",
