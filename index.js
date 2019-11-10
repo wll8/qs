@@ -160,7 +160,7 @@ async function initArgs ({util}) {
     let [arg1, ...argMore] = argParse.raw ? handleRaw(argParse.raw) : argParse._
     let [rawArg1, ...rawArgMore] = process.argv.slice(2)
     if(!rawArg1) { // 没有任何参数时显示帮助
-      yargs.showHelp()
+      yargs.showHelp(str => print(str))
     } else {
       resolve({argParse, arg1, argMore, rawArg1, rawArgMore})
     }
