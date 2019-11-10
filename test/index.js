@@ -1,6 +1,7 @@
 const assert = require('assert')
 const child_process = require('child_process')
 
+process.env.LANG = 'zh_CN.UTF-8' // 统一语言环境, 以避免产生不同结果
 describe('qs 测试', () => {
   after(async () => {
     console.log('测试完成')
@@ -21,7 +22,7 @@ describe('qs 测试', () => {
     const options = ['qs -h', 'qs --help']
     options.forEach(cmd => it(cmd, () => {
       assert.ok(
-        execSync(cmd).includes('选项')
+        execSync(cmd).includes('查找任务时使用精确匹配')
       )
     }))
   })
