@@ -12,6 +12,7 @@
     "yargs": "^14.2.0"
   },
   "devDependencies": {
+    "husky": "^3.0.9",
     "mocha": "^6.2.2",
     "mochawesome": "^4.1.0"
   },
@@ -19,6 +20,11 @@
     "reset": "qs --config-reset",
     "start": "nodemon --watch \"index.js\" --exec \"node index.js\"",
     "test": "mocha -R mochawesome -t 9999"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm test"
+    }
   },
   "keywords": [],
   "author": "",
