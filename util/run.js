@@ -32,9 +32,15 @@ class Run {
       util: {
         print
       },
+      argParse: {
+        raw,
+      },
       task: taskFn,
     } = global.qs
     let curtask = await taskFn.getCurlTask()
+    if(raw) {
+      arg = [...arg, , {raw}]
+    }
     curtask.execList = (curtask.execList || []).concat({ method, cmd, arg, })
     taskFn.updateOne(curtask.taskId, curtask)
   }

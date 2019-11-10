@@ -240,6 +240,16 @@ const cfg = {
   }
 }
 
+function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文件, 使用解释器执行脚本, 返回执行器, 文件地址
+  typeof(rawList) === 'string' && (rawList = [rawList])
+  const os = require('os')
+  const fs = require('fs')
+  const suffix = os.type() === 'Windows_NT' ? 'cmd' : 'sh' // 解释器和后缀名都可以使用
+  const file = qsPath(`${os.tmpdir()}/qs_raw_shell_${Date.now()}.${suffix}`)
+  fs.writeFileSync(file, rawList.join('\n'))
+  return [suffix, file]
+}
+
 function isChina() {
   const isChina = cfg.get().isChina
   if(isChina === '') {
@@ -269,9 +279,10 @@ function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { //
   })
 }
 
-function spawnWrap(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以进行交互
+function spawnWrap(cmd, cwd = qsPath('./'), option, other = {}) { // 可以进行交互
+  option = option || {stdio: 'inherit'}
   return new Promise(async (resolve, reject) => {
-    const [arg1, ...argv] = await cmdToArr(cmd)
+    const [arg1, ...argv] = other.raw ? handleRaw(other.raw) : await cmdToArr(cmd)
     const sp = child_process.spawn(arg1, argv, {
       cwd,
       ...option
@@ -343,5 +354,6 @@ module.exports = async () => {
     print,
     qsPath,
     hasFile,
+    handleRaw,
   }
 }

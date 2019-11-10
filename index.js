@@ -54,6 +54,7 @@ async function initArgs ({util}) {
   const {
     qsPath,
     print,
+    handleRaw,
   } = util
   return new Promise((resolve, reject) => {
     function getArgs() {
@@ -72,6 +73,11 @@ async function initArgs ({util}) {
         'h': {
           alias: 'help',
           type: 'boolean',
+        },
+        'r': {
+          alias: 'raw',
+          describe: '以字符串形式运行, 避免存储记录时变量、通配符被解析',
+          type: 'array',
         },
         'explicit': {
           describe: '查找任务时使用精确匹配',
@@ -151,7 +157,7 @@ async function initArgs ({util}) {
       return {argParse, yargs}
     }
     const {argParse, yargs} = getArgs()
-    let [arg1, ...argMore] = argParse._
+    let [arg1, ...argMore] = argParse.raw ? handleRaw(argParse.raw) : argParse._
     let [rawArg1, ...rawArgMore] = process.argv.slice(2)
     if(!rawArg1) { // 没有任何参数时显示帮助
       yargs.showHelp()
