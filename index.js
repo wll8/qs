@@ -65,9 +65,11 @@ async function initArgs ({util}) {
         'halt-at-non-option': true, // 在第一个位置参数(不可解析的)处停止解析
         'strip-dashed': true, // 删除虚线值
       })
+      .version(false)
       .option({
         'v': {
           alias: ['vers', 'version'],
+          describe: '显示版本号',
           type: 'boolean',
         },
         'h': {
@@ -151,6 +153,10 @@ async function initArgs ({util}) {
       //   a: true,
       // })
       .argv
+      if(argParse.version) { // 输出版本, 并退出程序
+        print(require(qsPath('./package.json')).version)
+        process.exit()
+      }
       if((argParse.taskName || argParse.taskDes)) {
         argParse.taskAdd = true
       }
