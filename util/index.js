@@ -268,24 +268,26 @@ async function cmdToArr(cmd) {
   return Array.isArray(cmd) ? cmd : JSON.parse(stdout)
 }
 
-function execFileSync(cmd, cwd = qsPath('./'), option = {stdio: 'inherit'}) { // 可以实时输出, 但不能交互
+function execFileSync(cmd, option = {}, other = {}) { // 可以实时输出, 但不能交互
   return new Promise(async (resolve, reject) => {
     const [arg1, ...argv] = await cmdToArr(cmd)
     child_process.execFileSync(arg1, argv, {
-      cwd,
-      ...option
+      cwd: qsPath('./'),
+      stdio: 'inherit',
+      ...option,
     })
     resolve()
   })
 }
 
-function spawnWrap(cmd, cwd = qsPath('./'), option, other = {}) { // 可以进行交互
+function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
   option = option || {stdio: 'inherit'}
   return new Promise(async (resolve, reject) => {
-    const [arg1, ...argv] = other.raw ? handleRaw(other.raw) : await cmdToArr(cmd)
+    const [arg1, ...argv] = other.rawCmd ? handleRaw(other.rawCmd) : await cmdToArr(cmd)
     const sp = child_process.spawn(arg1, argv, {
-      cwd,
-      ...option
+      cwd: qsPath('./'),
+      stdio: 'inherit',
+      ...option,
     })
 
     sp.on('error', err => {
@@ -302,9 +304,13 @@ function spawnWrap(cmd, cwd = qsPath('./'), option, other = {}) { // 可以进�
   })
 }
 
-function execAsync(cmd) { // 同步运行, 不能实时输出
+function execAsync(cmd, option = {}, other = {}) { // 同步运行, 不能实时输出
   return new Promise((resolve, reject) => {
-    child_process.exec(cmd, (error, stdout, stderr) => {
+    child_process.exec(cmd, {
+      cwd: qsPath('./'),
+      stdio: 'inherit',
+      ...option,
+    }, (error, stdout, stderr) => {
       resolve({error, stdout, stderr})
     });
   })

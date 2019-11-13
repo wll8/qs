@@ -5,7 +5,7 @@ const {
     run,
   },
   argParse: {
-    raw,
+    rawCmd,
     taskAdd,
   },
 } = global.qs

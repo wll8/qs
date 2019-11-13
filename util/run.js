@@ -33,13 +33,13 @@ class Run {
         print
       },
       argParse: {
-        raw,
+        rawCmd,
       },
       task: taskFn,
     } = global.qs
     let curtask = await taskFn.getCurlTask()
-    if(raw) {
-      arg = [...arg, , {raw}]
+    if(rawCmd) {
+      arg = [...arg, {rawCmd}]
     }
     curtask.execList = (curtask.execList || []).concat({ method, cmd, arg, })
     taskFn.updateOne(curtask.taskId, curtask)
@@ -47,7 +47,6 @@ class Run {
 
   mapFn(fnName, argList) {
     let [cmd, arg = [], isSave = false] = argList
-    arg = Array.isArray(arg) ? arg : [arg]
     isSave && this.save(fnName, cmd, arg)
     return this.runTable[fnName](cmd, ...arg)
   }

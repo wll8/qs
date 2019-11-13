@@ -36,13 +36,13 @@
 
             if(hasFile(package) && require(package).dependencies && !hasFile(node_modules)) {
               let cmd = `${cfg.get('moduleManage')} i --production`
-              await run.spawnWrap(cmd, qsPath(extendPath + '/' + dirName))
+              await run.spawnWrap(cmd, [{cwd: qsPath(extendPath + '/' + dirName)}])
             }
           }
         }
-        await run.spawnWrap(['node', bin, ...argMore], [process.cwd()], taskAdd)
+        await run.spawnWrap(['node', bin, ...argMore], [{cwd: process.cwd()}], taskAdd)
       } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: package.json > exelist.json > system
-        hasFile('./other/node_modules') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [process.cwd()] }) : print('qs init -o')
+        hasFile('./other/node_modules') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [{cwd: process.cwd()}] }) : print('qs init -o')
       }
     }
 
@@ -75,7 +75,7 @@ async function initArgs ({util}) {
           type: 'boolean',
         },
         'r': {
-          alias: 'raw',
+          alias: 'raw-cmd',
           describe: '以字符串形式运行, 避免存储记录时变量、通配符被解析',
           type: 'array',
         },
@@ -157,7 +157,7 @@ async function initArgs ({util}) {
       return {argParse, yargs}
     }
     const {argParse, yargs} = getArgs()
-    let [arg1, ...argMore] = argParse.raw ? handleRaw(argParse.raw) : argParse._
+    let [arg1, ...argMore] = argParse.rawCmd ? handleRaw(argParse.rawCmd) : argParse._
     let [rawArg1, ...rawArgMore] = process.argv.slice(2)
     if(!rawArg1) { // 没有任何参数时显示帮助
       yargs.showHelp(str => print(str))

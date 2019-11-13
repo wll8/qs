@@ -9,12 +9,12 @@ module.exports = async (arg) => {
   let installFunction = arg.extend ? defaultExtend : []
   if(arg.other) {
     const packages = cfg.get().defaultOther
-    await run.execFileSync(`${moduleManage} i -S ${packages.join(' ')}`, qsPath('./other/'))
+    await run.execFileSync(`${moduleManage} i -S ${packages.join(' ')}`, [{cwd: qsPath('./other/')}])
   }
 
   for (let index = 0; index < installFunction.length; index++) {
     const element = installFunction[index];
-    await run.execFileSync(`${moduleManage} i -S`, qsPath(`./extend/${element}`))
+    await run.execFileSync(`${moduleManage} i -S`, [{cwd: qsPath(`./extend/${element}`)}])
   }
 }
 
