@@ -6,7 +6,7 @@ describe('qs 测试', () => {
   after(async () => {
     console.log('测试完成')
     execSync('qs --config-reset')
-    require('fs').writeFileSync(absPath('../task.json'), '[]\n', 'utf8')
+    // require('fs').writeFileSync(absPath('../task.json'), '[]\n', 'utf8')
   })
   describe('显示版本号', () => {
     const version = require(absPath('../package.json')).version
@@ -29,7 +29,7 @@ describe('qs 测试', () => {
     {
       const options = [
         'qs -r "echo 123"',
-        'qs --raw "echo 123"'
+        'qs --rawCmd "echo 123"'
       ]
       options.forEach(cmd => it(cmd, () => {
         assert.ok(
@@ -40,10 +40,10 @@ describe('qs 测试', () => {
     {
       const options = [
         'qs -r "echo 123" "echo 456"',
-        'qs --raw "echo 123" "echo 456"',
+        'qs --rawCmd "echo 123" "echo 456"',
         'qs -r "echo 123" -r "echo 456"',
-        'qs --raw "echo 123" --raw "echo 456"',
-        'qs --raw "echo 123 && echo 456"',
+        'qs --rawCmd "echo 123" --rawCmd "echo 456"',
+        'qs --rawCmd "echo 123 && echo 456"',
       ]
       options.forEach(cmd => {
         it(cmd, () => {
@@ -75,6 +75,36 @@ describe('qs 测试', () => {
       execSync(`qs -n ${taskName} echo 123`)
       const options = [
         `qs --task-name ${taskName} echo 123`,
+      ]
+      options.forEach(cmd => it(cmd, () => {
+        assert.ok(
+          execSync(cmd).includes('相同任务名称或ID')
+        )
+      }))
+    }
+  })
+  describe('以字符串形式运行 && 添加到任务记录', () => {
+    {
+      const options = [
+        'qs -a -r "echo 123"',
+        'qs -a --rawCmd "echo 123"',
+        'qs --task-add -r "echo 123"',
+        'qs --task-add --rawCmd "echo 123"',
+        'qs -d taskDes -r "echo 123"',
+        'qs --task-des taskDes --rawCmd "echo 123"',
+      ]
+      options.forEach(cmd => it(cmd, () => {
+        assert.ok(
+          execSync(cmd).includes('taskId:')
+        )
+      }))
+    }
+    {
+      const taskName = uuid()
+      execSync(`qs -n ${taskName} -r echo 123`)
+      const options = [
+        `qs --task-name ${taskName} -r echo 123`,
+        `qs --task-name ${taskName} --cmd-raw echo 123`,
       ]
       options.forEach(cmd => it(cmd, () => {
         assert.ok(
