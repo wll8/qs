@@ -67,7 +67,7 @@ function dateFormater(formater, t) { // Formatting time
     .replace(/ss/g, (s < 10 ? '0' : '') + s)
 }
 
-function nodeBin(cli, dir = './other/', useMainPackage = true) { // 查找存在于 package.bin 中的 cli, 也就是 bin 的键名, 并给出对应的路径, 键值
+function nodeBin(cli, dir = './outside/', useMainPackage = true) { // 查找存在于 package.bin 中的 cli, 也就是 bin 的键名, 并给出对应的路径, 键值
   // useMainPackage: true, 从给定目录的 package.dependencies 所涉及到的 node_modules 中去查找 bin
   // useMainPackage: false, 已经知道 cli 所在的 package.json 目录, 不再从 node_modules 中查找
 
@@ -116,6 +116,7 @@ function nodeBinNoMainPackage (cli, dir = './extend/') { // 从指定目录中�
   // - 同名目录中 package 中的 main
   // - 同名目录中 index.js
   // - 不同名目录中的 bin
+  // - 不同名目录中的 main --- 不予实现, 因为大多数程序 main 中都是 index.js, 没有意义且会带来问题
   dir = qsPath(dir)
   let res // 获取到的 cli 路径
   fs.readdirSync(qsPath(dir)).map(item => path.join(dir, item)).find(item => { // 遍历当前目录
@@ -342,6 +343,28 @@ function resetLog() { // 重写 console.log 方法, 打印时附带日期, 所�
       ...arg,
     ])
   }
+}
+
+function cleanArgs (obj, cb) { // Options for paraing user input
+  const args = {}
+  obj.options && obj.options.forEach(o => {
+    const long = o.long.replace(/^--/, '')
+    const key = long.replace(/-(\w)/g, (_, c) => c ? c.toUpperCase() : '')
+    if (typeof obj[key] !== 'function' && typeof obj[key] !== 'undefined') {
+      // args[long] = obj[key]
+      args[key] = obj[key]
+    }
+  })
+  if(JSON.stringify(args) !== '{}') {
+    cb && cb(args)
+    return args
+  } else {
+    return undefined
+  }
+}
+
+function list(val) {
+  return val.split(',').filter(item => item)
 }
 
 module.exports = async () => {

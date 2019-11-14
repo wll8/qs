@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-;(async () => {
+new Promise(async () => {
   global.qs = await globalInit()
   const {
     util: {
@@ -21,34 +21,81 @@
     },
   } = global.qs
 
-  {
-    await require(qsPath('./core/option.js'))()
-    if(arg1 && !taskStart) {
-      const bin = nodeBinNoMainPackage(arg1)
-      if(bin) { // 扩展功能, 运行 extend 目录中的程序
-        { // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
-          let extendPath = qsPath('./extend')
-          let re =  new RegExp(`${extendPath}/(.*?)/`)
-          let dirName = (bin.match(re) || [])[1]
-          if(dirName) {
-            let package = extendPath + '/' + dirName + '/package.json'
-            let node_modules = extendPath + '/' + dirName + '/node_modules'
+  await require(qsPath('./option.js'))()
+  if(arg1 && !taskStart) {
+    const bin = nodeBinNoMainPackage(arg1)
+    if(bin) { // 扩展功能, 运行 extend 目录中的程序
+      await extend(bin)
+      await run.spawnWrap(['node', bin, ...argMore], [{cwd: process.cwd()}], taskAdd)
 
-            if(hasFile(package) && require(package).dependencies && !hasFile(node_modules)) {
-              let cmd = `${cfg.get('moduleManage')} i --production`
-              await run.spawnWrap(cmd, [{cwd: qsPath(extendPath + '/' + dirName)}])
-            }
-          }
-        }
-        await run.spawnWrap(['node', bin, ...argMore], [{cwd: process.cwd()}], taskAdd)
-      } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: package.json > exelist.json > system
-        hasFile('./other/node_modules') ? require(qsPath('./other/index.js'))({ arg1, argMore, arg: [{cwd: process.cwd()}] }) : print('qs init -o')
-      }
+    } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: package.json > exelist.json > system
+      hasFile('./outside/node_modules')
+        ? outside({ arg1, argMore, arg: [{cwd: process.cwd()}] })
+        : print('qs --init outside')
     }
-
   }
 
-})();
+})
+
+async function extend (bin) {
+  // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
+  const {
+    util: {
+      run,
+      hasFile,
+      cfg,
+      qsPath,
+    },
+  } = global.qs
+  let extendPath = qsPath('./extend')
+  let re =  new RegExp(`${extendPath}/(.*?)/`)
+  let dirName = (bin.match(re) || [])[1]
+  if(dirName) {
+    let package = extendPath + '/' + dirName + '/package.json'
+    let node_modules = extendPath + '/' + dirName + '/node_modules'
+
+    if(hasFile(package) && require(package).dependencies && !hasFile(node_modules)) {
+      let cmd = `${cfg.get('moduleManage')} i --production`
+      await run.spawnWrap(cmd, [{cwd: qsPath(extendPath + '/' + dirName)}])
+    }
+  }
+}
+
+async function outside ({arg1, argMore, arg = []}) {
+  const {
+    util: {
+      nodeBin,
+      print,
+      run,
+    },
+    argParse: {
+      rawCmd,
+      taskAdd,
+    },
+  } = global.qs
+
+  const nodeBinFile = nodeBin(arg1)
+  if(nodeBinFile) { // run nodejs command
+    // 不优雅的判断管道判断
+    const chunk = await new Promise((resolve, reject) => {
+      process.stdin.on('data', chunk => {
+        resolve(String(chunk))
+      })
+      setTimeout(() => resolve(undefined), 10)
+    })
+    if(chunk) { // 管道内容
+      const argStr = argMore.map(item => `'${item}'`).join(' ')
+      const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBinFile} ${argStr}`
+      const {error, stdout, stderr} = await run.execAsync(cmd, arg, taskAdd)
+      print(stdout)
+    } else {
+      await run.execFileSync(['node', nodeBinFile, ...argMore], arg, taskAdd)
+      process.exit()
+    }
+  } else { // run system command
+    await run.spawnWrap([arg1, ...argMore], arg, taskAdd)
+  }
+}
 
 async function initArgs ({util}) {
   const {
@@ -171,28 +218,6 @@ async function initArgs ({util}) {
       resolve({argParse, arg1, argMore, rawArg1, rawArgMore})
     }
   })
-}
-
-function cleanArgs (obj, cb) { // Options for paraing user input
-  const args = {}
-  obj.options && obj.options.forEach(o => {
-    const long = o.long.replace(/^--/, '')
-    const key = long.replace(/-(\w)/g, (_, c) => c ? c.toUpperCase() : '')
-    if (typeof obj[key] !== 'function' && typeof obj[key] !== 'undefined') {
-      // args[long] = obj[key]
-      args[key] = obj[key]
-    }
-  })
-  if(JSON.stringify(args) !== '{}') {
-    cb && cb(args)
-    return args
-  } else {
-    return undefined
-  }
-}
-
-function list(val) {
-  return val.split(',').filter(item => item)
 }
 
 async function globalInit() { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
