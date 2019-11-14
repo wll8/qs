@@ -84,6 +84,13 @@ describe('扩展功能', () => {
       assert.ok(execSync(`qs ${name}`).includes('aaa'))
       shelljs.rm('-rf', path)
     })
+    it('参数接收', () => {
+      let name = uuid()
+      let path = absPath(`../extend/${name}.js`)
+      fs.writeFileSync(path, `console.log(process.argv)`)
+      assert.ok(execSync(`qs ${name} ${name}`).includes(name))
+      shelljs.rm('-rf', path)
+    })
   })
   // describe('outside 目录扩展', () => {
   //   // ...
