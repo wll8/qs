@@ -13,8 +13,8 @@ new Promise(async () => {
       dateFormater,
       qsPath,
     },
-    arg1,
-    argMore,
+    binArg1,
+    binArgMore,
     argParse: {
       taskAdd,
       taskStart,
@@ -22,15 +22,15 @@ new Promise(async () => {
   } = global.qs
 
   await require(qsPath('./option.js'))()
-  if(arg1 && !taskStart) {
-    const bin = nodeBinNoMainPackage(arg1)
+  if(binArg1 && !taskStart) {
+    const bin = nodeBinNoMainPackage(binArg1)
     if(bin) { // 扩展功能, 运行 extend 目录中的程序
       await extend(bin)
-      await run.spawnWrap(['node', bin, ...argMore], [{cwd: process.cwd()}], taskAdd)
+      await run.spawnWrap(['node', bin, ...binArgMore], [{cwd: process.cwd()}], taskAdd)
 
     } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: package.json > exelist.json > system
       hasFile('./outside/node_modules')
-        ? outside({ arg1, argMore, arg: [{cwd: process.cwd()}] })
+        ? outside({ binArg1, binArgMore, arg: [{cwd: process.cwd()}] })
         : print('qs --init outside')
     }
   }
@@ -61,7 +61,7 @@ async function extend (bin) {
   }
 }
 
-async function outside ({arg1, argMore, arg = []}) {
+async function outside ({binArg1, binArgMore, arg = []}) {
   const {
     util: {
       nodeBin,
@@ -74,7 +74,7 @@ async function outside ({arg1, argMore, arg = []}) {
     },
   } = global.qs
 
-  const nodeBinFile = nodeBin(arg1)
+  const nodeBinFile = nodeBin(binArg1)
   if(nodeBinFile) { // run nodejs command
     // 不优雅的判断管道判断
     const chunk = await new Promise((resolve, reject) => {
@@ -84,16 +84,16 @@ async function outside ({arg1, argMore, arg = []}) {
       setTimeout(() => resolve(undefined), 10)
     })
     if(chunk) { // 管道内容
-      const argStr = argMore.map(item => `'${item}'`).join(' ')
+      const argStr = binArgMore.map(item => `'${item}'`).join(' ')
       const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBinFile} ${argStr}`
       const {error, stdout, stderr} = await run.execAsync(cmd, arg, taskAdd)
       print(stdout)
     } else {
-      await run.execFileSync(['node', nodeBinFile, ...argMore], arg, taskAdd)
+      await run.execFileSync(['node', nodeBinFile, ...binArgMore], arg, taskAdd)
       process.exit()
     }
   } else { // run system command
-    await run.spawnWrap([arg1, ...argMore], arg, taskAdd)
+    await run.spawnWrap([binArg1, ...binArgMore], arg, taskAdd)
   }
 }
 
@@ -210,12 +210,12 @@ async function initArgs ({util}) {
       return {argParse, yargs}
     }
     const {argParse, yargs} = getArgs()
-    let [arg1, ...argMore] = argParse.rawCmd ? handleRaw(argParse.rawCmd) : argParse._
+    let [binArg1, ...binArgMore] = argParse.rawCmd ? handleRaw(argParse.rawCmd) : argParse._
     let [rawArg1, ...rawArgMore] = process.argv.slice(2)
     if(!rawArg1) { // 没有任何参数时显示帮助
       yargs.showHelp(str => print(str))
     } else {
-      resolve({argParse, arg1, argMore, rawArg1, rawArgMore})
+      resolve({argParse, binArg1, binArgMore, rawArg1, rawArgMore})
     }
   })
 }
@@ -229,17 +229,17 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
   })
   let {
     argParse,
-    arg1,
+    binArg1,
     rawArg1,
-    argMore,
+    binArgMore,
     rawArgMore,
   } = await initArgs({util})
   let task = await initTask()
   const qs = Object.create({}, {
-    arg1: {value: arg1},
+    binArg1: {value: binArg1},
     rawArg1: {value: rawArg1},
     argParse: {value: argParse},
-    argMore: {value: argMore},
+    binArgMore: {value: binArgMore},
     rawArgMore: {value: rawArgMore},
     util: {value: util},
     task: {value: task},
@@ -274,7 +274,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
         taskRemove,
       ].filter(item => item !== undefined).length
     ) {
-      const Task = require(qsPath('./util/task.js'))({argParse, util, arg1})
+      const Task = require(qsPath('./util/task.js'))({argParse, util, binArg1})
       taskFn = await new Task()
     }
     return taskFn

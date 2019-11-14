@@ -1,4 +1,4 @@
-module.exports = ({util, arg1}) => {
+module.exports = ({util}) => {
   const fs = require('fs')
   const {
     qsPath,
