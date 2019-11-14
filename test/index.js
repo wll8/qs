@@ -1,12 +1,29 @@
+process.env.LANG = 'zh_CN.UTF-8' // 统一语言环境, 以避免产生不同结果
 const assert = require('assert')
 const child_process = require('child_process')
+const shelljs = require('shelljs')
+const configFile = absPath('../config.json')
+const taskFile = absPath('../task.json')
 
-process.env.LANG = 'zh_CN.UTF-8' // 统一语言环境, 以避免产生不同结果
-describe('qs 测试', () => {
+{
+  // 备份用户配置
+  shelljs.cp('-f', configFile, `${configFile}.bak`)
+  shelljs.cp('-f', taskFile, `${taskFile}.bak`)
+
+  // 初始化用户配置
+  execSync('qs --config-reset')
+  require('fs').writeFileSync(absPath('../task.json'), '[]\n', 'utf8')
+}
+
+describe('基本功能', () => {
+  after(() => {
+    console.log('恢复用户配置')
+    shelljs.mv('-f', `${configFile}.bak`, configFile)
+    shelljs.mv('-f', `${taskFile}.bak`, taskFile)
+  })
+
   after(async () => {
     console.log('测试完成')
-    execSync('qs --config-reset')
-    // require('fs').writeFileSync(absPath('../task.json'), '[]\n', 'utf8')
   })
   describe('显示版本号', () => {
     const version = require(absPath('../package.json')).version
