@@ -118,10 +118,10 @@ describe('基本功能', () => {
     }
     {
       const taskName = uuid()
-      execSync(`qs -n ${taskName} -r echo 123`)
+      execSync(`qs -n ${taskName} -r "echo 123"`)
       const options = [
-        `qs --task-name ${taskName} -r echo 123`,
-        `qs --task-name ${taskName} --cmd-raw echo 123`,
+        `qs --task-name ${taskName} -r "echo 123"`,
+        `qs --task-name ${taskName} --cmd-raw "echo 123"`,
       ]
       options.forEach(cmd => it(cmd, () => {
         assert.ok(
