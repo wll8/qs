@@ -1,6 +1,4 @@
 node_modules
-mochawesome-report
 extend
-pre.md
 pre
-gs_temp
+test/res

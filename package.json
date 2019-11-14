@@ -19,11 +19,11 @@
   "scripts": {
     "reset": "qs --config-reset",
     "start": "nodemon --watch \"index.js\" --exec \"node index.js\"",
-    "test": "mocha -R mochawesome -t 9999"
+    "test": "mocha -R mochawesome -t 9999 --reporter-options reportDir=test/res,reportFilename=index"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run reset && npm run test"
+      "pre-commit": "npm run test"
     }
   },
   "keywords": [],
