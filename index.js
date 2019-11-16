@@ -29,6 +29,22 @@ new Promise(async () => {
       await autoInstallPackage(bin)
       await run.spawnWrap(['node', bin, ...binArgMore], defaultArg, taskAdd)
     } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: file > package.json > system
+      const isWindows = require('os').type() === 'Windows_NT'
+      // 添加环境变量, 让系统可以找到 outside 目录中的程序, win 下的分隔符是 ; 类 unix 是 : .
+      process.env.PATH = `${qsPath('./outside/')}${isWindows ? ';' : ':'}${process.env.PATH}`
+
+      { // 运行文件程序
+        if(isWindows === false) {
+          // 不是 windows 时才需要处理文件全路径匹配
+          // -- win 上有 PATHEXT 系统变量可以直接运行相关后缀的脚本, 比如 a.bat 的 .bat 后缀在列表中, 就可以直接使用 `a` 运行.
+          // -- linux 上 a.sh 必须匹配全路径, 即使添加程序所在目录到环境变量中, 也只能使用 `a.sh` 运行.
+          const binFile = qsPath(`./outside/${binArg1}.sh`)
+          if(hasFile(binFile)) {
+            await run.spawnWrap(['sh', [binFile, ...binArgMore]], defaultArg, taskAdd)
+            process.exit()
+          }
+        }
+      }
 
       { // 运行 package.dependencies 中的程序
         const package = qsPath('./outside/package.json')
