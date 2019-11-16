@@ -62,7 +62,7 @@ module.exports = ({util}) => {
       this.writeTaskList(taskList)
     }
     async stop(taskId) { // 停止任务
-      const treeKill = require(qsPath('./util/treeKill.js'))
+      const treeKill = require(qsPath('./lib/treeKill.js'))
       treeKill((await this.get(taskId)).pid)
     }
     async start(taskId) { // 重启任务
