@@ -23,21 +23,39 @@ new Promise(async () => {
 
   await require(qsPath('./option.js'))()
   if(binArg1 && !taskStart) {
+    const defaultArg = [{cwd: process.cwd()}]
     const bin = nodeBinNoMainPackage(binArg1)
     if(bin) { // 扩展功能, 运行 extend 目录中的程序
-      await extend(bin)
-      await run.spawnWrap(['node', bin, ...binArgMore], [{cwd: process.cwd()}], taskAdd)
+      await autoInstallPackage(bin)
+      await run.spawnWrap(['node', bin, ...binArgMore], defaultArg, taskAdd)
+    } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: file > package.json > system
 
-    } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: package.json > exelist.json > system
-      hasFile('./outside/node_modules')
-        ? outside({ binArg1, binArgMore, arg: [{cwd: process.cwd()}] })
-        : print('qs --init outside')
+      { // 运行 package.dependencies 中的程序
+        const package = qsPath('./outside/package.json')
+        const hasDependencies = hasFile(package) && require(package).dependencies
+        const hasNodeModules = hasFile('./outside/node_modules')
+        if(hasDependencies && hasNodeModules) {
+          const nodeBinFile = nodeBin(binArg1)
+          if(nodeBinFile) {
+            await runNodeBin({nodeBinFile, binArgMore, arg: defaultArg})
+            process.exit()
+          }
+        }
+        if(hasDependencies && (hasNodeModules === false)) {
+          print('你存在 package.dependencies 但是没有进行安装, 尝试 `qs --install outside package.dependencies`')
+        }
+      }
+
+      { // 移交命令和参数给系统, 让系统去执行, 例 `qs echo 123`
+        await run.spawnWrap([binArg1, ...binArgMore], defaultArg, taskAdd)
+        process.exit()
+      }
     }
   }
 
 })
 
-async function extend (bin) {
+async function autoInstallPackage (bin) {
   // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
   const {
     util: {
@@ -54,46 +72,39 @@ async function extend (bin) {
     let package = extendPath + '/' + dirName + '/package.json'
     let node_modules = extendPath + '/' + dirName + '/node_modules'
 
-    if(hasFile(package) && require(package).dependencies && !hasFile(node_modules)) {
+    if(hasFile(package) && require(package).dependencies && !hasFile(node_modules)) { // 自动安装依赖
       let cmd = `${cfg.get('moduleManage')} i --production`
       await run.spawnWrap(cmd, [{cwd: qsPath(extendPath + '/' + dirName)}])
     }
   }
 }
 
-async function outside ({binArg1, binArgMore, arg = []}) {
+async function runNodeBin ({nodeBinFile, binArgMore, arg = []}) {
   const {
     util: {
-      nodeBin,
       print,
       run,
     },
     argParse: {
-      rawCmd,
       taskAdd,
     },
   } = global.qs
 
-  const nodeBinFile = nodeBin(binArg1)
-  if(nodeBinFile) { // run nodejs command
-    // 不优雅的判断管道判断
-    const chunk = await new Promise((resolve, reject) => {
-      process.stdin.on('data', chunk => {
-        resolve(String(chunk))
-      })
-      setTimeout(() => resolve(undefined), 10)
+  // 不优雅的判断管道判断
+  const chunk = await new Promise((resolve, reject) => {
+    process.stdin.on('data', chunk => {
+      resolve(String(chunk))
     })
-    if(chunk) { // 管道内容
-      const argStr = binArgMore.map(item => `'${item}'`).join(' ')
-      const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBinFile} ${argStr}`
-      const {error, stdout, stderr} = await run.execAsync(cmd, arg, taskAdd)
-      print(stdout)
-    } else {
-      await run.execFileSync(['node', nodeBinFile, ...binArgMore], arg, taskAdd)
-      process.exit()
-    }
-  } else { // run system command
-    await run.spawnWrap([binArg1, ...binArgMore], arg, taskAdd)
+    setTimeout(() => resolve(undefined), 10)
+  })
+  if(chunk) { // 管道内容
+    const argStr = binArgMore.map(item => `'${item}'`).join(' ')
+    const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBinFile} ${argStr}`
+    const {error, stdout, stderr} = await run.execAsync(cmd, arg, taskAdd)
+    print(stdout)
+  } else {
+    await run.execFileSync(['node', nodeBinFile, ...binArgMore], arg, taskAdd)
+    process.exit()
   }
 }
 
