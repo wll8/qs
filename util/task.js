@@ -49,12 +49,13 @@ module.exports = ({util}) => {
       }
       const newTaskId = findNextMin(taskList.map(item => item.taskId))
       const psListData = this.PSLIST
-      const processInfo = psListData.find(item => item.pid === process.pid)
+      const taskInfo = psListData.find(item => item.pid === process.pid)
 
-      processInfo.taskId = newTaskId
-      processInfo.status = 'runing'
-      processInfo.startTime = this.START_TIME
-      taskList.push(processInfo)
+      taskInfo.taskId = newTaskId
+      taskInfo.runCount = 1
+      taskInfo.status = 'runing'
+      taskInfo.startTime = this.START_TIME
+      taskList.push(taskInfo)
       this.writeTaskList(taskList)
     }
     cleanTaskRecord (taskId) { // 根据 taskId 删除任务记录
@@ -85,6 +86,7 @@ module.exports = ({util}) => {
         ppid,
         uid,
         status: 'runing',
+        runCount: taskInfo.runCount + 1,
       })
 
       await this.runTaskIdCmd(taskId)
