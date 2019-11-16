@@ -6,6 +6,7 @@ module.exports = ({util}) => {
     cfg,
     findNextMin,
     dateFormater,
+    handleRaw,
   } = util
 
   const psList = async () => {
@@ -72,7 +73,14 @@ module.exports = ({util}) => {
         ppid,
         uid,
       } = (this.PSLIST).find(item => item.pid === process.pid)
+      const taskInfo = await this.get(taskId)
+      taskInfo.execList.forEach((item, index) => { // rawCmd 运行时生成新文件, 更新路径到 cmd 字段
+        const [option, other = {}] = item.arg
+        const newCmd = other.rawCmd ? handleRaw(other.rawCmd) : item.cmd
+        taskInfo.execList[index].cmd = newCmd
+      })
       this.updateOne(taskId, { // 更新任务状态
+        ...taskInfo,
         pid,
         ppid,
         uid,

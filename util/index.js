@@ -284,7 +284,7 @@ function execFileSync(cmd, option = {}, other = {}) { // 可以实时输出, 但
 function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
   option = option || {stdio: 'inherit'}
   return new Promise(async (resolve, reject) => {
-    const [arg1, ...argv] = other.rawCmd ? handleRaw(other.rawCmd) : await cmdToArr(cmd)
+    const [arg1, ...argv] = await cmdToArr(cmd)
     const sp = child_process.spawn(arg1, argv, {
       // cwd: qsPath('./'),
       stdio: 'inherit',
