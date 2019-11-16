@@ -273,7 +273,7 @@ function execFileSync(cmd, option = {}, other = {}) { // 可以实时输出, 但
   return new Promise(async (resolve, reject) => {
     const [arg1, ...argv] = await cmdToArr(cmd)
     child_process.execFileSync(arg1, argv, {
-      cwd: qsPath('./'),
+      // cwd: qsPath('./'),
       stdio: 'inherit',
       ...option,
     })
@@ -286,7 +286,7 @@ function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
   return new Promise(async (resolve, reject) => {
     const [arg1, ...argv] = other.rawCmd ? handleRaw(other.rawCmd) : await cmdToArr(cmd)
     const sp = child_process.spawn(arg1, argv, {
-      cwd: qsPath('./'),
+      // cwd: qsPath('./'),
       stdio: 'inherit',
       ...option,
     })
@@ -308,7 +308,7 @@ function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
 function execAsync(cmd, option = {}, other = {}) { // 同步运行, 不能实时输出
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, {
-      cwd: qsPath('./'),
+      // cwd: qsPath('./'),
       stdio: 'inherit',
       ...option,
     }, (error, stdout, stderr) => {
