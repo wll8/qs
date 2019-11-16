@@ -4,6 +4,7 @@ const child_process = require('child_process')
 const shelljs = require('shelljs')
 const configFile = absPath('../config.json')
 const taskFile = absPath('../task.json')
+const isWindows = require('os').type() === 'Windows_NT'
 
 {
   // 备份用户配置
@@ -39,6 +40,19 @@ describe('基本功能', () => {
     options.forEach(cmd => it(cmd, () => {
       assert.ok(
         execSync(cmd).includes('查找任务时使用精确匹配')
+      )
+    }))
+  })
+  describe('管道', () => {
+    const findStr = uuid()
+    const options = [
+      isWindows
+        ? `echo {"a": ${findStr}}|qs json a`
+        : `echo '{"a": ${findStr}}'|qs json a`,
+    ]
+    options.forEach(cmd => it(cmd, () => {
+      assert.ok(
+        execSync(cmd).includes(findStr)
       )
     }))
   })
