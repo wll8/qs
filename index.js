@@ -27,7 +27,8 @@ new Promise(async () => {
     const bin = nodeBinNoMainPackage(binArg1)
     if(bin) { // 扩展功能, 运行 extend 目录中的程序
       await autoInstallPackage(bin)
-      await run.spawnWrap(['node', bin, ...binArgMore], defaultArg, taskAdd)
+      const exer = getExer(bin)
+      await run.spawnWrap([...exer, ...binArgMore], defaultArg, taskAdd)
     } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: file > package.json > system
       const isWindows = require('os').type() === 'Windows_NT'
       // 添加环境变量, 让系统可以找到 outside 目录中的程序, win 下的分隔符是 ; 类 unix 是 : .
@@ -105,6 +106,7 @@ async function runNodeBin ({nodeBinFile, binArgMore, arg = []}) {
       taskAdd,
     },
   } = global.qs
+  const exer = getExer(nodeBinFile)
 
   // 不优雅的判断管道判断
   const chunk = await new Promise((resolve, reject) => {
@@ -115,13 +117,29 @@ async function runNodeBin ({nodeBinFile, binArgMore, arg = []}) {
   })
   if(chunk) { // 管道内容
     const argStr = binArgMore.map(item => `'${item}'`).join(' ')
-    const cmd = `echo '${chunk.replace(/\n/g, "")}' | node ${nodeBinFile} ${argStr}`
+    const cmd = `echo '${chunk.replace(/\n/g, "")}' | ${exer.join(' ')} ${argStr}`
     const {error, stdout, stderr} = await run.execAsync(cmd, arg, taskAdd)
     print(stdout)
   } else {
-    await run.execFileSync(['node', nodeBinFile, ...binArgMore], arg, taskAdd)
+    await run.execFileSync([...exer, ...binArgMore], arg, taskAdd)
     process.exit()
   }
+}
+
+function getExer(file) { // 获取执行器, 返回 [file] 或 [exer, file]
+  // 如果是二进制, 直接运行; 如果是文本, 则判断使用 `#!`; 如果是文本且没有 `#!`, 则使用系统运
+  const {
+    util: {
+      qsPath
+    },
+  } = global.qs
+  const isBinaryFile = require(qsPath('./lib/isBinaryFile.js')).isBinaryFileSync(file)
+  const arr = isBinaryFile ? [file] : [
+    file.match(/.js$/) ? 'node' : '',
+    file,
+  ].filter(item => item.trim())
+  return arr
+
 }
 
 async function initArgs ({util}) {
