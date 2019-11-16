@@ -242,7 +242,6 @@ const cfg = {
 }
 
 function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文件, 使用解释器执行脚本, 返回执行器, 文件地址
-  typeof(rawList) === 'string' && (rawList = [rawList])
   const os = require('os')
   const fs = require('fs')
   const suffix = os.type() === 'Windows_NT' ? 'cmd' : 'sh' // 解释器和后缀名都可以使用
