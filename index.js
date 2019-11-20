@@ -1,5 +1,24 @@
 #!/usr/bin/env node
 
+global.QS_IS_MAIN = module.parent === null // 判断 qs 是不是入口文件
+
+if(global.QS_IS_MAIN === false) { // 如果是其他程序调用, 则导出方法给其他程序
+  const qsExports = new Promise(async (res, rej) => {
+    let util = await initUtil()
+    function listener(data) {
+      process.removeListener('message', listener) // 收到数据后, 取消监听
+      // 为引用 qs 的程序修改 qsPath 的主程序相对位置
+      const qsPath = util.qsPath
+      util.qsPath = (addr, re = require('path').dirname(require.main.filename)) => qsPath(addr, re)
+      res({util, ...data})
+    }
+    process.on('message', listener);
+
+  })
+  module.exports = qsExports
+  return
+}
+
 new Promise(async () => {
   global.qs = await globalInit()
   const {
@@ -15,6 +34,9 @@ new Promise(async () => {
     },
     binArg1,
     binArgMore,
+    rawArg1,
+    rawArgMore,
+    argParse,
     argParse: {
       taskAdd,
       taskStart,
@@ -28,7 +50,21 @@ new Promise(async () => {
     if(bin) { // 扩展功能, 运行 extend 目录中的程序
       await autoInstallPackage(bin)
       const exer = getExer(bin)
-      await run.spawnWrap([...exer, ...binArgMore], defaultArg, taskAdd)
+      await run.spawnWrap([...exer, ...binArgMore], [
+        {
+          ...defaultArg[0],
+          stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+        },
+        {
+          send: {
+            argParse,
+            binArg1,
+            binArgMore,
+            rawArg1,
+            rawArgMore,
+          },
+        }
+      ], taskAdd)
     } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: file > package.json > system
       const isWindows = require('os').type() === 'Windows_NT'
       // 添加环境变量, 让系统可以找到 outside 目录中的程序, win 下的分隔符是 ; 类 unix 是 : .
@@ -71,6 +107,16 @@ new Promise(async () => {
   }
 
 })
+
+async function initUtil() {
+  let util = await require('./util/index.js')()
+  util.run = await new (require(util.qsPath('./util/run.js')))({
+    execAsync: util.execAsync,
+    execFileSync: util.execFileSync,
+    spawnWrap: util.spawnWrap,
+  })
+  return util
+}
 
 async function autoInstallPackage (bin) {
   // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
@@ -266,12 +312,7 @@ async function initArgs ({util}) {
 }
 
 async function globalInit() { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
-  let util = await require('./util/index.js')()
-  util.run = await new (require(util.qsPath('./util/run.js')))({
-    execAsync: util.execAsync,
-    execFileSync: util.execFileSync,
-    spawnWrap: util.spawnWrap,
-  })
+  let util = await initUtil()
   let {
     argParse,
     binArg1,

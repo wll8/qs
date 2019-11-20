@@ -290,6 +290,7 @@ function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
       ...option,
     })
 
+    sp.send && other.send && sp.send(other.send)
     sp.on('error', err => {
       // 查看错误码对应的信息: http://man7.org/linux/man-pages/man3/errno.3.html
       delete err.stack
