@@ -1,4 +1,4 @@
-module.exports = ({util}) => {
+module.exports = ({util, argParse: {taskAdd}}) => {
   const fs = require('fs')
   const {
     qsPath,
@@ -29,6 +29,10 @@ module.exports = ({util}) => {
       return (async () => { // Async/Await Class Constructor
         this.START_TIME = dateFormater('YYYY-MM-DD HH:mm:ss', new Date())
         this.PSLIST = await psList()
+        if(taskAdd && global.QS_IS_MAIN) { // 初始化任务记录
+          await this.saveProcess() // 保存当前运行的进程信息, 其他的信息例如 taskName 都是补充参数
+          util.print(`taskId: ${this.getCurlTaskId()}\n`)
+        }
         return this
       })()
     }

@@ -326,6 +326,7 @@ function print(info) { // 用于输出有用信息, 而不是调试信息
 
 function resetLog() { // 重写 console.log 方法, 打印时附带日期, 所在行
   const log = console.log
+  console._log = log
   console.log = (...arg) => {
     const getStackTrace = () => {
       const obj = {}

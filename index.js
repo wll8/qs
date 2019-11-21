@@ -3,14 +3,15 @@
 global.QS_IS_MAIN = module.parent === null // 判断 qs 是不是入口文件
 
 if(global.QS_IS_MAIN === false) { // 如果是其他程序调用, 则导出方法给其他程序
+  const extendArgv = process.argv
   const qsExports = new Promise(async (res, rej) => {
-    let util = await initUtil()
-    function listener(data) {
+    async function listener(data) {
+      process.argv = data.qsArgv
+      let globalInitRes = await globalInit()
+      globalInitRes.qsTaskId = data.id
+      process.argv = extendArgv
       process.removeListener('message', listener) // 收到数据后, 取消监听
-      // 为引用 qs 的程序修改 qsPath 的主程序相对位置
-      const qsPath = util.qsPath
-      util.qsPath = (addr, re = require('path').dirname(require.main.filename)) => qsPath(addr, re)
-      res({util, ...data})
+      res(globalInitRes)
     }
     process.on('message', listener);
 
@@ -37,6 +38,7 @@ new Promise(async () => {
     rawArg1,
     rawArgMore,
     argParse,
+    task,
     argParse: {
       taskAdd,
       taskStart,
@@ -57,11 +59,8 @@ new Promise(async () => {
         },
         {
           send: {
-            argParse,
-            binArg1,
-            binArgMore,
-            rawArg1,
-            rawArgMore,
+            qsArgv: process.argv,
+            id: task ? task.getCurlTaskId() : undefined,
           },
         }
       ], taskAdd)
@@ -321,15 +320,21 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
     rawArgMore,
   } = await initArgs({util})
   let task = await initTask()
-  const qs = Object.create({}, {
-    binArg1: {value: binArg1},
-    rawArg1: {value: rawArg1},
-    argParse: {value: argParse},
-    binArgMore: {value: binArgMore},
-    rawArgMore: {value: rawArgMore},
-    util: {value: util},
-    task: {value: task},
-  })
+  const qs = (() =>  {// 设置对象的 key 为只读
+    let qs = {
+      binArg1,
+      rawArg1,
+      argParse,
+      binArgMore,
+      rawArgMore,
+      util,
+      task,
+    }
+    // Object.keys(qs).forEach(key => qs[key] = {value: qs[key]})
+    // return Object.create({}, qs)
+    return qs
+  })();
+
   await initCfg()
 
   async function initTask() {
