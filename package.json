@@ -19,7 +19,7 @@
   "scripts": {
     "reset": "qs --config-reset",
     "start": "nodemon --watch \"index.js\" --exec \"node index.js\"",
-    "test": "mocha -R mochawesome -t 9999 --reporter-options reportDir=test/res,reportFilename=index"
+    "test": "mocha -R mochawesome -t 9999 --ignore test/util.js --reporter-options reportDir=test/res,reportFilename=index"
   },
   "husky": {
     "hooks": {
