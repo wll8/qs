@@ -163,13 +163,13 @@ with (util) {
         let tempCmd = `qs -n ${uuid()} ping localhost`
         spawn(tempCmd.split(' '))
         await sleep()
-        let taskId = requireUncached(absPath('../task.json')).find(item => item.cmd.includes(tempCmd)).taskId
+        let taskId = requireUncached(taskFile).find(item => item.cmd.includes(tempCmd)).taskId
         await sleep()
         execSync(item.replace('${taskId}', taskId))
         await sleep()
         execSync(`qs --task`) // 刷新任务列表
         await sleep()
-        assert.ok(requireUncached(absPath('../task.json')).find(item => item.cmd.includes(tempCmd)).status === 'stoped')
+        assert.ok(requireUncached(taskFile).find(item => item.cmd.includes(tempCmd)).status === 'stoped')
       }))
     })
     describe('删除任务', () => {
@@ -182,7 +182,7 @@ with (util) {
         options.forEach(cmd => it(cmd, () => {
           let res = execSync(cmd)
           assert.ok(
-            requireUncached(absPath('../task.json')).some(item => item.cmd.includes(tempCmd)) === false
+            requireUncached(taskFile).some(item => item.cmd.includes(tempCmd)) === false
           )
         }))
       }
@@ -196,7 +196,7 @@ with (util) {
         options.forEach(cmd => it(cmd, () => {
           let res = execSync(cmd)
           assert.ok(
-            requireUncached(absPath('../task.json')).some(item => item.taskName === taskName) === false
+            requireUncached(taskFile).some(item => item.taskName === taskName) === false
           )
         }))
       }
@@ -206,7 +206,7 @@ with (util) {
         let cmd = `qs --config`
         it(cmd, () => {
           assert.ok(
-            execSync(cmd).includes('openExe')
+            execSync(cmd).includes('taskRecord')
           )
         })
       }

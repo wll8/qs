@@ -1,11 +1,13 @@
 process.env.LANG = 'zh_CN.UTF-8' // 统一语言环境, 以避免产生不同结果
 const fs = require('fs')
+const os = require('os')
 const assert = require('assert')
 const shelljs = require('shelljs')
-const isWindows = require('os').type() === 'Windows_NT'
+const isWindows = os.type() === 'Windows_NT'
 const child_process = require('child_process')
-const configFile = absPath('../config.json')
-const taskFile = absPath('../task.json')
+const qsDataDir = `${os.homedir()}/.qs/`
+const configFile = absPath(`${qsDataDir}/config.json`)
+const taskFile = absPath(`${qsDataDir}/task.json`)
 
 function execSync(cmd, out = true) {
   let str = child_process.execSync(cmd).toString().trim()
@@ -48,8 +50,7 @@ function allTestBefore() {
   shelljs.cp('-f', taskFile, `${taskFile}.bak`)
 
   console.log('初始化用户配置')
-  execSync('qs --config-reset')
-  fs.writeFileSync(absPath('../task.json'), '[]\n', 'utf8')
+  shelljs.rm([configFile, taskFile])
 }
 
 function allTestAfter() {

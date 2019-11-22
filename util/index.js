@@ -6,8 +6,22 @@ const os = require('os')
 const { Console } = require('console')
 const { inspect } = require('util')
 const qsPath = require('./qsPath.js')
+const qsDataDir = qsPath(`${os.homedir()}/.qs/`)
+const qsConfigPath = qsPath(`${qsDataDir}/config.json`)
+const initDefault = require(qsPath('./util/initDefault.js'))
+if(!hasFile(qsConfigPath)) { // 初始化 config.json
+  fs.writeFileSync(qsConfigPath, obj2str(initDefault.config))
+}
 
 const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
+
+function delRequireCache(filePath) {
+  delete require.cache[require.resolve(filePath)]
+}
+
+function obj2str(obj) {
+  return JSON.stringify(obj, null, 2)
+}
 
 function getRes(url, is_down = false) {
   // Obtain url from res.
@@ -225,9 +239,10 @@ function deepSet(object, keys, val) {
 }
 
 const cfg = {
-  qsConfig: qsPath('./config.json'),
+  qsConfigPath,
   get(keys) {
-    let obj = require(this.qsConfig)
+    delRequireCache(this.qsConfigPath)
+    let obj = require(this.qsConfigPath)
     if(keys === undefined) {
       return obj
     }
@@ -235,8 +250,8 @@ const cfg = {
     return res
   },
   set(path, value) {
-    const newCfg = value ? deepSet(require(this.qsConfig), path, value) : path
-    fs.writeFileSync(this.qsConfig, JSON.stringify(newCfg, null, 2), 'utf-8')
+    const newCfg = value ? deepSet(require(this.qsConfigPath), path, value) : path
+    fs.writeFileSync(this.qsConfigPath, obj2str(newCfg), 'utf-8')
     return newCfg
   }
 }
@@ -371,6 +386,11 @@ function list(val) {
 module.exports = async () => {
   resetLog()
   return {
+    delRequireCache,
+    obj2str,
+    initDefault,
+    qsDataDir,
+    qsConfigPath,
     cfg,
     dateFormater,
     findNextMin,

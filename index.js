@@ -382,7 +382,7 @@ async function globalInit(init) { // 把一些经常用到的方法保存到全�
       const os = require('os')
       let {dataDir} = util.cfg.get()
       if(!dataDir) {
-        dataDir = `${os.homedir()}/.qs/`
+        dataDir = `${os.homedir()}/.qs/data/`
         util.cfg.set('dataDir', dataDir)
       }
     }

@@ -1,5 +1,8 @@
 const {
   util: {
+    initDefault,
+    obj2str,
+    qsConfigPath,
     qsPath,
     cfg,
     print,
@@ -25,7 +28,7 @@ const shelljs = require('shelljs')
 
 module.exports = async () => {
   if(config === '') { // 查看所有配置
-    print(`path: ${qsPath('./config.json')}`)
+    print(`path: ${qsConfigPath}`)
     print(cfg.get())
   } else if (config) { // 查看或修改配置
     const [, key, val] = config.match(/(.+?)=(.*)/) || [, config]
@@ -38,22 +41,7 @@ module.exports = async () => {
   }
 
   if(configReset) {
-    cfg.set({
-      openExe: 'code',
-      moduleManage: '',
-      taskRecord: '99',
-      defaultOther: [
-        'shx',
-        'nodemon',
-        'json',
-        'http-server',
-        'browser-sync',
-        'fkill-cli',
-      ],
-      defaultExtend: [
-        'ss',
-      ],
-    })
+    cfg.set(initDefault.config)
     print(cfg.get())
   }
 

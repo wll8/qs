@@ -2,6 +2,9 @@ module.exports = ({util, pid}) => {
   const curPid = pid
   const fs = require('fs')
   const {
+    delRequireCache,
+    hasFile,
+    qsDataDir,
     qsPath,
     run,
     cfg,
@@ -23,7 +26,10 @@ module.exports = ({util, pid}) => {
       return []
     }
   }
-  const taskPath = qsPath('./task.json')
+  const taskPath = qsPath(`${qsDataDir}/task.json`)
+  if(!hasFile(taskPath)) { // 初始化 task.json
+    fs.writeFileSync(taskPath, '[]')
+  }
 
   class Task {
     constructor () {
@@ -161,7 +167,8 @@ module.exports = ({util, pid}) => {
       fs.writeFileSync(taskPath, JSON.stringify(taskList, null, 2))
     }
     readTaskList() {
-      return JSON.parse(fs.readFileSync(taskPath, 'utf-8') || '[]')
+      delRequireCache(taskPath)
+      return require(taskPath)
     }
   }
 
