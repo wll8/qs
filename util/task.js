@@ -1,4 +1,5 @@
-module.exports = ({util, argParse: {taskAdd}}) => {
+module.exports = ({util, pid}) => {
+  const curPid = pid
   const fs = require('fs')
   const {
     qsPath,
@@ -29,10 +30,6 @@ module.exports = ({util, argParse: {taskAdd}}) => {
       return (async () => { // Async/Await Class Constructor
         this.START_TIME = dateFormater('YYYY-MM-DD HH:mm:ss', new Date())
         this.PSLIST = await psList()
-        if(taskAdd && global.QS_IS_MAIN) { // 初始化任务记录
-          await this.saveProcess() // 保存当前运行的进程信息, 其他的信息例如 taskName 都是补充参数
-          util.print(`taskId: ${this.getCurlTaskId()}\n`)
-        }
         return this
       })()
     }
@@ -48,12 +45,12 @@ module.exports = ({util, argParse: {taskAdd}}) => {
     async saveProcess () { // 保存当前进程到任务记录
       const taskList = this.readTaskList()
       { // 删除 pid 重复的记录
-        const findInex = taskList.findIndex(item => item.pid === process.pid)
+        const findInex = taskList.findIndex(item => item.pid === curPid)
         if(findInex > -1) {taskList.splice(findInex,  1)}
       }
       const newTaskId = findNextMin(taskList.map(item => item.taskId))
       const psListData = this.PSLIST
-      const taskInfo = psListData.find(item => item.pid === process.pid)
+      const taskInfo = psListData.find(item => item.pid === curPid)
 
       taskInfo.taskId = newTaskId
       taskInfo.runCount = 1
@@ -77,7 +74,7 @@ module.exports = ({util, argParse: {taskAdd}}) => {
         pid,
         ppid,
         uid,
-      } = (this.PSLIST).find(item => item.pid === process.pid)
+      } = (this.PSLIST).find(item => item.pid === curPid)
       const taskInfo = await this.get(taskId)
       taskInfo.execList.forEach((item, index) => { // rawCmd 运行时生成新文件, 更新路径到 cmd 字段
         const [option, other = {}] = item.arg
@@ -154,11 +151,11 @@ module.exports = ({util, argParse: {taskAdd}}) => {
     }
     getCurlTaskId() {
       let taskList = this.readTaskList()
-      return (taskList.find(item => item.pid === process.pid) || {}).taskId
+      return (taskList.find(item => item.pid === curPid) || {}).taskId
     }
     getCurlTask() {
       let taskList = this.readTaskList()
-      return taskList.find(item => item.pid === process.pid)
+      return taskList.find(item => item.pid === curPid)
     }
     writeTaskList(taskList) {
       fs.writeFileSync(taskPath, JSON.stringify(taskList, null, 2))

@@ -1,14 +1,11 @@
 #!/usr/bin/env node
 
-global.QS_IS_MAIN = module.parent === null // 判断 qs 是不是入口文件
-
-if(global.QS_IS_MAIN === false) { // 如果是其他程序调用, 则导出方法给其他程序
+if(module.parent) { // 如果是其他程序调用, 则导出方法给其他程序
   const extendArgv = process.argv
   const qsExports = new Promise(async (res, rej) => {
-    async function listener(data) {
-      process.argv = data.qsArgv
-      let globalInitRes = await globalInit()
-      globalInitRes.qsTaskId = data.id
+    async function listener({argv, pid}) {
+      process.argv = argv
+      let globalInitRes = await globalInit({argv, pid})
       process.argv = extendArgv
       process.removeListener('message', listener) // 收到数据后, 取消监听
       res(globalInitRes)
@@ -39,6 +36,7 @@ new Promise(async () => {
     rawArgMore,
     argParse,
     task,
+    pid,
     argParse: {
       taskAdd,
       taskStart,
@@ -59,8 +57,8 @@ new Promise(async () => {
         },
         {
           send: {
-            qsArgv: process.argv,
-            id: task ? task.getCurlTaskId() : undefined,
+            argv: process.argv,
+            pid: pid,
           },
         }
       ], taskAdd)
@@ -187,7 +185,7 @@ function getExer(file) { // 获取执行器, 返回 [file] 或 [exer, file]
 
 }
 
-async function initArgs ({util}) {
+async function initArgs ({util, argv}) {
   const {
     qsPath,
     print,
@@ -301,7 +299,7 @@ async function initArgs ({util}) {
     }
     const {argParse, yargs} = getArgs()
     let [binArg1, ...binArgMore] = argParse.rawCmd ? handleRaw(argParse.rawCmd) : argParse._
-    let [rawArg1, ...rawArgMore] = process.argv.slice(2)
+    let [rawArg1, ...rawArgMore] = argv.slice(2)
     if(!rawArg1) { // 没有任何参数时显示帮助
       yargs.showHelp(str => print(str))
     } else {
@@ -310,7 +308,8 @@ async function initArgs ({util}) {
   })
 }
 
-async function globalInit() { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
+async function globalInit(init) { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
+  const {pid = process.pid, argv = process.argv} = init || {}
   let util = await initUtil()
   let {
     argParse,
@@ -318,7 +317,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
     rawArg1,
     binArgMore,
     rawArgMore,
-  } = await initArgs({util})
+  } = await initArgs({util, argv})
   let task = await initTask()
   const qs = (() =>  {// 设置对象的 key 为只读
     let qs = {
@@ -329,6 +328,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
       rawArgMore,
       util,
       task,
+      pid,
     }
     // Object.keys(qs).forEach(key => qs[key] = {value: qs[key]})
     // return Object.create({}, qs)
@@ -365,7 +365,7 @@ async function globalInit() { // 把一些经常用到的方法保存到全局, 
         taskRemove,
       ].filter(item => item !== undefined).length
     ) {
-      const Task = require(qsPath('./util/task.js'))({argParse, util, binArg1})
+      const Task = require(qsPath('./util/task.js'))({argParse, util, pid, binArg1})
       taskFn = await new Task()
     }
     return taskFn

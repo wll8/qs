@@ -165,10 +165,10 @@ module.exports = async () => {
       }
     }
 
-    // if(taskAdd) { // 初始化任务记录
-    //   await taskFn.saveProcess() // 保存当前运行的进程信息, 其他的信息例如 taskName 都是补充参数
-    //   print(`taskId: ${taskFn.getCurlTaskId()}\n`)
-    // }
+    if(taskAdd) { // 初始化任务记录
+      await taskFn.saveProcess() // 保存当前运行的进程信息, 其他的信息例如 taskName 都是补充参数
+      print(`taskId: ${taskFn.getCurlTaskId()}\n`)
+    }
 
     if(taskName || taskDes) { // 添加任务名称或描述
       const taskList = await taskFn.get()
