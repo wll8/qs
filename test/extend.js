@@ -91,6 +91,18 @@ describe('扩展功能', () => {
       assert.ok(execSync(`qs ${name} ${name}`).includes(name))
       shelljs.rm('-rf', path)
     })
+    it(`require('qs') 参数导出`, async () => {
+      let name = uuid()
+      let path = absPath(`../extend/${name}.js`)
+      fs.writeFileSync(path, `
+        new Promise(async () => {
+          global.qs = await require('../index.js')
+          console.log('getCurlTaskId', await global.qs.task.getCurlTaskId())
+        })
+      `)
+      assert.ok(execSync(`qs -a ${name}`).match(/getCurlTaskId \d+/) !== null)
+      shelljs.rm('-rf', path)
+    })
   })
   // describe('outside 目录扩展', () => {
   //   // ...
