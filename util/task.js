@@ -65,29 +65,32 @@ module.exports = ({util, pid}) => {
       taskList.push(taskInfo)
       this.writeTaskList(taskList)
     }
-    cleanTaskRecord (taskId) { // 根据 taskId 删除任务记录
+    cleanTaskRecord (taskIdOrName) { // 根据 taskId 删除任务记录
       const taskList = this.readTaskList()
-      taskList.splice(taskList.findIndex(item => item.taskId === taskId),  1)
+      taskList.splice(taskList.findIndex(item => (
+        (item.taskName === taskIdOrName)
+        || (item.taskId === Number(taskIdOrName))
+      )),  1)
       this.writeTaskList(taskList)
     }
-    async stop(taskId) { // 停止任务
+    async stop(taskIdOrName) { // 停止任务
       const treeKill = require(qsPath('./lib/treeKill.js'))
-      treeKill((await this.get(taskId)).pid)
+      treeKill((await this.get(taskIdOrName)).pid)
     }
-    async start(taskId) { // 重启任务
+    async start(taskIdOrName) { // 重启任务
 
       const { // 如果正在运行的进程pid列表中存在当前进程pid, 则视为正在运行
         pid,
         ppid,
         uid,
       } = (this.PSLIST).find(item => item.pid === curPid)
-      const taskInfo = await this.get(taskId)
+      const taskInfo = await this.get(taskIdOrName)
       taskInfo.execList.forEach((item, index) => { // rawCmd 运行时生成新文件, 更新路径到 cmd 字段
         const [option, other = {}] = item.arg
         const newCmd = other.rawCmd ? handleRaw(other.rawCmd) : item.cmd
         taskInfo.execList[index].cmd = newCmd
       })
-      this.updateOne(taskId, { // 更新任务状态
+      this.updateOne(taskIdOrName, { // 更新任务状态
         ...taskInfo,
         pid,
         ppid,
@@ -96,11 +99,11 @@ module.exports = ({util, pid}) => {
         runCount: taskInfo.runCount + 1,
       })
 
-      await this.runTaskIdCmd(taskId)
+      await this.runTaskIdCmd(taskIdOrName)
 
     }
-    async runTaskIdCmd(taskId) { // 运行某个任务的 cmd 或 execList
-      const {execList = [], cmd} = await this.get(taskId)
+    async runTaskIdCmd(taskIdOrName) { // 运行某个任务的 cmd 或 execList
+      const {execList = [], cmd} = await this.get(taskIdOrName)
       if(execList.length) {
         execList.forEach(async item => {
           const {method, cmd, arg} = item
@@ -133,11 +136,14 @@ module.exports = ({util, pid}) => {
       this.writeTaskList(taskList)
       return taskList
     }
-    async updateOne(taskId, data) { // 使用 taskId 更新任务记录
+    async updateOne(taskIdOrName, data) { // 使用 taskId 更新任务记录
       let taskList = this.readTaskList()
       let taskInfo
       taskList.forEach((tItem, index) => {
-        if(tItem.taskId === taskId) {
+        if((
+          (tItem.taskName === taskIdOrName)
+          || (tItem.taskId === Number(taskIdOrName))
+        )) {
           taskInfo = {
             ...tItem,
             ...data,
@@ -149,9 +155,12 @@ module.exports = ({util, pid}) => {
       this.writeTaskList(taskList)
       return taskInfo
     }
-    removeOne(taskId) {
+    removeOne(taskIdOrName) {
       let taskList = this.readTaskList()
-      const findIndex = taskList.findIndex(item => item.taskId === taskId)
+      const findIndex = taskList.findIndex(item => (
+        (item.taskName === taskIdOrName)
+        || (item.taskId === Number(taskIdOrName))
+      ))
       taskList.splice(findIndex, 1)
       this.writeTaskList(taskList)
     }
