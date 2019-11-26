@@ -382,12 +382,12 @@ async function globalInit(init) { // 把一些经常用到的方法保存到全�
         util.cfg.set('moduleManage', moduleManage)
       }
     }
-    { // dataDir 初始化数据保存目录
+    { // userDataDir 初始化数据保存目录
       const os = require('os')
-      let {dataDir} = util.cfg.get()
-      if(!dataDir) {
-        dataDir = `${os.homedir()}/.qs/data/`
-        util.cfg.set('dataDir', dataDir)
+      let {userDataDir} = util.cfg.get()
+      if(!userDataDir) {
+        userDataDir = `${os.homedir()}/.qs/userData/`
+        util.cfg.set('userDataDir', userDataDir)
       }
     }
   }

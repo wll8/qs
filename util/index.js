@@ -6,14 +6,36 @@ const os = require('os')
 const { Console } = require('console')
 const { inspect } = require('util')
 const qsPath = require('./qsPath.js')
-const qsDataDir = qsPath(`${os.homedir()}/.qs/`)
-const qsConfigPath = qsPath(`${qsDataDir}/config.json`)
 const initDefault = require(qsPath('./util/initDefault.js'))
-if(!hasFile(qsConfigPath)) { // 初始化 config.json
-  fs.writeFileSync(qsConfigPath, obj2str(initDefault.config))
-}
+const {
+  qsDataDir,
+  qsConfigPath,
+  qsTaskPath,
+} = initQsFile()
+
 
 const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
+
+function initQsFile() { // 初始化 qs 会用到的目录和文件
+  const qsDataDir = qsPath(`${os.homedir()}/.qs/`)
+  const qsExtendDir = qsPath(`./extend/`)
+  const qsOutsideDir = qsPath(`./outside/`)
+  const qsConfigPath = qsPath(`${qsDataDir}/config.json`)
+  const qsTaskPath = qsPath(`${qsDataDir}/task.json`)
+
+  !hasFile(qsDataDir) && fs.mkdirSync(qsDataDir)
+  !hasFile(qsExtendDir) && fs.mkdirSync(qsExtendDir)
+  !hasFile(qsOutsideDir) && fs.mkdirSync(qsOutsideDir)
+  !hasFile(qsConfigPath) && fs.writeFileSync(qsConfigPath, obj2str(initDefault.config))
+  !hasFile(qsTaskPath) && fs.writeFileSync(qsTaskPath, obj2str([]))
+  return {
+    qsDataDir,
+    qsConfigPath,
+    qsTaskPath,
+    qsExtendDir,
+    qsOutsideDir,
+  }
+}
 
 function delRequireCache(filePath) {
   delete require.cache[require.resolve(filePath)]
@@ -340,6 +362,7 @@ module.exports = async () => {
     obj2str,
     initDefault,
     qsDataDir,
+    qsTaskPath,
     qsConfigPath,
     cfg,
     dateFormater,

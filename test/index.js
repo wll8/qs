@@ -4,6 +4,7 @@ with (util) {
   allTestBefore()
 
   after(() => {
+    console.log('测试完成')
     allTestAfter()
   })
   describe('基本功能', () => {
@@ -28,8 +29,8 @@ with (util) {
       const findStr = uuid()
       const options = [
         isWindows
-          ? `echo {"a": ${findStr}}|qs json a`
-          : `echo '{"a": ${findStr}}'|qs json a`,
+          ? `echo {"a": ${findStr}}|qs npx json a`
+          : `echo '{"a": ${findStr}}'|qs npx json a`,
       ]
       options.forEach(cmd => it(cmd, () => {
         assert.ok(

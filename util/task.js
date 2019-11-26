@@ -5,6 +5,7 @@ module.exports = ({util, pid}) => {
     obj2str,
     delRequireCache,
     hasFile,
+    qsTaskPath,
     qsDataDir,
     qsPath,
     run,
@@ -26,10 +27,6 @@ module.exports = ({util, pid}) => {
     } catch (error) {
       return []
     }
-  }
-  const taskPath = qsPath(`${qsDataDir}/task.json`)
-  if(!hasFile(taskPath)) { // 初始化 task.json
-    fs.writeFileSync(taskPath, '[]')
   }
 
   class Task {
@@ -174,11 +171,11 @@ module.exports = ({util, pid}) => {
       return taskList.find(item => item.pid === curPid)
     }
     writeTaskList(taskList) {
-      fs.writeFileSync(taskPath, obj2str(taskList))
+      fs.writeFileSync(qsTaskPath, obj2str(taskList))
     }
     readTaskList() {
-      delRequireCache(taskPath)
-      return require(taskPath)
+      delRequireCache(qsTaskPath)
+      return require(qsTaskPath)
     }
   }
 

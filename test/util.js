@@ -1,4 +1,14 @@
 process.env.LANG = 'zh_CN.UTF-8' // 统一语言环境, 以避免产生不同结果
+process.on('uncaughtException', err => {
+  console.log(err)
+  allTestAfter()
+  process.exit()
+})
+process.on('SIGINT', err => {
+  console.log('中途退出测试')
+  allTestAfter()
+  process.exit()
+})
 const fs = require('fs')
 const os = require('os')
 const assert = require('assert')
@@ -6,6 +16,8 @@ const shelljs = require('shelljs')
 const isWindows = os.type() === 'Windows_NT'
 const child_process = require('child_process')
 const qsDataDir = `${os.homedir()}/.qs/`
+const extendDir = absPath('../extend/')
+const outsideDir = absPath('../outside/')
 const configFile = absPath(`${qsDataDir}/config.json`)
 const taskFile = absPath(`${qsDataDir}/task.json`)
 
@@ -46,18 +58,25 @@ function absPath(file = '') { return require('path').resolve(__dirname, file) }
 
 function allTestBefore() {
   console.log('备份用户配置')
-  shelljs.cp('-f', configFile, `${configFile}.bak`)
-  shelljs.cp('-f', taskFile, `${taskFile}.bak`)
-
-  console.log('初始化用户配置')
-  shelljs.rm([configFile, taskFile])
+  shelljs.mv(configFile, `${configFile}.bak`)
+  shelljs.mv(taskFile, `${taskFile}.bak`)
+  shelljs.mv(`${extendDir}`, `${extendDir}.bak`)
+  shelljs.mv(`${outsideDir}`, `${outsideDir}.bak`)
 }
 
 function allTestAfter() {
   console.log('恢复用户配置')
-  shelljs.mv('-f', `${configFile}.bak`, configFile)
-  shelljs.mv('-f', `${taskFile}.bak`, taskFile)
-  console.log('测试完成')
+  shelljs.rm(
+    '-rf',
+    configFile,
+    taskFile,
+    extendDir,
+    outsideDir,
+  )
+  shelljs.mv(`${configFile}.bak`, configFile)
+  shelljs.mv(`${taskFile}.bak`, taskFile)
+  shelljs.mv(`${extendDir}.bak`, `${extendDir}`)
+  shelljs.mv(`${outsideDir}.bak`, `${outsideDir}`)
 }
 
 module.exports = {
