@@ -23,43 +23,6 @@ function obj2str(obj) {
   return JSON.stringify(obj, null, 2)
 }
 
-function getRes(url, is_down = false) {
-  // Obtain url from res.
-  return new Promise((resolve, reject) => {
-    http.get(url, res => {
-      const { statusCode } = res;
-      let contentLength = parseInt(res.headers['content-length']);
-      if(statusCode !== 200) {
-        reject(statusCode)
-      }
-      let data = '';
-      if(is_down) {
-        res.setEncoding('binary');
-      } else {
-        res.setEncoding('utf8');
-      }
-      res.on('data', function (chunk) {
-        data += chunk;
-        if(is_down) {
-          let length = ((data.length) / contentLength) * 100;
-          let percent = parseInt(((length).toFixed(0)));
-          // Terminal progress bar
-          print(`${url.split('/').slice(-1)[0]} downloaded/total = ${data.length}/${contentLength} = ${percent}/100\r`);
-        }
-      });
-      res.on('end', function () {
-        if(!is_down) {
-          data.toString('utf8')
-        }
-        resolve(data)
-      });
-    }).setTimeout(3000, () => {
-      log('timeout')
-      reject('')
-    })
-  })
-}
-
 function hasFile(filePath) {
   return fs.existsSync(qsPath(filePath))
 }
@@ -265,19 +228,6 @@ function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文
   return [suffix, file]
 }
 
-function isChina() {
-  const isChina = cfg.get().isChina
-  if(isChina === '') {
-    return new Promise((resolve, reject) => {
-      getRes('http://myip.ipip.net').then(res => {
-        resolve(res.includes('中国'))
-      }).catch(err => resolve(false))
-    })
-  } else {
-    return isChina
-  }
-}
-
 async function cmdToArr(cmd) {
   const {stdout} = await execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
   return Array.isArray(cmd) ? cmd : JSON.parse(stdout)
@@ -371,7 +321,7 @@ function cleanArgs (obj, cb) { // Options for paraing user input
       args[key] = obj[key]
     }
   })
-  if(JSON.stringify(args) !== '{}') {
+  if(obj2str(args) !== '{}') {
     cb && cb(args)
     return args
   } else {
@@ -397,7 +347,6 @@ module.exports = async () => {
     createFileOrDir,
     nodeBin,
     nodeBinNoMainPackage,
-    isChina,
     execFileSync,
     execAsync,
     spawnWrap,

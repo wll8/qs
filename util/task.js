@@ -2,6 +2,7 @@ module.exports = ({util, pid}) => {
   const curPid = pid
   const fs = require('fs')
   const {
+    obj2str,
     delRequireCache,
     hasFile,
     qsDataDir,
@@ -173,7 +174,7 @@ module.exports = ({util, pid}) => {
       return taskList.find(item => item.pid === curPid)
     }
     writeTaskList(taskList) {
-      fs.writeFileSync(taskPath, JSON.stringify(taskList, null, 2))
+      fs.writeFileSync(taskPath, obj2str(taskList))
     }
     readTaskList() {
       delRequireCache(taskPath)
