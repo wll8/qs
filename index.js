@@ -106,16 +106,6 @@ new Promise(async () => {
 
 })
 
-async function initUtil() {
-  let util = await require('./util/index.js')()
-  util.run = await new (require(util.qsPath('./util/run.js')))({
-    execAsync: util.execAsync,
-    execFileSync: util.execFileSync,
-    spawnWrap: util.spawnWrap,
-  })
-  return util
-}
-
 async function autoInstallPackage (bin) {
   // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
   const {
@@ -186,144 +176,28 @@ function getExer(file) { // 获取执行器, 返回 [file] 或 [exer, file]
 
 }
 
-async function initArgs ({util, argv}) {
-  const {
-    qsPath,
-    print,
-    handleRaw,
-  } = util
-  return new Promise((resolve, reject) => {
-    function getArgs() {
-      const yargs = require('yargs')
-      const argParse = yargs
-      .parserConfiguration({
-        // 'short-option-groups': false, // 是否合并短参数为数组
-        'halt-at-non-option': true, // 在第一个位置参数(不可解析的)处停止解析
-        'strip-dashed': true, // 删除虚线值
-      })
-      .version(false)
-      .option({
-        'v': {
-          alias: ['vers', 'version'],
-          describe: '显示版本号',
-          type: 'boolean',
-        },
-        'h': {
-          alias: 'help',
-          type: 'boolean',
-        },
-        'r': {
-          alias: 'raw-cmd',
-          describe: '以字符串形式运行, 避免存储记录时变量、通配符被解析',
-          type: 'array',
-        },
-        'explicit': {
-          describe: '查找任务时使用精确匹配',
-          type: 'boolean',
-        },
-        'regexp': {
-          describe: '查找任务时使用正则匹配',
-          type: 'boolean',
-          default: true,
-        },
-        'task': {
-          describe: '显示或查找、修改任务 [kv...]',
-          type: 'array',
-        },
-        'a': {
-          alias: 'task-add',
-          describe: '添加到任务记录',
-          type: 'boolean',
-        },
-        'n': {
-          alias: 'task-name',
-          describe: '添加任务记录并创建任务名称, 隐含 -a',
-          type: 'string',
-        },
-        'd': {
-          alias: 'task-des',
-          describe: '添加任务记录并创建任务描述, 隐含 -a',
-          type: 'string',
-        },
-        's': {
-          alias: 'task-start',
-          describe: '启动任务 <id|name>',
-          type: 'string',
-        },
-        'k': {
-          alias: 'task-kill',
-          describe: '停止任务 <id|name>',
-          type: 'string',
-        },
-        'task-remove': {
-          describe: '删除任务 <id|name>',
-          type: 'string',
-        },
-        'task-show-id': {
-          describe: '输出当前任务id',
-          type: 'boolean',
-        },
-        'config': {
-          describe: '查看、修改配置 [k[=v]]',
-          type: 'string',
-        },
-        'config-reset': {
-          describe: '重置配置',
-          type: 'boolean',
-        },
-        'node-modules-remove': {
-          describe: '删除 qs 中的 node_modules',
-          type: 'boolean',
-        },
-        'init': {
-          describe: '初始化 qs, 不包含命令',
-          type: 'boolean',
-        },
-        'init-extend': {
-          describe: '初始化默认的扩展命令, 如 tp',
-          type: 'boolean',
-        },
-        'init-outside': {
-          describe: '初始化默认的外部命令, 如 ssh',
-          type: 'boolean',
-        },
-      })
-      .conflicts('explicit', 'regexp') // 互斥
-      // .implies('n', { // todo 隐含
-      //   a: true,
-      // })
-      .argv
-      if(argParse.version) { // 输出版本, 并退出程序
-        print(require(qsPath('./package.json')).version)
-        process.exit()
-      }
-      if((argParse.taskName || argParse.taskDes)) {
-        argParse.taskAdd = true
-      }
-      return {argParse, yargs}
-    }
-    const {argParse, yargs} = getArgs()
-    let [binArg1, ...binArgMore] = argParse.rawCmd ? handleRaw(argParse.rawCmd) : argParse._
-    let [rawArg1, ...rawArgMore] = argv.slice(2)
-    if(!rawArg1) { // 没有任何参数时显示帮助
-      yargs.showHelp(str => print(str))
-    } else {
-      resolve({argParse, binArg1, binArgMore, rawArg1, rawArgMore})
-    }
-  })
-}
-
 async function globalInit(init) { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
   const {pid = process.pid, argv = process.argv} = init || {}
+  const {
+    initArg,
+    initUtil,
+    initTask,
+    initCfg,
+  } = require(`${__dirname}/util/init.js`)
   let util = await initUtil()
+  const {
+    cfg,
+    qsPath,
+    execAsync,
+  } = util
   let {
     argParse,
     binArg1,
     rawArg1,
     binArgMore,
     rawArgMore,
-  } = await initArgs({util, argv})
-  let task = await initTask()
+  } = await initArg({util, argv})
+  let task = await initTask({util, argParse, pid, binArg1})
   const qs = (() =>  {// 设置对象的 key 为只读
     let qs = {
       binArg1,
@@ -340,57 +214,6 @@ async function globalInit(init) { // 把一些经常用到的方法保存到全�
     return qs
   })();
 
-  await initCfg()
-
-  async function initTask() {
-    const {
-      task,
-      taskAdd,
-      taskName,
-      taskDes,
-      taskStart,
-      taskKill,
-      taskRemove,
-      explicit,
-      regexp,
-    } = argParse
-    const {
-      print,
-      qsPath,
-    } = util
-    let taskFn
-    if( // 如果与 task 相关的参数存在, 则初始化 task
-      [
-        task,
-        taskAdd,
-        taskName,
-        taskDes,
-        taskStart,
-        taskKill,
-        taskRemove,
-      ].filter(item => item !== undefined).length
-    ) {
-      const Task = require(qsPath('./util/task.js'))({argParse, util, pid, binArg1})
-      taskFn = await new Task()
-    }
-    return taskFn
-  }
-  async function initCfg() {
-    { // moduleManage 包管理工具
-      let {moduleManage} = util.cfg.get()
-      if(!moduleManage) { // 判断应该使用什么包管理工具
-        moduleManage = ((await qs.util.run.execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
-        util.cfg.set('moduleManage', moduleManage)
-      }
-    }
-    { // userDataDir 初始化数据保存目录
-      const os = require('os')
-      let {userDataDir} = util.cfg.get()
-      if(!userDataDir) {
-        userDataDir = `${os.homedir()}/.qs/userData/`
-        util.cfg.set('userDataDir', userDataDir)
-      }
-    }
-  }
+  await initCfg({qsPath, cfg, execAsync})
   return qs
 }
