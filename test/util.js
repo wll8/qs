@@ -15,9 +15,10 @@ const assert = require('assert')
 const shelljs = require('shelljs')
 const isWindows = os.type() === 'Windows_NT'
 const child_process = require('child_process')
+const qsJs = absPath('../index.js')
 const qsDataDir = `${os.homedir()}/.qs/`
-const extendDir = absPath('../extend/')
-const outsideDir = absPath('../outside/')
+const extendDir = absPath(`${qsDataDir}/extend/`)
+const outsideDir = absPath(`${qsDataDir}/outside/`)
 const configFile = absPath(`${qsDataDir}/config.json`)
 const taskFile = absPath(`${qsDataDir}/task.json`)
 
@@ -80,6 +81,10 @@ function allTestAfter() {
 }
 
 module.exports = {
+  qsJs,
+  qsDataDir,
+  extendDir,
+  outsideDir,
   allTestAfter,
   allTestBefore,
   fs,

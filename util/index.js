@@ -8,6 +8,8 @@ const { inspect } = require('util')
 const qsPath = require('./qsPath.js')
 const initDefault = require(qsPath('./util/initDefault.js'))
 const {
+  qsExtendDir,
+  qsOutsideDir,
   qsDataDir,
   qsConfigPath,
   qsTaskPath,
@@ -18,8 +20,8 @@ const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
 
 function initQsFile() { // 初始化 qs 会用到的目录和文件
   const qsDataDir = qsPath(`${os.homedir()}/.qs/`)
-  const qsExtendDir = qsPath(`./extend/`)
-  const qsOutsideDir = qsPath(`./outside/`)
+  const qsExtendDir = qsPath(`${qsDataDir}/extend/`)
+  const qsOutsideDir = qsPath(`${qsDataDir}/outside/`)
   const qsConfigPath = qsPath(`${qsDataDir}/config.json`)
   const qsTaskPath = qsPath(`${qsDataDir}/task.json`)
 
@@ -66,7 +68,7 @@ function dateFormater(formater, t) { // Formatting time
     .replace(/ss/g, (s < 10 ? '0' : '') + s)
 }
 
-function nodeBin(cli, dir = './outside/', useMainPackage = true) { // 查找存在于 package.bin 中的 cli, 也就是 bin 的键名, 并给出对应的路径, 键值
+function nodeBin(cli, dir = qsOutsideDir, useMainPackage = true) { // 查找存在于 package.bin 中的 cli, 也就是 bin 的键名, 并给出对应的路径, 键值
   // useMainPackage: true, 从给定目录的 package.dependencies 所涉及到的 node_modules 中去查找 bin
   // useMainPackage: false, 已经知道 cli 所在的 package.json 目录, 不再从 node_modules 中查找
 
@@ -108,7 +110,7 @@ function nodeBin(cli, dir = './outside/', useMainPackage = true) { // 查找存�
   }
 }
 
-function nodeBinNoMainPackage (cli, dir = './extend/') { // 从指定目录中以最大程度返回 cli 路径
+function nodeBinNoMainPackage (cli, dir = qsExtendDir) { // 从指定目录中以最大程度返回 cli 路径
   // 取值顺序:
   // - 当前目录下的同名 js 文件
   // - 同名目录中 package 中的 bin
@@ -362,6 +364,8 @@ module.exports = async () => {
     obj2str,
     initDefault,
     qsDataDir,
+    qsExtendDir,
+    qsOutsideDir,
     qsTaskPath,
     qsConfigPath,
     cfg,
