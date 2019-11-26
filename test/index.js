@@ -71,10 +71,10 @@ with (util) {
     describe('添加到任务记录', () => {
       {
         const options = [
-          'qs -a echo 123',
-          'qs --task-add echo 123',
-          'qs -d taskDes echo 123',
-          'qs --task-des taskDes echo 123',
+          'qs --task-show-id -a echo 123',
+          'qs --task-show-id --task-add echo 123',
+          'qs --task-show-id -d taskDes echo 123',
+          'qs --task-show-id --task-des taskDes echo 123',
         ]
         options.forEach(cmd => it(cmd, () => {
           assert.ok(
@@ -98,12 +98,12 @@ with (util) {
     describe('以字符串形式运行 && 添加到任务记录', () => {
       {
         const options = [
-          'qs -a -r "echo 123"',
-          'qs -a --rawCmd "echo 123"',
-          'qs --task-add -r "echo 123"',
-          'qs --task-add --rawCmd "echo 123"',
-          'qs -d taskDes -r "echo 123"',
-          'qs --task-des taskDes --rawCmd "echo 123"',
+          'qs --task-show-id -a -r "echo 123"',
+          'qs --task-show-id -a --rawCmd "echo 123"',
+          'qs --task-show-id --task-add -r "echo 123"',
+          'qs --task-show-id --task-add --rawCmd "echo 123"',
+          'qs --task-show-id -d taskDes -r "echo 123"',
+          'qs --task-show-id --task-des taskDes --rawCmd "echo 123"',
         ]
         options.forEach(cmd => it(cmd, () => {
           assert.ok(
@@ -128,7 +128,7 @@ with (util) {
     describe('启动任务', () => {
       {
         let findStr = '123'
-        let taskId = execSync(`qs -a echo ${findStr}`).match(/taskId: (\d+)/)[1]
+        let taskId = execSync(`qs --task-show-id -a echo ${findStr}`).match(/taskId: (\d+)/)[1]
         const options = [
           `qs -s ${taskId}`,
           `qs --task-start ${taskId}`,
@@ -142,7 +142,7 @@ with (util) {
       {
         let findStr = '123'
         let taskName = uuid()
-        execSync(`qs -n ${taskName} echo ${findStr}`).match(/taskId: (\d+)/)[1]
+        execSync(`qs --task-show-id -n ${taskName} echo ${findStr}`).match(/taskId: (\d+)/)[1]
         const options = [
           `qs -s ${taskName}`,
           `qs --task-start ${taskName}`,
@@ -160,7 +160,7 @@ with (util) {
         'qs --task-kill ${taskId}',
       ]
       options.forEach(item => it(item, async () => {
-        let tempCmd = `qs -n ${uuid()} ping localhost`
+        let tempCmd = `qs --task-show-id -n ${uuid()} ping localhost`
         spawn(tempCmd.split(' '))
         await sleep()
         let taskId = requireUncached(taskFile).find(item => item.cmd.includes(tempCmd)).taskId
@@ -174,7 +174,7 @@ with (util) {
     })
     describe('删除任务', () => {
       {
-        let tempCmd = `qs -n ${uuid()} echo 123`
+        let tempCmd = `qs --task-show-id -n ${uuid()} echo 123`
         let taskId = execSync(tempCmd).match(/taskId: (\d+)/)[1]
         const options = [
           `qs --task-remove ${taskId}`,
@@ -188,7 +188,7 @@ with (util) {
       }
       {
         let taskName = uuid()
-        let tempCmd = `qs -n ${taskName} echo 123`
+        let tempCmd = `qs --task-show-id -n ${taskName} echo 123`
         let taskId = execSync(tempCmd).match(/taskId: (\d+)/)[1]
         const options = [
           `qs --task-remove ${taskName}`,

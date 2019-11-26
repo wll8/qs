@@ -14,6 +14,7 @@
 - [x] `qs --explicit` -- 查找任务时使用精确匹配
 - [x] `qs --regexp` -- 查找任务时使用正则匹配(默认)
 - [x] `qs --task [kv...]` -- 显示或查找、修改任务
+- [x] `qs --task-show-id` -- 添加任务时输出 taskId
 - [x] `qs -a --task-add` -- 添加到任务记录
   - 例: `qs -a echo 123` 保存 `echo 123` 这条记录(及运行目录), 以方便再次运行
 - [x] `qs -n --task-name <name>` -- 添加任务时创建任务名称, 包含 -a

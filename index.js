@@ -258,6 +258,10 @@ async function initArgs ({util, argv}) {
           describe: '删除任务 <id|name>',
           type: 'string',
         },
+        'task-show-id': {
+          describe: '输出当前任务id',
+          type: 'boolean',
+        },
         'config': {
           describe: '查看、修改配置 [k[=v]]',
           type: 'string',

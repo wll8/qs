@@ -9,6 +9,7 @@ const {
   },
   argParse: {
     task: taskArg,
+    taskShowId,
     taskAdd,
     taskName,
     taskDes,
@@ -155,7 +156,6 @@ module.exports = async () => {
 
     if(taskAdd) { // 初始化任务记录
       await taskFn.saveProcess() // 保存当前运行的进程信息, 其他的信息例如 taskName 都是补充参数
-      print(`taskId: ${taskFn.getCurlTaskId()}\n`)
     }
 
     if(taskName || taskDes) { // 添加任务名称或描述
@@ -165,7 +165,9 @@ module.exports = async () => {
         || (taskName && (item.taskId === Number(taskName)))
       ))
       if(find) {
-        print(`存在与 ${taskName} 相同任务名称或ID, 忽略此属性: ${taskName}`)
+        print(`存在与 ${taskName} 相同任务名称或ID`)
+        taskFn.removeOne(taskFn.getCurlTaskId())
+        process.exit()
       } else {
         const curtask = await taskFn.getCurlTask()
         curtask.taskName = taskName
@@ -173,6 +175,11 @@ module.exports = async () => {
         taskFn.updateOne(curtask.taskId, curtask)
       }
     }
+
+    if(taskAdd && taskShowId) { // 只有在明确指定要输出 taskId 时, 才会输出, 这样可以避免污染命令输出
+      print(`taskId: ${taskFn.getCurlTaskId()}\n`)
+    }
+
     taskStart && taskManage(taskStart, 'start')
     taskKill && taskManage(taskKill, 'stop')
     taskRemove && taskManage(taskRemove, 'removeOne')
