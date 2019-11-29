@@ -3,6 +3,7 @@ const http = require('http')
 const path = require('path')
 const child_process = require('child_process')
 const os = require('os')
+const isWin = os.type() === 'Windows_NT'
 const { Console } = require('console')
 const { inspect } = require('util')
 const qsPath = require('./qsPath.js')
@@ -221,7 +222,7 @@ const cfg = {
 function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文件, 使用解释器执行脚本, 返回执行器, 文件地址
   const os = require('os')
   const fs = require('fs')
-  const suffix = os.type() === 'Windows_NT' ? 'cmd' : 'sh' // 解释器和后缀名都可以使用
+  const suffix = isWin ? 'cmd' : 'sh' // 解释器和后缀名都可以使用
   const file = qsPath(`${os.tmpdir()}/qs_raw_shell_${Date.now()}.${suffix}`)
   fs.writeFileSync(file, rawList.join('\n'))
   return [suffix, file]
@@ -235,11 +236,14 @@ async function cmdToArr(cmd) {
 function execFileSync(cmd, option = {}, other = {}) { // 可以实时输出, 但不能交互
   return new Promise(async (resolve, reject) => {
     const [arg1, ...argv] = await cmdToArr(cmd)
-    child_process.execFileSync(arg1, argv, {
-      // cwd: qsPath('./'),
-      stdio: 'inherit',
-      ...option,
-    })
+    child_process.execFileSync(
+      isWin ? 'cmd' : arg1,
+      [...(isWin ? ['/c', arg1, ...argv] : argv)],
+      {
+        stdio: 'inherit',
+        ...option,
+      }
+    )
     resolve()
   })
 }
@@ -248,11 +252,14 @@ function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
   option = option || {stdio: 'inherit'}
   return new Promise(async (resolve, reject) => {
     const [arg1, ...argv] = await cmdToArr(cmd)
-    const sp = child_process.spawn(arg1, argv, {
-      // cwd: qsPath('./'),
-      stdio: 'inherit',
-      ...option,
-    })
+    const sp = child_process.spawn(
+      isWin ? 'cmd' : arg1,
+      [...(isWin ? ['/c', arg1, ...argv] : argv)],
+      {
+        stdio: 'inherit',
+        ...option,
+      }
+    )
 
     sp.send && other.send && sp.send(other.send)
     sp.on('error', err => {
@@ -272,7 +279,6 @@ function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
 function execAsync(cmd, option = {}, other = {}) { // 同步运行, 不能实时输出
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, {
-      // cwd: qsPath('./'),
       stdio: 'inherit',
       ...option,
     }, (error, stdout, stderr) => {
