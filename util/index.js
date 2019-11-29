@@ -341,6 +341,7 @@ function list(val) {
 module.exports = async () => {
   resetLog()
   return {
+    isWin,
     delRequireCache,
     obj2str,
     qsDataDir,

@@ -22,6 +22,7 @@ new Promise(async () => {
   const {
     util: {
       qsOutsideDir,
+      isWin,
       print,
       run,
       hasFile,
@@ -54,7 +55,7 @@ new Promise(async () => {
       await run.spawnWrap([...exer, ...binArgMore], [
         {
           ...defaultArg[0],
-          stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+          stdio: isWin ? 'inherit' : ['inherit', 'inherit', 'inherit', 'ipc'],
         },
         {
           send: {
@@ -64,12 +65,11 @@ new Promise(async () => {
         }
       ], taskAdd)
     } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: file > package.json > system
-      const isWindows = require('os').type() === 'Windows_NT'
       // 添加环境变量, 让系统可以找到 outside 目录中的程序, win 下的分隔符是 ; 类 unix 是 : .
-      process.env.PATH = `${qsOutsideDir}${isWindows ? ';' : ':'}${process.env.PATH}`
+      process.env.PATH = `${qsOutsideDir}${isWin ? ';' : ':'}${process.env.PATH}`
 
       { // 运行文件程序
-        if(isWindows === false) {
+        if(isWin === false) {
           // 不是 windows 时才需要处理文件全路径匹配
           // -- win 上有 PATHEXT 系统变量可以直接运行相关后缀的脚本, 比如 a.bat 的 .bat 后缀在列表中, 就可以直接使用 `a` 运行.
           // -- linux 上 a.sh 必须匹配全路径, 即使添加程序所在目录到环境变量中, 也只能使用 `a.sh` 运行.
