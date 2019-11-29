@@ -105,8 +105,8 @@ function nodeBinNoMainPackage (cli, dir = qsExtendDir) { // 从指定目录中�
     const sameDir = qsPath(`${dir}/${cli}`)
 
     if(hasFile(sameDir)) { // 如果与 cli 同名目录存在
-      const sameDirIndex = qsPath(`/${sameDir}/index.js`)
-      const packagePath = qsPath(`/${sameDir}/package.json`)
+      const sameDirIndex = qsPath(`${sameDir}/index.js`)
+      const packagePath = qsPath(`${sameDir}/package.json`)
       const hasPackage = hasFile(packagePath)
       if(!hasPackage && hasFile(sameDirIndex)) { // 不存在 package 则取 index.js
         return (res = sameDirIndex)
@@ -118,14 +118,14 @@ function nodeBinNoMainPackage (cli, dir = qsExtendDir) { // 从指定目录中�
         } else { // bin 不存在时取 main
           const packageMan = require(packagePath).main
           if(packageMan) {
-            return (res = qsPath(`/${sameDir}/${packageMan}`))
+            return (res = qsPath(`${sameDir}/${packageMan}`))
           } else { // main 不存在时取 index
-            return (res = qsPath(`/${sameDir}/index.js`))
+            return (res = qsPath(`${sameDir}/index.js`))
           }
         }
       }
 
-    } else if(hasFile(qsPath(`/${item}/package.json`))) { // 如果与 cli 同名目录不存在, 则在所有存在 package 的目录中找 bin
+    } else if(hasFile(qsPath(`${item}/package.json`))) { // 如果与 cli 同名目录不存在, 则在所有存在 package 的目录中找 bin
       const bin = nodeBin(cli, item, false)
       if(bin) { // 存在 package 时获取 package 中的 bin
         return (res = bin)

@@ -15,7 +15,7 @@ const assert = require('assert')
 const shelljs = require('shelljs')
 const isWindows = os.type() === 'Windows_NT'
 const child_process = require('child_process')
-const qsJs = absPath('../index.js')
+const qsJs = isWindows ? absPath('../index.js').replace(/\\/g, '\\\\') : absPath('../index.js') // 把 windows 的 \ 替换为 \\
 const qsDataDir = `${os.homedir()}/.qs/`
 const extendDir = absPath(`${qsDataDir}/extend/`)
 const outsideDir = absPath(`${qsDataDir}/outside/`)
