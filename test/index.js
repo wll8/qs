@@ -161,21 +161,23 @@ with (util) {
         'qs --task-kill ${taskId}',
       ]
       options.forEach(item => it(item, async () => {
-        let tempCmd = `qs --task-show-id -n ${uuid()} ping localhost`
+        let taskName = uuid()
+        let tempCmd = `cmd /c qs --task-show-id -n ${taskName} ping localhost`
         spawn(tempCmd.split(' '))
         await sleep()
-        let taskId = requireUncached(taskFile).find(item => item.cmd.includes(tempCmd)).taskId
+        let taskId = requireUncached(taskFile).find(item => item.taskName && item.taskName.includes(taskName)).taskId
         await sleep()
         execSync(item.replace('${taskId}', taskId))
         await sleep()
         execSync(`qs --task`) // 刷新任务列表
         await sleep()
-        assert.ok(requireUncached(taskFile).find(item => item.cmd.includes(tempCmd)).status === 'stoped')
+        assert.ok(requireUncached(taskFile).find(item => item.taskName && item.taskName.includes(taskName)).status === 'stoped')
       }))
     })
     describe('删除任务', () => {
       {
-        let tempCmd = `qs --task-show-id -n ${uuid()} echo 123`
+        let taskName = uuid()
+        let tempCmd = `qs --task-show-id -n ${taskName} echo 123`
         let taskId = execSync(tempCmd).match(/taskId: (\d+)/)[1]
         const options = [
           `qs --task-remove ${taskId}`,
@@ -183,7 +185,7 @@ with (util) {
         options.forEach(cmd => it(cmd, () => {
           let res = execSync(cmd)
           assert.ok(
-            requireUncached(taskFile).some(item => item.cmd.includes(tempCmd)) === false
+            requireUncached(taskFile).some(item => item.taskName && item.taskName.includes(taskName)) === false
           )
         }))
       }
