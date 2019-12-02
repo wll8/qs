@@ -48,6 +48,7 @@ module.exports = async () => {
   if(taskArg && taskArg.length === 0) { // 获取所有任务
     const taskList = await taskFn.get()
     taskList.forEach(item => {delete item.ppid; delete item.uid})
+    print(`path: ${qsConfigPath}`)
     print(taskList)
   }
 
