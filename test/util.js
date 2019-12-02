@@ -22,13 +22,20 @@ const outsideDir = absPath(`${qsDataDir}/outside/`)
 const configFile = absPath(`${qsDataDir}/config.json`)
 const taskFile = absPath(`${qsDataDir}/task.json`)
 
+function obj2str(obj) {
+  return JSON.stringify(obj, null, 2)
+}
+
 function execSync(cmd, out = true) {
+  console.log(`cmd:\r\n${cmd}\r\n`)
   let str = child_process.execSync(cmd).toString().trim()
   out && console.log(str)
   return str
 }
 
 function spawn(arr, option = {}) {
+  console.log(`arr:\r\n${obj2str(arr)}\r\n`)
+  console.log(`cmd:\r\n${arr.join(' ')}\r\n`)
   let [arg1, ...argMore] = arr
   child_process.spawn(arg1, argMore, {
     stdio: 'inherit',
