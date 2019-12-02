@@ -225,7 +225,7 @@ function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文
   const suffix = isWin ? 'cmd' : 'sh' // 解释器和后缀名都可以使用
   const file = qsPath(`${os.tmpdir()}/qs_raw_shell_${Date.now()}.${suffix}`)
   fs.writeFileSync(file, rawList.join('\n'))
-  return [suffix, file]
+  return [...(isWin ? [suffix, '/c'] : [suffix, '-c']), file]
 }
 
 async function cmdToArr(cmd) {
