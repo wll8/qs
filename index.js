@@ -55,7 +55,7 @@ new Promise(async () => {
       await run.spawnWrap([...exer, ...binArgMore], [
         {
           ...defaultArg[0],
-          stdio: isWin ? 'inherit' : ['inherit', 'inherit', 'inherit', 'ipc'],
+          stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
         },
         {
           send: {

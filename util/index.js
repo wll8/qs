@@ -252,9 +252,13 @@ function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
   option = option || {stdio: 'inherit'}
   return new Promise(async (resolve, reject) => {
     const [arg1, ...argv] = await cmdToArr(cmd)
+    // win 下使用 spawn 需要使用 cmd /c , 例 `spawn('cmd', ['/c', 'dir'])`, 不能 spawn('dir')
+    // other.send 存在时用于 ipc 传值, 此时不能使用 cmd /c, 只能使用 node , 否则传值失败
+    const _arg1 = (isWin && (other.send === undefined)) ? 'cmd' : arg1
+    const _argv = [...((isWin && (other.send === undefined)) ? ['/c', arg1, ...argv] : argv)]
     const sp = child_process.spawn(
-      isWin ? 'cmd' : arg1,
-      [...(isWin ? ['/c', arg1, ...argv] : argv)],
+      _arg1,
+      _argv,
       {
         stdio: 'inherit',
         ...option,
