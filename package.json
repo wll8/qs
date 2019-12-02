@@ -5,8 +5,6 @@
   "main": "index.js",
   "bin": "index.js",
   "dependencies": {
-    "browser-sync": "^2.26.7",
-    "nodemon": "^1.19.1",
     "ps-list": "^6.3.0",
     "shelljs": "^0.8.3",
     "yargs": "^14.2.0"
@@ -18,7 +16,6 @@
   },
   "scripts": {
     "reset": "qs --config-reset",
-    "start": "nodemon --watch \"index.js\" --exec \"node index.js\"",
     "test": "mocha -b -R mochawesome -t 9999 --ignore test/util.js --reporter-options reportDir=test/res,reportFilename=index"
   },
   "husky": {
