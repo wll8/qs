@@ -162,7 +162,7 @@ with (util) {
       ]
       options.forEach(item => it(item, async () => {
         let taskName = uuid()
-        let tempCmd = `cmd /c qs --task-show-id -n ${taskName} ping localhost`
+        let tempCmd = `${isWindows ? 'cmd /c ' : ''}qs --task-show-id -n ${taskName} ping localhost`
         spawn(tempCmd.split(' '))
         await sleep()
         let taskId = requireUncached(taskFile).find(item => item.taskName && item.taskName.includes(taskName)).taskId
