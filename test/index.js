@@ -28,7 +28,7 @@ with (util) {
     describe('管道', () => {
       const findStr = uuid()
       const options = [
-        isWindows
+        isWin
           ? `echo {"a": ${findStr}}|qs npx json a`
           : `echo '{"a": ${findStr}}'|qs npx json a`,
       ]
@@ -162,7 +162,7 @@ with (util) {
       ]
       options.forEach(item => it(item, async () => {
         let taskName = uuid()
-        let tempCmd = `${isWindows ? 'cmd /c ' : ''}qs --task-show-id -n ${taskName} ping localhost`
+        let tempCmd = `${isWin ? 'cmd /c ' : ''}qs --task-show-id -n ${taskName} ping localhost`
         spawn(tempCmd.split(' '))
         await sleep()
         let taskId = requireUncached(taskFile).find(item => item.taskName && item.taskName.includes(taskName)).taskId
