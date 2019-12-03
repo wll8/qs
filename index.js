@@ -21,6 +21,7 @@ new Promise(async () => {
   global.qs = await globalInit()
   const {
     util: {
+      getExer,
       qsOutsideDir,
       isWin,
       print,
@@ -133,6 +134,7 @@ async function autoInstallPackage (bin) {
 async function runNodeBin ({nodeBinFile, binArgMore, arg = []}) {
   const {
     util: {
+      getExer,
       print,
       run,
     },
@@ -158,22 +160,6 @@ async function runNodeBin ({nodeBinFile, binArgMore, arg = []}) {
     await run.execFileSync([...exer, ...binArgMore], arg, taskAdd)
     process.exit()
   }
-}
-
-function getExer(file) { // 获取执行器, 返回 [file] 或 [exer, file]
-  // 如果是二进制, 直接运行; 如果是文本, 则判断使用 `#!`; 如果是文本且没有 `#!`, 则使用系统运
-  const {
-    util: {
-      qsPath
-    },
-  } = global.qs
-  const isBinaryFile = require(qsPath('./lib/isBinaryFile.js')).isBinaryFileSync(file)
-  const arr = isBinaryFile ? [file] : [
-    file.match(/.js$/) ? 'node' : '',
-    file,
-  ].filter(item => item.trim())
-  return arr
-
 }
 
 async function globalInit(init) { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化

@@ -101,8 +101,17 @@ with(util) {
         shelljs.rm('-rf', path)
       })
     })
-    // describe('outside 目录扩展', () => {
-    //   // ...
-    // })
+    describe('outside 目录扩展', () => {
+      const options = [
+        `qs gitday --help`,
+        `qs hs --help`,
+      ]
+      it(options.join(' '), async () => {
+        execSync(`cd ${outsideDir} && npm init -y && cnpm i -S wll8/gitday http-server`)
+        const res1 = execSync(options[0]).includes('作者')
+        const res2 = execSync(options[1]).includes('option')
+        assert.ok(res1 && res2)
+      })
+    })
   })
 }

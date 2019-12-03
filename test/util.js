@@ -26,9 +26,9 @@ function obj2str(obj) {
   return JSON.stringify(obj, null, 2)
 }
 
-function execSync(cmd, out = true) {
+function execSync(cmd, option, out = true) {
   console.log(`cmd:\r\n${cmd}\r\n`)
-  let str = child_process.execSync(cmd).toString().trim()
+  let str = child_process.execSync(cmd, option).toString().trim()
   out && console.log(str)
   return str
 }

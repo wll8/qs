@@ -19,6 +19,42 @@ const {
 
 const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
 
+function getExer(file) { // 获取脚本的执行器
+  // 二进制: 自身 , 返回 [自身]
+  // 文本: 返回 [执行器, 自身]
+  // - 通过 #! 声明获取
+  // - 通过后缀匹配
+  // - 移交系统执行策略
+  let exer = undefined
+  const isBinaryFile = require(qsPath('./lib/isBinaryFile.js')).isBinaryFileSync(file)
+  if(isBinaryFile) { // 二进制: 默认其就是可执行文件
+    exer = file
+  } else { // 文本:
+    const fs = require('fs')
+    // 可能脚本文件编码格式不同如 ahk/bat, 但这里取第一行且是英文, 都作为 utf8 读取应该没有关系
+    const lineExer = (((fs.readFileSync(file, 'utf8') + '\r\n').match(/.*[\r\n]/)[0]).trim().match(/^#\!.*[\t ](.*)$/) || [])[1] // 通过 #! 声明
+    exer = lineExer
+    if(!lineExer) {
+       // 通过后缀名
+       const path = require('path')
+       const table = [
+         {
+           ext: ['.js'],
+           exer: 'node',
+         },
+         {
+           ext: ['.py'],
+           exer: 'python',
+         },
+       ]
+       const extExer = (table.find(item => item.ext.includes(path.extname(file))) || {}).exer
+       console.log('extExerextExer', extExer)
+       exer = extExer
+    }
+  }
+  return [...new Set([exer, file])].filter(item => item && item.trim())
+}
+
 function delRequireCache(filePath) {
   delete require.cache[require.resolve(filePath)]
 }
@@ -345,6 +381,7 @@ function list(val) {
 module.exports = async () => {
   resetLog()
   return {
+    getExer,
     isWin,
     delRequireCache,
     obj2str,
