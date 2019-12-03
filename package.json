@@ -1,9 +1,11 @@
 {
   "name": "qs",
   "version": "0.0.2",
-  "description": "",
+  "description": "命令, 可执行文件管理工具.",
   "main": "index.js",
-  "bin": "index.js",
+  "bin": {
+    "qs": "index.js"
+  },
   "dependencies": {
     "ps-list": "^6.3.0",
     "shelljs": "^0.8.3",
@@ -25,5 +27,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  }
 }
