@@ -115,7 +115,7 @@ async function initArg ({util, argv}) {
         },
         'r': {
           alias: 'raw-cmd',
-          describe: '以字符串形式运行, 避免存储记录时变量、通配符被解析',
+          describe: '以原始命令运行, 避免存储任务时变量被解析',
           type: 'array',
         },
         'explicit': {
@@ -170,22 +170,6 @@ async function initArg ({util, argv}) {
         },
         'config-reset': {
           describe: '重置配置',
-          type: 'boolean',
-        },
-        'node-modules-remove': {
-          describe: '删除 qs 中的 node_modules',
-          type: 'boolean',
-        },
-        'init': {
-          describe: '初始化 qs, 不包含命令',
-          type: 'boolean',
-        },
-        'init-extend': {
-          describe: '初始化默认的扩展命令, 如 tp',
-          type: 'boolean',
-        },
-        'init-outside': {
-          describe: '初始化默认的外部命令, 如 ssh',
           type: 'boolean',
         },
       })
