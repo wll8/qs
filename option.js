@@ -1,5 +1,6 @@
 const {
   util: {
+    setTitle,
     qsTaskPath,
     qsConfigPath,
     qsPath,
@@ -172,6 +173,7 @@ module.exports = async () => {
       } else {
         const curtask = await taskFn.getCurlTask()
         curtask.taskName = taskName
+        setTitle(taskName)
         curtask.taskDes = taskDes
         taskFn.updateOne(curtask.taskId, curtask)
       }

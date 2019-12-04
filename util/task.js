@@ -2,6 +2,7 @@ module.exports = ({util, pid}) => {
   const curPid = pid
   const fs = require('fs')
   const {
+    setTitle,
     obj2str,
     delRequireCache,
     hasFile,
@@ -101,7 +102,8 @@ module.exports = ({util, pid}) => {
 
     }
     async runTaskIdCmd(taskIdOrName) { // 运行某个任务的 cmd 或 execList
-      const {execList = [], cmd} = await this.get(taskIdOrName)
+      const {execList = [], cmd, taskName} = await this.get(taskIdOrName)
+      setTitle(taskName || taskIdOrName)
       if(execList.length) {
         execList.forEach(async item => {
           const {method, cmd, arg} = item

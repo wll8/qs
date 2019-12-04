@@ -63,6 +63,10 @@ function obj2str(obj) {
   return JSON.stringify(obj, null, 2)
 }
 
+function setTitle(title) {
+  process.title = `qs: ${title}`
+}
+
 function dateFormater(formater, t) { // Formatting time
   let date = t ? new Date(t) : new Date(),
     Y = date.getFullYear() + '',
@@ -381,6 +385,7 @@ function list(val) {
 module.exports = async () => {
   resetLog()
   return {
+    setTitle,
     getExer,
     isWin,
     delRequireCache,
