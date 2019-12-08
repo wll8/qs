@@ -158,7 +158,7 @@ async function globalInit(init) { // 把一些经常用到的方法保存到全�
   const {
     cfg,
     qsPath,
-    execAsync,
+    execWrap,
   } = util
   let {
     argParse,
@@ -184,6 +184,6 @@ async function globalInit(init) { // 把一些经常用到的方法保存到全�
     return qs
   })();
 
-  await initCfg({qsPath, cfg, execAsync})
+  await initCfg({qsPath, cfg, execWrap})
   return qs
 }

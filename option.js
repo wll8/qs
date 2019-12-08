@@ -6,7 +6,7 @@ const {
     qsPath,
     cfg,
     print,
-    execAsync,
+    execWrap,
   },
   argParse: {
     task: taskArg,
@@ -43,7 +43,7 @@ module.exports = async () => {
   }
 
   if(configReset) {
-    await require(qsPath('./util/init.js')).initCfg({cfg, qsPath, execAsync, configReset})
+    await require(qsPath('./util/init.js')).initCfg({cfg, qsPath, execWrap, configReset})
     print(cfg.get())
   }
 

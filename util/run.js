@@ -17,7 +17,7 @@ class Run {
     return this
   }
 
-  async execAsync () {return this.mapFn('execAsync', arguments)}
+  async execWrap () {return this.mapFn('execWrap', arguments)}
   async spawnWrap () {return this.mapFn('spawnWrap', arguments)}
 
   async shelljsExec (cmd, arg = [], isSave = false) { // 可以实时输出, 不能交互

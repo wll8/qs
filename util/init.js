@@ -1,18 +1,18 @@
 async function initUtil() {
   let util = await require(`${__dirname}/index.js`)()
   util.run = await new (require(util.qsPath('./util/run.js')))({
-    execAsync: util.execAsync,
+    execWrap: util.execWrap,
     spawnWrap: util.spawnWrap,
   })
   return util
 }
 
-async function initCfg({cfg, qsPath, execAsync, configReset}) {
+async function initCfg({cfg, qsPath, execWrap, configReset}) {
   const os = require('os')
   {
     let {moduleManage, userDataDir, taskRecord} = cfg.get()
     if(configReset || (moduleManage === undefined)) { // moduleManage 包管理工具
-      moduleManage = ((await execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
+      moduleManage = ((await execWrap('cnpm -v')).error ? 'npm' : 'cnpm')
       cfg.set('moduleManage', moduleManage)
     }
     if(configReset || (userDataDir === undefined)) { // userDataDir 初始化数据保存目录

@@ -271,7 +271,7 @@ function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文
 }
 
 async function cmdToArr(cmd) {
-  const {stdout} = await execAsync(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
+  const {stdout} = await execWrap(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
   return Array.isArray(cmd) ? cmd : JSON.parse(stdout)
 }
 
@@ -307,7 +307,7 @@ function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
   })
 }
 
-function execAsync(cmd, option = {}, other = {}) { // 同步运行, 不能实时输出
+function execWrap(cmd, option = {}, other = {}) { // 同步运行, 不能实时输出
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, {
       stdio: 'inherit',
@@ -388,7 +388,7 @@ module.exports = async () => {
     createFileOrDir,
     nodeBin,
     nodeBinNoMainPackage,
-    execAsync,
+    execWrap,
     spawnWrap,
     print,
     qsPath,
