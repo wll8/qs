@@ -27,6 +27,10 @@ function obj2str(obj) {
 }
 
 function execSync(cmd, option, out = true) {
+  if(typeof(option) === 'boolean') {
+    out = option
+    option = {}
+  }
   console.log(`cmd:\r\n${cmd}\r\n`)
   let str = child_process.execSync(cmd, option).toString().trim()
   out && console.log(str)

@@ -21,7 +21,7 @@ with (util) {
       const options = ['qs', 'qs -h', 'qs --help']
       options.forEach(cmd => it(cmd, () => {
         assert.ok(
-          execSync(cmd).includes('查找任务时使用精确匹配')
+          execSync(cmd, false).includes('查找任务时使用精确匹配', false)
         )
       }))
     })
@@ -176,14 +176,14 @@ with (util) {
       ]
       options.forEach(item => it(item, async () => {
         let taskName = uuid()
-        let tempCmd = `${isWin ? 'cmd /c ' : ''}qs --task-show-id -n ${taskName} ping localhost`
+        let tempCmd = isWin ? `cmd /c qs -n ${taskName} ping localhost -t` : `qs -n ${taskName} ping localhost`
         spawn(tempCmd.split(' '))
         await sleep()
         let taskId = requireUncached(taskFile).find(item => item.taskName && item.taskName.includes(taskName)).taskId
         await sleep()
         execSync(item.replace('${taskId}', taskId))
         await sleep()
-        execSync(`qs --task`) // 刷新任务列表
+        execSync(`qs --task`, {}, false) // 刷新任务列表
         await sleep()
         assert.ok(requireUncached(taskFile).find(item => item.taskName && item.taskName.includes(taskName)).status === 'stoped')
       }))
