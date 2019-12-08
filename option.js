@@ -1,5 +1,6 @@
 const {
   util: {
+    QsError,
     setTitle,
     qsTaskPath,
     qsConfigPath,
@@ -101,13 +102,6 @@ module.exports = async () => {
     }
     newTaskList = await (async () => {
       let list = []
-      function MyError({code, msg}) {
-        this.code = code
-        this.msg = msg
-        this.stack = (new Error()).stack
-      }
-      MyError.prototype = Object.create(Error.prototype)
-      MyError.prototype.constructor = MyError
       try {
         list = newTaskList.map(item => { // set
           setKeys.forEach(key => {
@@ -115,7 +109,7 @@ module.exports = async () => {
               key === 'taskId'
               || key === 'execList'
             ) {
-              throw new MyError({code: 1, msg: `不允许直接修改 ${key} 字段`})
+              throw new QsError({code: 1, msg: `不允许直接修改 ${key} 字段`})
             }
             if(
               key === 'taskName'
@@ -124,7 +118,7 @@ module.exports = async () => {
                 || taskList.some(taskItem => taskItem.taskName === set.taskName)
               )
             ) {
-              throw new MyError({code: 2, msg: `不能修改为多个相同的 ${key}`})
+              throw new QsError({code: 2, msg: `不能修改为多个相同的 ${key}`})
             }
             item[key] = set[key]
           })

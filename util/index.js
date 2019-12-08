@@ -19,6 +19,15 @@ const {
 
 const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
 
+class QsError extends Error {
+  constructor({code, msg}) {
+    super({code, msg})
+    this.code = code
+    this.msg = msg
+    this.stack = (new Error()).stack
+  }
+}
+
 function getExer(file) { // 获取脚本的执行器
   // 二进制: 自身 , 返回 [自身]
   // 文本: 返回 [执行器, 自身]
@@ -372,6 +381,7 @@ function list(val) {
 module.exports = async () => {
   resetLog()
   return {
+    QsError,
     setTitle,
     getExer,
     isWin,
