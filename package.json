@@ -18,7 +18,7 @@
   },
   "scripts": {
     "reset": "qs --config-reset",
-    "test": "mocha -b -R mochawesome -t 9999 --ignore test/util.js --reporter-options reportDir=test/res,reportFilename=index"
+    "test": "mocha -b -R mochawesome -t 0 --ignore test/util.js --reporter-options reportDir=test/res,reportFilename=index"
   },
   "husky": {
     "hooks": {

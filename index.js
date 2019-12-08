@@ -144,22 +144,12 @@ async function runNodeBin ({nodeBinFile, binArgMore, arg = []}) {
   } = global.qs
   const exer = getExer(nodeBinFile)
 
-  // 不优雅的判断管道判断
-  const chunk = await new Promise((resolve, reject) => {
-    process.stdin.on('data', chunk => {
-      resolve(String(chunk))
-    })
-    setTimeout(() => resolve(undefined), 10)
-  })
-  if(chunk) { // 管道内容
-    const argStr = binArgMore.map(item => `'${item}'`).join(' ')
-    const cmd = `echo '${chunk.replace(/\n/g, "")}' | ${exer.join(' ')} ${argStr}`
-    const {error, stdout, stderr} = await run.execAsync(cmd, arg, taskAdd)
-    print(stdout)
-  } else {
-    await run.execFileSync([...exer, ...binArgMore], arg, taskAdd)
-    process.exit()
-  }
+  const cp = require("child_process");
+  cp.spawnSync(
+    [...exer, ...binArgMore][0],
+    [...exer, ...binArgMore].slice(1),
+    {stdio: 'inherit'},
+  )
 }
 
 async function globalInit(init) { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
