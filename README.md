@@ -34,3 +34,10 @@ hello
 - `qs --config [k[=v]]` -- 查看、修改配置
 - `qs --config-reset` -- 重置配置
 
+## 详情
+#### qs 与 pm2 npm npx shx alias 有什么区别?
+  - pm2 专于 node 进程管理.
+  - npm 用于管理 npmjs 相关的依赖, 没有任务存储.
+  - npx 可以直接运行未安装的 npmjs 工具, 不能运行系统命令, 如 win 上 `npx dir`.
+  - shx 仅用于提供一些 linux 命令, 不能运行系统命令, 如 win 上 `npx dir`.
+  - alias 设置命令为别名, 不能自动保存运行目录.
