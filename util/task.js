@@ -110,7 +110,7 @@ module.exports = ({util, pid}) => {
           await run[method](cmd, arg)
         })
       } else {
-        await run.execFileSync(cmd)
+        await run.spawnWrap(cmd)
       }
     }
 

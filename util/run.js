@@ -17,7 +17,6 @@ class Run {
     return this
   }
 
-  async execFileSync () {return this.mapFn('execFileSync', arguments)}
   async execAsync () {return this.mapFn('execAsync', arguments)}
   async spawnWrap () {return this.mapFn('spawnWrap', arguments)}
 

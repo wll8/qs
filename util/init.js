@@ -2,7 +2,6 @@ async function initUtil() {
   let util = await require(`${__dirname}/index.js`)()
   util.run = await new (require(util.qsPath('./util/run.js')))({
     execAsync: util.execAsync,
-    execFileSync: util.execFileSync,
     spawnWrap: util.spawnWrap,
   })
   return util

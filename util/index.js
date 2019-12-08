@@ -275,21 +275,6 @@ async function cmdToArr(cmd) {
   return Array.isArray(cmd) ? cmd : JSON.parse(stdout)
 }
 
-function execFileSync(cmd, option = {}, other = {}) { // 可以实时输出, 但不能交互
-  return new Promise(async (resolve, reject) => {
-    const [arg1, ...argv] = await cmdToArr(cmd)
-    child_process.execFileSync(
-      isWin ? 'cmd' : arg1,
-      [...(isWin ? ['/c', arg1, ...argv] : argv)],
-      {
-        stdio: 'inherit',
-        ...option,
-      }
-    )
-    resolve()
-  })
-}
-
 function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
   option = option || {stdio: 'inherit'}
   return new Promise(async (resolve, reject) => {
@@ -403,7 +388,6 @@ module.exports = async () => {
     createFileOrDir,
     nodeBin,
     nodeBinNoMainPackage,
-    execFileSync,
     execAsync,
     spawnWrap,
     print,
