@@ -64,7 +64,9 @@ function obj2str(obj) {
 }
 
 function setTitle(title) {
-  process.title = `qs: ${title}`
+  if(title) {
+    process.title = `qs:${title}`
+  }
 }
 
 function dateFormater(formater, t) { // Formatting time
