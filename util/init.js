@@ -171,6 +171,10 @@ async function initArg ({util, argv}) {
           describe: '重置配置',
           type: 'boolean',
         },
+        'node-arg': {
+          describe: '设置 node 启动参数',
+          type: 'string',
+        },
       })
       .conflicts('explicit', 'regexp') // 互斥
       // .implies('n', { // todo 隐含

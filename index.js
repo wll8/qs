@@ -41,6 +41,7 @@ new Promise(async () => {
     task,
     pid,
     argParse: {
+      nodeArg,
       taskAdd,
       taskStart,
     },
@@ -50,9 +51,20 @@ new Promise(async () => {
   if(binArg1 && !taskStart) {
     const defaultArg = [{cwd: process.cwd()}]
     const bin = nodeBinNoMainPackage(binArg1)
+    let nodeArgArr = []
+    if (nodeArg) {
+      nodeArgArr = (Array.isArray(nodeArg) ? nodeArg : [nodeArg]).reduce((acc, arg) => {
+        return acc.concat(arg.split(/\s+/))
+      }, [])
+    }
+
     if(bin) { // 扩展功能, 运行 extend 目录中的程序
       await autoInstallPackage(bin)
-      const exer = getExer(bin)
+      let exer = getExer(bin)
+      if(exer[0].includes('node')) {
+        exer = [exer[0], ...nodeArgArr, exer.slice(1)]
+      }
+
       await run.spawnWrap([...exer, ...binArgMore], [
         {
           ...defaultArg[0],
@@ -89,7 +101,11 @@ new Promise(async () => {
         if(hasDependencies && hasNodeModules) {
           const nodeBinFile = nodeBin(binArg1)
           if(nodeBinFile) {
-            await runNodeBin({nodeBinFile, binArgMore, arg: defaultArg})
+            let exer = getExer(nodeBinFile)
+            if(exer[0].includes('node')) {
+              exer = [exer[0], ...nodeArgArr, exer.slice(1)]
+            }
+            await run.spawnWrap([...exer, ...binArgMore], defaultArg, taskAdd)
             process.exit()
           }
         }
@@ -129,21 +145,6 @@ async function autoInstallPackage (bin) {
       await run.spawnWrap(cmd, [{cwd: qsPath(qsExtendDir + '/' + dirName)}])
     }
   }
-}
-
-async function runNodeBin ({nodeBinFile, binArgMore, arg = []}) {
-  const {
-    util: {
-      getExer,
-      print,
-      run,
-    },
-    argParse: {
-      taskAdd,
-    },
-  } = global.qs
-  const exer = getExer(nodeBinFile)
-  await run.spawnWrap([...exer, ...binArgMore], arg, taskAdd)
 }
 
 async function globalInit(init) { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化

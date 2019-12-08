@@ -57,7 +57,6 @@ function getExer(file) { // 获取脚本的执行器
          },
        ]
        const extExer = (table.find(item => item.ext.includes(path.extname(file))) || {}).exer
-       console.log('extExerextExer', extExer)
        exer = extExer
     }
   }
