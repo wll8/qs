@@ -8,7 +8,6 @@ with(util) {
         let path = absPath(`${extendDir}/${name}.js`)
         fs.writeFileSync(path, `console.log(${name})`)
         assert.ok(execSync(`qs ${name}`).includes(name))
-        shelljs.rm('-rf', path)
       })
       it('同名目录中 package 中的 bin', () => {
         let name = uuid()
@@ -26,7 +25,6 @@ with(util) {
         `)
         assert.ok(execSync(`qs a${name}`).includes('aaa'))
         assert.ok(execSync(`qs b${name}`).includes('bbb'))
-        shelljs.rm('-rf', path)
       })
       it('同名目录中 package 中的 main', () => {
         let dirName = uuid()
@@ -39,7 +37,6 @@ with(util) {
           }
         `)
         assert.ok(execSync(`qs ${dirName}`).includes('mmm'))
-        shelljs.rm('-rf', path)
       })
       it('bin 的优先级大于 man', () => {
         let name = uuid()
@@ -56,7 +53,6 @@ with(util) {
           }
         `)
         assert.ok(execSync(`qs ${name}`).includes('aaa'))
-        shelljs.rm('-rf', path)
       })
       it('同名目录中 index.js', () => {
         let name = uuid()
@@ -64,7 +60,6 @@ with(util) {
         shelljs.mkdir(path)
         fs.writeFileSync(`${path}/index.js`, `console.log(${name})`)
         assert.ok(execSync(`qs ${name}`).includes(name))
-        shelljs.rm('-rf', path)
       })
       it('不同名目录中的 bin', () => {
         let name = uuid()
@@ -79,14 +74,12 @@ with(util) {
           }
         `)
         assert.ok(execSync(`qs ${name}`).includes('aaa'))
-        shelljs.rm('-rf', path)
       })
       it('参数接收', () => {
         let name = uuid()
         let path = absPath(`${extendDir}/${name}.js`)
         fs.writeFileSync(path, `console.log(process.argv)`)
         assert.ok(execSync(`qs ${name} ${name}`).includes(name))
-        shelljs.rm('-rf', path)
       })
       it(`require('qs') 参数导出`, async () => {
         let name = uuid()
@@ -98,7 +91,6 @@ with(util) {
           })
         `)
         assert.ok(execSync(`qs -a ${name}`).match(/getCurlTaskId \d+/) !== null)
-        shelljs.rm('-rf', path)
       })
     })
     describe('outside 目录扩展', () => {
@@ -107,7 +99,7 @@ with(util) {
         `qs hs --help`,
       ]
       it(options.join(' '), async () => {
-        execSync(`cd ${outsideDir} && npm init -y && cnpm i -S wll8/gitday http-server`)
+        execSync(`cd ${outsideDir} && npm init -y && npm i -S wll8/gitday http-server`)
         const res1 = execSync(options[0]).includes('作者')
         const res2 = execSync(options[1]).includes('option')
         assert.ok(res1 && res2)
