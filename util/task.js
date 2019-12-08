@@ -1,4 +1,4 @@
-module.exports = ({util, pid}) => {
+module.exports = ({util, pid, argParse}) => {
   const curPid = pid
   const fs = require('fs')
   const {
@@ -103,14 +103,19 @@ module.exports = ({util, pid}) => {
     }
     async runTaskIdCmd(taskIdOrName) { // 运行某个任务的 cmd 或 execList
       const {execList = [], cmd, taskName} = await this.get(taskIdOrName)
+      /**
+       * 添加额外参数, 例: `qs -s n -- a1`, 即像 n 任务添加参数 a1
+       * @param {string|array} cmd 命令或数组
+       */
+      const _cmd = cmd => typeof(cmd) === 'string' ? cmd : cmd.concat(argParse._)
       setTitle(taskName || taskIdOrName)
       if(execList.length) {
         execList.forEach(async item => {
           const {method, cmd, arg} = item
-          await run[method](cmd, arg)
+          await run[method](_cmd(cmd), arg)
         })
       } else {
-        await run.spawnWrap(cmd)
+        await run.spawnWrap(_cmd(cmd))
       }
     }
 

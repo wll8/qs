@@ -126,6 +126,20 @@ with (util) {
         }))
       }
     })
+    describe('运行任务时增加参数', () => {
+      {
+        const taskName = uuid()
+        execSync(`qs -n ${taskName} echo 123`)
+        const options = [
+          `qs -s ${taskName} 456`,
+        ]
+        options.forEach(cmd => it(cmd, () => {
+          assert.ok(
+            execSync(cmd).includes('123 456')
+          )
+        }))
+      }
+    })
     describe('启动任务', () => {
       {
         let findStr = '123'
