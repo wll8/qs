@@ -143,13 +143,7 @@ async function runNodeBin ({nodeBinFile, binArgMore, arg = []}) {
     },
   } = global.qs
   const exer = getExer(nodeBinFile)
-
-  const cp = require("child_process");
-  cp.spawnSync(
-    [...exer, ...binArgMore][0],
-    [...exer, ...binArgMore].slice(1),
-    {stdio: 'inherit'},
-  )
+  await run.spawnWrap([...exer, ...binArgMore], arg, taskAdd)
 }
 
 async function globalInit(init) { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
