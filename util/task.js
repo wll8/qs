@@ -2,6 +2,7 @@ module.exports = ({util, pid, argParse}) => {
   const curPid = pid
   const fs = require('fs')
   const {
+    getType,
     setTitle,
     obj2str,
     delRequireCache,
@@ -107,7 +108,7 @@ module.exports = ({util, pid, argParse}) => {
        * 添加额外参数, 例: `qs -s n -- a1`, 即像 n 任务添加参数 a1
        * @param {string|array} cmd 命令或数组
        */
-      const _cmd = cmd => typeof(cmd) === 'string' ? cmd : cmd.concat(argParse._)
+      const _cmd = cmd => getType(cmd, 'string') ? cmd : cmd.concat(argParse._)
       setTitle(taskName || taskIdOrName)
       if(execList.length) {
         execList.forEach(async item => {

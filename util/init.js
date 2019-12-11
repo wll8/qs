@@ -89,10 +89,23 @@ function initFile() {
 async function initArg ({util, argv}) {
   const {
     qsPath,
+    shelljs,
     print,
     handleRaw,
   } = util
   return new Promise((resolve, reject) => {
+    if (argv.length > 2 && argv[2][0] !== '-') {
+      let [rawArg1, ...rawArgMore] = argv.slice(2)
+      const res = {
+        argParse: {},
+        binArg1: rawArg1,
+        binArgMore: rawArgMore,
+        rawArg1,
+        rawArgMore,
+      }
+      return resolve(res)
+    }
+
     function getArgs() {
       const yargs = require('yargs')
       const argParse = yargs
@@ -196,7 +209,8 @@ async function initArg ({util, argv}) {
     if(!rawArg1) { // 没有任何参数时显示帮助
       yargs.showHelp(str => print(str))
     } else {
-      resolve({argParse, binArg1, binArgMore, rawArg1, rawArgMore})
+      const res = {argParse, binArg1, binArgMore, rawArg1, rawArgMore}
+      return resolve(res)
     }
   })
 }

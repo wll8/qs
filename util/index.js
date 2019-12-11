@@ -1,3 +1,4 @@
+const shelljs = require('shelljs')
 const fs = require('fs')
 const http = require('http')
 const path = require('path')
@@ -19,6 +20,10 @@ const {
 
 const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
 
+function getType(data, type) {
+  const dataType = Object.prototype.toString.call(data).replace(/(.* )(.*)\]/, '$2').trim().toLowerCase()
+  return type ? (dataType === type.trim().toLowerCase()) : dataType
+}
 class QsError extends Error {
   constructor({code, msg}) {
     super({code, msg})
@@ -29,8 +34,6 @@ class QsError extends Error {
 }
 
 function getExer(file) { // 获取脚本的执行器
-  // 二进制: 自身 , 返回 [自身]
-  // 文本: 返回 [执行器, 自身]
   // - 通过 #! 声明获取
   // - 通过后缀匹配
   // - 移交系统执行策略
@@ -42,10 +45,9 @@ function getExer(file) { // 获取脚本的执行器
     const fs = require('fs')
     // 可能脚本文件编码格式不同如 ahk/bat, 但这里取第一行且是英文, 都作为 utf8 读取应该没有关系
     const lineExer = (((fs.readFileSync(file, 'utf8') + '\r\n').match(/.*[\r\n]/)[0]).trim().match(/^#\!.*[\t ](.*)$/) || [])[1] // 通过 #! 声明
-    exer = lineExer
-    if(!lineExer) {
-       // 通过后缀名
-       const path = require('path')
+    if(lineExer) { // 通过 #! 标记
+      exer = lineExer
+    } else { // 通过后缀名
        const table = [
          {
            ext: ['.js'],
@@ -60,7 +62,10 @@ function getExer(file) { // 获取脚本的执行器
        exer = extExer
     }
   }
-  return [...new Set([exer, file])].filter(item => item && item.trim())
+  if(exer) { // 获取执行器的绝对路径
+    exer = String(shelljs.which(exer) || '')
+  }
+  return exer
 }
 
 function delRequireCache(filePath) {
@@ -101,10 +106,10 @@ function nodeBin(cli, dir = qsOutsideDir, useMainPackage = true) { // 查找存�
   let binObj = {}
   const getBin = (pkgName, package) => { // pkgName 是包名, 如包名为 fkill-cli 的 bin 是 fkill, node_modules 下的是 fkill-cli, 命令行中运行的是 fkill
     const pkgBin = package.bin
-    if(typeof(pkgBin) === 'string') {
+    if(getType(pkgBin, 'string')) {
       binObj[package.name] = pkgBin
       binObj[package.name + '_pkgName'] = pkgName
-    } else if(typeof(pkgBin) === 'object') {
+    } else if(getType(pkgBin, 'object')) {
       for (const key2 in pkgBin) {
         if (pkgBin.hasOwnProperty(key2)) {
           binObj[key2] = pkgBin[key2]
@@ -209,7 +214,6 @@ function getFiles(dirPath, filterReStr) { // 获取指定目录下所有文件, 
 }
 
 function createFileOrDir(filepath, str) { // Create file. If there is `/` after the path, it is considered a directory.
-  const shelljs = require('shelljs')
   if(filepath.match(/\/$/)) { // Create directory
     shelljs.mkdir('-p', filepath)
   } else { // Create directory and file
@@ -327,7 +331,7 @@ function execWrap(cmd, option = {}, other = {}) { // 同步运行, 不能实时�
 }
 
 function print(info) { // 用于输出有用信息, 而不是调试信息
-  const type = typeof(info)
+  const type = getType(info)
   type === 'undefined' && PRINT.log('')
   type === 'string' && PRINT.log(info)
   type === 'object' && PRINT.log(inspect(info || '', false, null, true))
@@ -360,7 +364,7 @@ function cleanArgs (obj, cb) { // Options for paraing user input
   obj.options && obj.options.forEach(o => {
     const long = o.long.replace(/^--/, '')
     const key = long.replace(/-(\w)/g, (_, c) => c ? c.toUpperCase() : '')
-    if (typeof obj[key] !== 'function' && typeof obj[key] !== 'undefined') {
+    if (getType(obj[key]) !== 'function' && getType(obj[key]) !== 'undefined') {
       // args[long] = obj[key]
       args[key] = obj[key]
     }
@@ -380,6 +384,9 @@ function list(val) {
 module.exports = async () => {
   resetLog()
   return {
+    getType,
+    path,
+    shelljs,
     QsError,
     setTitle,
     getExer,

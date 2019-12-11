@@ -21,6 +21,9 @@ new Promise(async () => {
   global.qs = await globalInit()
   const {
     util: {
+      getType,
+      path,
+      shelljs,
       getExer,
       qsOutsideDir,
       isWin,
@@ -60,12 +63,14 @@ new Promise(async () => {
 
     if(bin) { // 扩展功能, 运行 extend 目录中的程序
       await autoInstallPackage(bin)
-      let exer = getExer(bin)
-      if(exer[0].includes('node')) {
-        exer = [exer[0], ...nodeArgArr, exer.slice(1)]
+      let exer = getExer(bin) || ''
+      if(/^node(\.|)/i.test(path.basename(exer))) {
+        exer = [exer, ...nodeArgArr, bin]
       }
-
-      await run.spawnWrap([...exer, ...binArgMore], [
+      await run.spawnWrap([
+        ...(getType(exer, 'array') ? exer : [exer]),
+        ...binArgMore,
+      ], [
         {
           ...defaultArg[0],
           stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
@@ -101,11 +106,18 @@ new Promise(async () => {
         if(hasDependencies && hasNodeModules) {
           const nodeBinFile = nodeBin(binArg1)
           if(nodeBinFile) {
-            let exer = getExer(nodeBinFile)
-            if(exer[0].includes('node')) {
-              exer = [exer[0], ...nodeArgArr, exer.slice(1)]
+            let exer = getExer(nodeBinFile) || ''
+            if(/^node(\.|)/i.test(path.basename(exer))) {
+              exer = [exer, ...nodeArgArr, nodeBinFile]
             }
-            await run.spawnWrap([...exer, ...binArgMore], defaultArg, taskAdd)
+            await run.spawnWrap(
+              [
+                ...(getType(exer, 'array') ? exer : [exer]),
+                ...binArgMore,
+              ],
+              defaultArg,
+              taskAdd,
+            )
             process.exit()
           }
         }
