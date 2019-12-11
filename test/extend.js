@@ -99,7 +99,7 @@ with(util) {
         `qs hs --help`,
       ]
       it(options.join(' '), async () => {
-        execSync(`cd ${outsideDir} && npm init -y && npm i -S wll8/gitday http-server`)
+        execSync(`cd ${outsideDir} && ${packgeAdmin} init -y && ${packgeAdmin} i -S wll8/gitday http-server`)
         const res1 = execSync(options[0], false).includes('作者')
         const res2 = execSync(options[1], false).includes('option')
         assert.ok(res1 && res2)

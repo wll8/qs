@@ -1,4 +1,4 @@
-process.env.LANG = 'zh_CN.UTF-8' // 统一语言环境, 以避免产生不同结果
+process.env.LANG = 'en_US.UTF-8' // 统一语言环境, 以避免产生不同结果
 process.on('uncaughtException', err => {
   console.log(err)
   allTestAfter()
@@ -21,13 +21,19 @@ const extendDir = absPath(`${qsDataDir}/extend/`)
 const outsideDir = absPath(`${qsDataDir}/outside/`)
 const configFile = absPath(`${qsDataDir}/config.json`)
 const taskFile = absPath(`${qsDataDir}/task.json`)
+const packgeAdmin = shelljs.which('cnpm') ? 'cnpm' : 'npm'
 
 function obj2str(obj) {
   return JSON.stringify(obj, null, 2)
 }
 
+function getType(data, type) {
+  const dataType = Object.prototype.toString.call(data).replace(/(.* )(.*)\]/, '$2').trim().toLowerCase()
+  return type ? (dataType === type.trim().toLowerCase()) : dataType
+}
+
 function execSync(cmd, option, out = true) {
-  if(typeof(option) === 'boolean') {
+  if(getType(option, 'boolean')) {
     out = option
     option = {}
   }
@@ -92,6 +98,7 @@ function allTestAfter() {
 }
 
 module.exports = {
+  packgeAdmin,
   qsJs,
   qsDataDir,
   extendDir,
