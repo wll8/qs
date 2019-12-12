@@ -86,6 +86,11 @@ function initFile() {
   }
 }
 
+/**
+ *
+ * @param {object} param0.util - util 对象
+ * @param {object} param0.argv - process.argv 对象
+ */
 async function initArg ({util, argv}) {
   const {
     qsPath,

@@ -86,7 +86,6 @@ with(util) {
         let path = absPath(`${extendDir}/${name}.js`)
         fs.writeFileSync(path, `
           new Promise(async () => {
-            global.qs = await require('${qsJs}')
             console.log('getCurlTaskId', await global.qs.task.getCurlTaskId())
           })
         `)

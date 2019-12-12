@@ -1,26 +1,15 @@
 #!/usr/bin/env node
 
-if(module.parent) { // 如果是其他程序调用, 则导出方法给其他程序
-  const extendArgv = process.argv
-  const qsExports = new Promise(async (res, rej) => {
-    async function listener({argv, pid}) {
-      process.argv = argv
-      let globalInitRes = await globalInit({argv, pid})
-      process.argv = extendArgv
-      process.removeListener('message', listener) // 收到数据后, 取消监听
-      res(globalInitRes)
-    }
-    process.on('message', listener);
-
-  })
-  module.exports = qsExports
-  return
-}
-
 new Promise(async () => {
-  global.qs = await globalInit()
+  if(global.qs === undefined) {
+    global.qs = await globalInit()
+  } else {
+    console.error(`global.qs 变量被占用, 请尝试更新 qs: \r\nnpm i -g qs`)
+    process.exit()
+  }
   const {
     util: {
+      obj2str,
       getType,
       path,
       shelljs,
@@ -54,34 +43,10 @@ new Promise(async () => {
   if(binArg1 && !taskStart) {
     const defaultArg = [{cwd: process.cwd()}]
     const bin = nodeBinNoMainPackage(binArg1)
-    let nodeArgArr = []
-    if (nodeArg) {
-      nodeArgArr = (Array.isArray(nodeArg) ? nodeArg : [nodeArg]).reduce((acc, arg) => {
-        return acc.concat(arg.split(/\s+/))
-      }, [])
-    }
 
     if(bin) { // 扩展功能, 运行 extend 目录中的程序
       await autoInstallPackage(bin)
-      let exer = getExer(bin) || ''
-      if(/^node(\.|)/i.test(path.basename(exer))) {
-        exer = [exer, ...nodeArgArr, bin]
-      }
-      await run.spawnWrap([
-        ...(getType(exer, 'array') ? exer : [exer]),
-        ...binArgMore,
-      ], [
-        {
-          ...defaultArg[0],
-          stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
-        },
-        {
-          send: {
-            argv: process.argv,
-            pid: pid,
-          },
-        }
-      ], taskAdd)
+      await runJs({ bin, })
     } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: file > package.json > system
       // 添加环境变量, 让系统可以找到 outside 目录中的程序, win 下的分隔符是 ; 类 unix 是 : .
       process.env.PATH = `${qsOutsideDir}${isWin ? ';' : ':'}${process.env.PATH}`
@@ -104,20 +69,9 @@ new Promise(async () => {
         const hasDependencies = hasFile(package) && require(package).dependencies
         const hasNodeModules = hasFile(`${qsOutsideDir}/node_modules`)
         if(hasDependencies && hasNodeModules) {
-          const nodeBinFile = nodeBin(binArg1)
-          if(nodeBinFile) {
-            let exer = getExer(nodeBinFile) || ''
-            if(/^node(\.|)/i.test(path.basename(exer))) {
-              exer = [exer, ...nodeArgArr, nodeBinFile]
-            }
-            await run.spawnWrap(
-              [
-                ...(getType(exer, 'array') ? exer : [exer]),
-                ...binArgMore,
-              ],
-              defaultArg,
-              taskAdd,
-            )
+          const bin = nodeBin(binArg1)
+          if(bin) {
+            await runJs({ bin, })
             process.exit()
           }
         }
@@ -134,6 +88,60 @@ new Promise(async () => {
   }
 
 })
+
+async function runJs({
+  bin,
+}) {
+  const {
+    binArgMore,
+    util: {
+      obj2str,
+      getExer,
+      path,
+    },
+    argParse,
+    argParse: {
+      nodeArg,
+      taskAdd,
+    },
+  } = global.qs
+  const defaultArg = [{cwd: process.cwd()}]
+  let exer = getExer(bin) || ''
+  let nodeArgArr = []
+  if (nodeArg) {
+    // 转换字符串参数为数组, 供 spawnWrap 使用
+    nodeArgArr = (Array.isArray(nodeArg) ? nodeArg : [nodeArg]).reduce((acc, arg) => {
+      return acc.concat(arg.split(/\s+/))
+    }, [])
+  }
+  if(/^node(\.|)/i.test(path.basename(exer))) {
+    if(nodeArg === undefined) { // 无需启动 node
+      const Module = require('module')
+      if (obj2str(argParse) === '{}') {
+        require('yargs').reset()
+      }
+      process.argv = [
+        process.argv[0],
+        bin // node 脚本路径。 `runMain()`会将其设置为新的 main
+      ].concat(binArgMore) // 脚本的其他选项
+      { // 还原 log 重写 并运行 runMain
+        console.log = console._log
+        Module.runMain()
+      }
+      return process.exit()
+    } else {
+      exer = [exer, ...nodeArgArr, bin]
+    }
+  }
+  await run.spawnWrap( // 需要启动 node
+    [
+      ...(getType(exer, 'array') ? exer : [exer]),
+      ...binArgMore,
+    ],
+    defaultArg,
+    taskAdd,
+  )
+}
 
 async function autoInstallPackage (bin) {
   // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
