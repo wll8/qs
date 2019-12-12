@@ -207,7 +207,9 @@ with (util) {
         await sleep()
         execSync(`qs --task`, {}, false) // 刷新任务列表
         await sleep()
-        assert.ok(requireUncached(taskFile).find(item => item.taskName && item.taskName.includes(taskName)).status === 'stoped')
+        assert.ok(
+          requireUncached(taskFile).find(item => item.taskName && item.taskName.includes(taskName)).status === 'stoped'
+        )
       }))
     })
     describe('删除任务', () => {
@@ -262,7 +264,9 @@ with (util) {
         let cmd = `qs --config taskRecord=${num}`
         it(cmd, () => {
           execSync(cmd)
-          assert.ok(execSync(`qs --config`).includes(num))
+          assert.ok(
+            execSync(`qs --config`).includes(num)
+          )
         })
       }
       {
@@ -271,7 +275,9 @@ with (util) {
         let cmd = `qs --config-reset`
         it(cmd, () => {
           execSync(cmd)
-          assert.ok(execSync(`qs --config taskRecord`).includes(id) === false)
+          assert.ok(
+            execSync(`qs --config taskRecord`).includes(id) === false
+          )
         })
       }
     })
