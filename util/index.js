@@ -334,7 +334,9 @@ function print(info) { // 用于输出有用信息, 而不是调试信息
   const type = getType(info)
   type === 'undefined' && PRINT.log('')
   type === 'string' && PRINT.log(info)
-  type === 'object' && PRINT.log(inspect(info || '', false, null, true))
+  if(['object', 'error'].includes(type)) {
+    PRINT.log(inspect(info || '', false, null, true))
+  }
 }
 
 function resetLog() { // 重写 console.log 方法, 打印时附带日期, 所在行
