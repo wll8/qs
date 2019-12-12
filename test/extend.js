@@ -81,7 +81,7 @@ with(util) {
         fs.writeFileSync(path, `console.log(process.argv)`)
         assert.ok(execSync(`qs ${name} ${name}`).includes(name))
       })
-      it(`require('qs') 参数导出`, async () => {
+      it(`在 extend 目录下的 js 文件中访问 global.qs`, async () => {
         let name = uuid()
         let path = absPath(`${extendDir}/${name}.js`)
         fs.writeFileSync(path, `

@@ -330,11 +330,11 @@ function execWrap(cmd, option = {}, other = {}) { // 同步运行, 不能实时�
 
 function print(info) { // 用于输出有用信息, 而不是调试信息
   const type = getType(info)
-  type === 'undefined' && PRINT.log('')
-  type === 'string' && PRINT.log(info)
-  if(['object', 'error'].includes(type)) {
-    PRINT.log(inspect(info || '', false, null, true))
-  }
+  return [
+    ['undefined', () => PRINT.log('')],
+    ['string', 'number', () => PRINT.log(info)],
+    ['object', 'error', 'array', () => PRINT.log(inspect(info || '', false, null, true))],
+  ].forEach(item => item.slice(0, -1).includes(type) && item.slice(-1)[0]())
 }
 
 function resetLog() { // 重写 console.log 方法, 打印时附带日期, 所在行

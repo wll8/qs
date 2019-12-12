@@ -169,6 +169,28 @@ with (util) {
         }))
       }
     })
+    describe('查找任务、查看任务列表', () => {
+      {
+        let taskName = uuid()
+        execSync(`qs -n ${taskName} echo ${taskName}`)
+        let cmd = `qs --task taskName=${taskName}`
+        it(cmd, () => {
+          assert.ok(
+            execSync(cmd, false).includes(taskName)
+          )
+        })
+      }
+      {
+        let taskName = uuid()
+        execSync(`qs -n ${taskName} echo ${taskName}`)
+        let cmd = `qs --task`
+        it(cmd, () => {
+          assert.ok(
+            execSync(cmd, false).includes(taskName)
+          )
+        })
+      }
+    })
     describe('停止任务', () => { // describe 不支持 async, 也不支持使用 setTimeout 改写
       let options = [
         'qs -k ${taskId}',
