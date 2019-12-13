@@ -67,14 +67,12 @@ function initFile() {
   const hasFile = require(`${__dirname}/hasFile.js`)
 
   const qsDataDir = qsPath(`${os.homedir()}/.qs/`)
-  const qsExtendDir = qsPath(`${qsDataDir}/extend/`)
-  const qsOutsideDir = qsPath(`${qsDataDir}/outside/`)
+  const qsExtendDir = qsPath(`${qsDataDir}/ext/`)
   const qsConfigPath = qsPath(`${qsDataDir}/config.json`)
   const qsTaskPath = qsPath(`${qsDataDir}/task.json`)
 
   !hasFile(qsDataDir) && fs.mkdirSync(qsDataDir)
   !hasFile(qsExtendDir) && fs.mkdirSync(qsExtendDir)
-  !hasFile(qsOutsideDir) && fs.mkdirSync(qsOutsideDir)
   !hasFile(qsConfigPath) && fs.writeFileSync(qsConfigPath, '{}')
   !hasFile(qsTaskPath) && fs.writeFileSync(qsTaskPath, '[]')
   return {
@@ -82,7 +80,6 @@ function initFile() {
     qsConfigPath,
     qsTaskPath,
     qsExtendDir,
-    qsOutsideDir,
   }
 }
 

@@ -11,7 +11,6 @@ const qsPath = require('./qsPath.js')
 const hasFile = require(qsPath('./util/hasFile.js'))
 const {
   qsExtendDir,
-  qsOutsideDir,
   qsDataDir,
   qsConfigPath,
   qsTaskPath,
@@ -99,7 +98,7 @@ function dateFormater(formater, t) { // Formatting time
     .replace(/ss/g, (s < 10 ? '0' : '') + s)
 }
 
-function nodeBin(cli, dir = qsOutsideDir, useMainPackage = true) { // 查找存在于 package.bin 中的 cli, 也就是 bin 的键名, 并给出对应的路径, 键值
+function nodeBin(cli, dir = qsExtendDir, useMainPackage = true) { // 查找存在于 package.bin 中的 cli, 也就是 bin 的键名, 并给出对应的路径, 键值
   // useMainPackage: true, 从给定目录的 package.dependencies 所涉及到的 node_modules 中去查找 bin
   // useMainPackage: false, 已经知道 cli 所在的 package.json 目录, 不再从 node_modules 中查找
 
@@ -395,7 +394,6 @@ module.exports = async () => {
     obj2str,
     qsDataDir,
     qsExtendDir,
-    qsOutsideDir,
     qsTaskPath,
     qsConfigPath,
     cfg,

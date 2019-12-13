@@ -14,7 +14,7 @@ new Promise(async () => {
       path,
       shelljs,
       getExer,
-      qsOutsideDir,
+      qsExtendDir,
       isWin,
       print,
       run,
@@ -49,14 +49,14 @@ new Promise(async () => {
       await runJs({ bin, })
     } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: file > package.json > system
       // 添加环境变量, 让系统可以找到 outside 目录中的程序, win 下的分隔符是 ; 类 unix 是 : .
-      process.env.PATH = `${qsOutsideDir}${isWin ? ';' : ':'}${process.env.PATH}`
+      process.env.PATH = `${qsExtendDir}${isWin ? ';' : ':'}${process.env.PATH}`
 
       { // 运行文件程序
         if(isWin === false) {
           // 不是 windows 时才需要处理文件全路径匹配
           // -- win 上有 PATHEXT 系统变量可以直接运行相关后缀的脚本, 比如 a.bat 的 .bat 后缀在列表中, 就可以直接使用 `a` 运行.
           // -- linux 上 a.sh 必须匹配全路径, 即使添加程序所在目录到环境变量中, 也只能使用 `a.sh` 运行.
-          const binFile = qsPath(`${qsOutsideDir}/${binArg1}.sh`)
+          const binFile = qsPath(`${qsExtendDir}/${binArg1}.sh`)
           if(hasFile(binFile)) {
             await run.spawnWrap(['sh', [binFile, ...binArgMore]], defaultArg, taskAdd)
             process.exit()
@@ -65,9 +65,9 @@ new Promise(async () => {
       }
 
       { // 运行 package.dependencies 中的程序
-        const package = qsPath(`${qsOutsideDir}/package.json`)
+        const package = qsPath(`${qsExtendDir}/package.json`)
         const hasDependencies = hasFile(package) && require(package).dependencies
-        const hasNodeModules = hasFile(`${qsOutsideDir}/node_modules`)
+        const hasNodeModules = hasFile(`${qsExtendDir}/node_modules`)
         if(hasDependencies && hasNodeModules) {
           const bin = nodeBin(binArg1)
           if(bin) {

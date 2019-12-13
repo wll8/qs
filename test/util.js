@@ -17,8 +17,7 @@ const isWin = os.type() === 'Windows_NT'
 const child_process = require('child_process')
 const qsJs = isWin ? absPath('../index.js').replace(/\\/g, '\\\\') : absPath('../index.js') // 把 windows 的 \ 替换为 \\
 const qsDataDir = `${os.homedir()}/.qs/`
-const extendDir = absPath(`${qsDataDir}/extend/`)
-const outsideDir = absPath(`${qsDataDir}/outside/`)
+const qsExtendDir = absPath(`${qsDataDir}/ext/`)
 const configFile = absPath(`${qsDataDir}/config.json`)
 const taskFile = absPath(`${qsDataDir}/task.json`)
 const packgeAdmin = shelljs.which('cnpm') ? 'cnpm' : 'npm'
@@ -78,8 +77,7 @@ function allTestBefore() {
   console.log('备份用户配置')
   shelljs.mv(configFile, `${configFile}.bak`)
   shelljs.mv(taskFile, `${taskFile}.bak`)
-  shelljs.mv(`${extendDir}`, `${extendDir}.bak`)
-  shelljs.mv(`${outsideDir}`, `${outsideDir}.bak`)
+  shelljs.mv(`${qsExtendDir}`, `${qsExtendDir}.bak`)
 }
 
 function allTestAfter() {
@@ -88,21 +86,18 @@ function allTestAfter() {
     '-rf',
     configFile,
     taskFile,
-    extendDir,
-    outsideDir,
+    qsExtendDir,
   )
   shelljs.mv(`${configFile}.bak`, configFile)
   shelljs.mv(`${taskFile}.bak`, taskFile)
-  shelljs.mv(`${extendDir}.bak`, `${extendDir}`)
-  shelljs.mv(`${outsideDir}.bak`, `${outsideDir}`)
+  shelljs.mv(`${qsExtendDir}.bak`, `${qsExtendDir}`)
 }
 
 module.exports = {
   packgeAdmin,
   qsJs,
   qsDataDir,
-  extendDir,
-  outsideDir,
+  qsExtendDir,
   allTestAfter,
   allTestBefore,
   fs,

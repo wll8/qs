@@ -5,7 +5,7 @@ with(util) {
     describe('extend 目录扩展', () => {
       it('当前目录下的同名 js 文件', () => {
         let name = uuid()
-        let path = absPath(`${extendDir}/${name}.js`)
+        let path = absPath(`${qsExtendDir}/${name}.js`)
         fs.writeFileSync(path, `console.log(${name})`)
         assert.ok(
           execSync(`qs ${name}`).includes(name)
@@ -13,7 +13,7 @@ with(util) {
       })
       it('同名目录中 package 中的 bin', () => {
         let name = uuid()
-        let path = absPath(`${extendDir}/${name}`)
+        let path = absPath(`${qsExtendDir}/${name}`)
         shelljs.mkdir(path)
         fs.writeFileSync(`${path}/a.js`, `console.log('aaa')`)
         fs.writeFileSync(`${path}/b.js`, `console.log('bbb')`)
@@ -34,7 +34,7 @@ with(util) {
       })
       it('同名目录中 package 中的 main', () => {
         let dirName = uuid()
-        let path = absPath(`${extendDir}/${dirName}`)
+        let path = absPath(`${qsExtendDir}/${dirName}`)
         shelljs.mkdir(path)
         fs.writeFileSync(`${path}/m.js`, `console.log('mmm')`)
         fs.writeFileSync(`${path}/package.json`, `
@@ -48,7 +48,7 @@ with(util) {
       })
       it('bin 的优先级大于 man', () => {
         let name = uuid()
-        let path = absPath(`${extendDir}/${name}`)
+        let path = absPath(`${qsExtendDir}/${name}`)
         shelljs.mkdir(path)
         fs.writeFileSync(`${path}/a.js`, `console.log('aaa')`)
         fs.writeFileSync(`${path}/m.js`, `console.log('mmm')`)
@@ -66,7 +66,7 @@ with(util) {
       })
       it('同名目录中 index.js', () => {
         let name = uuid()
-        let path = absPath(`${extendDir}/${name}`)
+        let path = absPath(`${qsExtendDir}/${name}`)
         shelljs.mkdir(path)
         fs.writeFileSync(`${path}/index.js`, `console.log(${name})`)
         assert.ok(
@@ -75,7 +75,7 @@ with(util) {
       })
       it('不同名目录中的 bin', () => {
         let name = uuid()
-        let path = absPath(`${extendDir}/${uuid()}`) // 随机目录
+        let path = absPath(`${qsExtendDir}/${uuid()}`) // 随机目录
         shelljs.mkdir(path)
         fs.writeFileSync(`${path}/a.js`, `console.log('aaa')`)
         fs.writeFileSync(`${path}/package.json`, `
@@ -91,7 +91,7 @@ with(util) {
       })
       it('参数接收', () => {
         let name = uuid()
-        let path = absPath(`${extendDir}/${name}.js`)
+        let path = absPath(`${qsExtendDir}/${name}.js`)
         fs.writeFileSync(path, `console.log(process.argv)`)
         assert.ok(
           execSync(`qs ${name} ${name}`).includes(name)
@@ -99,7 +99,7 @@ with(util) {
       })
       it(`在 extend 目录下的 js 文件中访问 global.qs`, async () => {
         let name = uuid()
-        let path = absPath(`${extendDir}/${name}.js`)
+        let path = absPath(`${qsExtendDir}/${name}.js`)
         fs.writeFileSync(path, `
           new Promise(async () => {
             console.log('getCurlTaskId', await global.qs.task.getCurlTaskId())
@@ -115,7 +115,7 @@ with(util) {
         `qs hs --help`,
       ]
       it(options.join(' '), async () => {
-        execSync(`cd ${outsideDir} && ${packgeAdmin} init -y && ${packgeAdmin} i -S wll8/gitday http-server`)
+        execSync(`cd ${qsExtendDir} && ${packgeAdmin} init -y && ${packgeAdmin} i -S wll8/gitday http-server`)
         const res1 = execSync(options[0], false).includes('作者')
         const res2 = execSync(options[1], false).includes('option')
         assert.ok(
