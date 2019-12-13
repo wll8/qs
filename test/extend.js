@@ -2,7 +2,7 @@ const util = require('./util.js')
 
 with(util) {
   describe('扩展功能', () => {
-    describe('extend 目录扩展', () => {
+    describe('js 脚本 && package.json 中定义的脚本', () => {
       it('当前目录下的同名 js 文件', () => {
         let name = uuid()
         let path = absPath(`${qsExtendDir}/${name}.js`)
@@ -89,16 +89,86 @@ with(util) {
           execSync(`qs ${name}`).includes('aaa')
         )
       })
-      it('参数接收', () => {
-        let name = uuid()
+    })
+    describe('参数接收', () => {
+      const name = uuid()
+      const cmd = `qs ${name} ${name}`
+      it(cmd, () => {
         let path = absPath(`${qsExtendDir}/${name}.js`)
         fs.writeFileSync(path, `console.log(process.argv)`)
         assert.ok(
-          execSync(`qs ${name} ${name}`).includes(name)
+          execSync(cmd).includes(name)
         )
       })
-      it(`在 extend 目录下的 js 文件中访问 global.qs`, async () => {
-        let name = uuid()
+    })
+    describe('按照 config.exer 配置的方式运行脚本', () => {
+      {
+        const name = uuid()
+        const cmd = `qs ${name}`
+        it(cmd, () => {
+          let path = absPath(`${qsExtendDir}/${name}.py`)
+          fs.writeFileSync(path, `print ${name}`)
+          assert.ok(
+            execSync(cmd).includes(name)
+          )
+        })
+      }
+      {
+        const name = uuid()
+        const cmd = `qs ${name}`
+        it(`${cmd} 运行 sh 或 bat`, () => {
+          let path = absPath(`${qsExtendDir}/${name}${isWin ? '.bat' : '.sh'}`)
+          fs.writeFileSync(path, `echo ${name}`)
+          assert.ok(
+            execSync(cmd).includes(name)
+          )
+        })
+      }
+      {
+        const name = uuid()
+        const cmd = `qs ${name}`
+        if(isWin === false) {
+          it(`${cmd} 修改 exer 为其他解释器`, () => {
+            shelljs.sed('-i', `"exer": "sh"`, `"exer": "bash"`, configFile)
+            let path = absPath(`${qsExtendDir}/${name}.sh`)
+            fs.writeFileSync(path, `echo ${name}`)
+            assert.ok(
+              execSync(cmd).includes(name)
+            )
+          })
+        }
+      }
+      {
+        const name = uuid()
+        const cmd = `qs ${name}`
+        it(`${cmd} 修改 exer 为绝对路径`, () => {
+          const nodePath = shelljs.which('node')
+          shelljs.sed('-i', `"exer": "node"`, `"exer": "${nodePath}"`, configFile)
+          let path = absPath(`${qsExtendDir}/${name}.js`)
+          fs.writeFileSync(path, `console.log(${name})`)
+          assert.ok(
+            execSync(cmd).includes(name)
+          )
+        })
+      }
+      {
+        const name = uuid()
+        const cmd = `qs ${name}`
+        it(`${cmd} 新增扩展名与解释器关联`, () => {
+          const nodePath = shelljs.which('node')
+          shelljs.sed('-i', `".js"`, `".js",".newExt"`, configFile)
+          let path = absPath(`${qsExtendDir}/${name}.newExt`)
+          fs.writeFileSync(path, `console.log(${name})`)
+          assert.ok(
+            execSync(cmd).includes(name)
+          )
+        })
+      }
+    })
+    describe('访问 global.qs', () => {
+      let name = uuid()
+      let cmd = `qs -a ${name}`
+      it(cmd, async () => {
         let path = absPath(`${qsExtendDir}/${name}.js`)
         fs.writeFileSync(path, `
           new Promise(async () => {
@@ -106,10 +176,10 @@ with(util) {
           })
         `)
         assert.ok(
-          execSync(`qs -a ${name}`).match(/getCurlTaskId \d+/) !== null)
+          execSync(cmd).match(/getCurlTaskId \d+/) !== null)
       })
     })
-    describe('outside 目录扩展', () => {
+    describe('使用 npmjs 安装的程序', () => {
       const options = [
         `qs gitday --help`,
         `qs hs --help`,

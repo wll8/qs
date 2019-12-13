@@ -47,16 +47,7 @@ function getExer(file) { // 获取脚本的执行器
     if(lineExer) { // 通过 #! 标记
       exer = lineExer
     } else { // 通过后缀名
-       const table = [
-         {
-           ext: ['.js'],
-           exer: 'node',
-         },
-         {
-           ext: ['.py'],
-           exer: 'python',
-         },
-       ]
+       const table = cfg.get('exer')
        const extExer = (table.find(item => item.ext.includes(path.extname(file))) || {}).exer
        exer = extExer
     }

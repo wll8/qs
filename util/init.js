@@ -10,7 +10,7 @@ async function initUtil() {
 async function initCfg({cfg, qsPath, execWrap, configReset}) {
   const os = require('os')
   {
-    let {moduleManage, userDataDir, taskRecord} = cfg.get()
+    let {moduleManage, userDataDir, taskRecord, exer} = cfg.get()
     if(configReset || (moduleManage === undefined)) { // moduleManage 包管理工具
       moduleManage = ((await execWrap('cnpm -v')).error ? 'npm' : 'cnpm')
       cfg.set('moduleManage', moduleManage)
@@ -21,6 +21,25 @@ async function initCfg({cfg, qsPath, execWrap, configReset}) {
     }
     if(configReset || (taskRecord === undefined)) { // taskRecord 任务保存数量
       cfg.set('taskRecord', 99)
+    }
+    if(configReset || (exer === undefined)) { // exer 脚本解释器配置
+      cfg.set(
+        'exer',
+        [
+          {
+            ext: ['.sh'],
+            exer: 'sh',
+          },
+          {
+            ext: ['.js'],
+            exer: 'node',
+          },
+          {
+            ext: ['.py'],
+            exer: 'python',
+          },
+        ]
+      )
     }
   }
 }

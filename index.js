@@ -9,92 +9,36 @@ new Promise(async () => {
   }
   const {
     util: {
-      obj2str,
-      getType,
-      path,
-      shelljs,
-      getExer,
-      qsExtendDir,
-      isWin,
-      print,
-      run,
-      hasFile,
-      nodeBin,
-      nodeBinNoMainPackage,
-      cfg,
-      dateFormater,
       qsPath,
     },
     binArg1,
-    binArgMore,
-    rawArg1,
-    rawArgMore,
-    argParse,
-    task,
-    pid,
     argParse: {
-      nodeArg,
-      taskAdd,
       taskStart,
     },
   } = global.qs
 
   await require(qsPath('./option.js'))()
   if(binArg1 && !taskStart) {
-    const defaultArg = [{cwd: process.cwd()}]
-    const bin = nodeBinNoMainPackage(binArg1)
-
-    if(bin) { // 扩展功能, 运行 extend 目录中的程序
-      await autoInstallPackage(bin)
-      await runJs({ bin, })
-    } else { // 第三方功能, 运行 outside 目录中的程序, 顺序: file > package.json > system
-      // 添加环境变量, 让系统可以找到 outside 目录中的程序, win 下的分隔符是 ; 类 unix 是 : .
-      process.env.PATH = `${qsExtendDir}${isWin ? ';' : ':'}${process.env.PATH}`
-
-      { // 运行文件程序
-        if(isWin === false) {
-          // 不是 windows 时才需要处理文件全路径匹配
-          // -- win 上有 PATHEXT 系统变量可以直接运行相关后缀的脚本, 比如 a.bat 的 .bat 后缀在列表中, 就可以直接使用 `a` 运行.
-          // -- linux 上 a.sh 必须匹配全路径, 即使添加程序所在目录到环境变量中, 也只能使用 `a.sh` 运行.
-          const binFile = qsPath(`${qsExtendDir}/${binArg1}.sh`)
-          if(hasFile(binFile)) {
-            await run.spawnWrap(['sh', [binFile, ...binArgMore]], defaultArg, taskAdd)
-            process.exit()
-          }
-        }
-      }
-
-      { // 运行 package.dependencies 中的程序
-        const package = qsPath(`${qsExtendDir}/package.json`)
-        const hasDependencies = hasFile(package) && require(package).dependencies
-        const hasNodeModules = hasFile(`${qsExtendDir}/node_modules`)
-        if(hasDependencies && hasNodeModules) {
-          const bin = nodeBin(binArg1)
-          if(bin) {
-            await runJs({ bin, })
-            process.exit()
-          }
-        }
-        if(hasDependencies && (hasNodeModules === false)) {
-          print('你存在 package.dependencies 但是没有进行安装, 尝试 `qs --install outside package.dependencies`')
-        }
-      }
-
-      { // 移交命令和参数给系统, 让系统去执行, 例 `qs echo 123`
-        await run.spawnWrap([binArg1, ...binArgMore], defaultArg, taskAdd)
-        process.exit()
-      }
-    }
+    await runCmd({binArg1})
   }
 
 })
 
-async function runJs({
-  bin,
+async function runCmd({
+  binArg1,
 }) {
   const {
     binArgMore,
     util: {
+      cfg,
+      getType,
+      run,
+      isWin,
+      qsExtendDir,
+      nodeBin,
+      hasFile,
+      qsPath,
+      nodeBinNoMainPackage,
       obj2str,
       getExer,
       path,
@@ -106,41 +50,97 @@ async function runJs({
     },
   } = global.qs
   const defaultArg = [{cwd: process.cwd()}]
-  let exer = getExer(bin) || ''
-  let nodeArgArr = []
-  if (nodeArg) {
-    // 转换字符串参数为数组, 供 spawnWrap 使用
-    nodeArgArr = (Array.isArray(nodeArg) ? nodeArg : [nodeArg]).reduce((acc, arg) => {
-      return acc.concat(arg.split(/\s+/))
-    }, [])
-  }
-  if(/^node(\.|)/i.test(path.basename(exer))) {
-    if(nodeArg === undefined) { // 无需启动 node
-      const Module = require('module')
-      if (obj2str(argParse) === '{}') {
-        require('yargs').reset()
+  const {bin} = findBin()
+
+  function findBin() { // 查找 ext 目录中的可执行路径, 结果可能是脚本或二进制
+    { // 查找不存在于 package.json 中的程序, 主要是 js 或 package.json 的 bin 字段指定的文件
+      let bin = nodeBinNoMainPackage(binArg1)
+      if(bin) {
+        return {
+          type: 'file',
+          bin,
+        }
       }
-      process.argv = [
-        process.argv[0],
-        bin // node 脚本路径。 `runMain()`会将其设置为新的 main
-      ].concat(binArgMore) // 脚本的其他选项
-      { // 还原 log 重写 并运行 runMain
-        console.log = console._log
-        Module.runMain()
+    }
+    { // 以 ext/package.json 查找 package.dependencies 中的程序
+      const package = qsPath(`${qsExtendDir}/package.json`)
+      const hasDependencies = hasFile(package) && require(package).dependencies
+      const hasNodeModules = hasFile(`${qsExtendDir}/node_modules`)
+      if(hasDependencies && hasNodeModules) {
+        let bin = nodeBin(binArg1)
+        if(bin) {
+          return {
+            type: 'node_modules',
+            bin,
+          }
+        }
       }
-      return process.exit()
-    } else {
-      exer = [exer, ...nodeArgArr, bin]
+      if(hasDependencies && (hasNodeModules === false)) {
+        print('package.dependencies 中的程序似乎没有安装')
+      }
+    }
+    { // 查找 ext 目录下的脚本文件
+      const configExtList = cfg.get('exer').map(item => item.ext).flat()
+      const extList = (process.env.PATHEXT || '').toLocaleLowerCase().split(';').concat(configExtList)
+      for (let index = 0; index < extList.length; index++) {
+        const ext = extList[index]
+        const bin = qsPath(`${qsExtendDir}/${binArg1}${ext}`)
+        if(hasFile(bin)) {
+          return {
+            type: 'ext',
+            bin,
+          }
+        }
+      }
+    }
+    { // 如果没有找到 js 可以处理的程序, 则返回空对象
+      return {}
     }
   }
-  await run.spawnWrap( // 需要启动 node
-    [
-      ...(getType(exer, 'array') ? exer : [exer]),
-      ...binArgMore,
-    ],
-    defaultArg,
-    taskAdd,
-  )
+
+  if(bin) { // 运行 ext 目录中的程序, 脚本与解释器请参考 config.exer
+    let exer = getExer(bin) || ''
+    let nodeArgArr = []
+    if (nodeArg) {
+      // 转换字符串参数为数组, 供 spawnWrap 使用
+      nodeArgArr = (Array.isArray(nodeArg) ? nodeArg : [nodeArg]).reduce((acc, arg) => {
+        return acc.concat(arg.split(/\s+/))
+      }, [])
+    }
+    if(/^node(\.|)/i.test(path.basename(exer))) { // 解释器是 node 时的逻辑
+      if(nodeArg === undefined) { // 无需启动 node
+        const Module = require('module')
+        if (obj2str(argParse) === '{}') {
+          require('yargs').reset()
+        }
+        process.argv = [
+          process.argv[0],
+          bin // node 脚本路径。 `runMain()`会将其设置为新的 main
+        ].concat(binArgMore) // 脚本的其他选项
+        { // 还原 log 重写 并运行 runMain
+          console.log = console._log
+          Module.runMain()
+        }
+        return process.exit()
+      } else { // 如果有 node 参数时, 需要添加参数并启动 node
+        exer = [exer, ...nodeArgArr, bin]
+      }
+    }
+
+    await run.spawnWrap(
+      [
+        ...(getType(exer, 'array') ? exer : [exer, bin]),
+        ...binArgMore,
+      ],
+      defaultArg,
+      taskAdd,
+    )
+  } else { // 移交命令和参数给系统, 让系统去执行, 例 `qs echo 123`
+    process.env.PATH = `${qsExtendDir}${isWin ? ';' : ':'}${process.env.PATH}`
+    await run.spawnWrap([binArg1, ...binArgMore], defaultArg, taskAdd)
+    return process.exit()
+  }
+
 }
 
 async function autoInstallPackage (bin) {

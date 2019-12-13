@@ -62,7 +62,7 @@ function uuid(sep = '') {
   // let str = `${increment}_${process.pid}_${('' + (Math.random() + Math.random()))}`
   // console.log('increment', increment)
   // return str.replace('.', '').replace(/_/g, sep)
-  return `${Date.now()}_${increment}`.replace(/_/g, sep)
+  return `${Number(String(Date.now()).slice(-5))}_${String(Math.random()).slice(-2)}_${process.pid}_${increment}`.replace(/_/g, sep)
 }
 
 function sleep(time = 1000) { return new Promise((res, rej) => setTimeout(res, time)) }
