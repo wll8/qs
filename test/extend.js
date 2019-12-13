@@ -142,7 +142,7 @@ with(util) {
         const name = uuid()
         const cmd = `qs ${name}`
         it(`${cmd} 修改 exer 为绝对路径`, () => {
-          const nodePath = shelljs.which('node')
+          const nodePath = String(shelljs.which('node')).replace(/\\/g, '\\\\') // 转换 win 上路径 \ 为 \\
           shelljs.sed('-i', `"exer": "node"`, `"exer": "${nodePath}"`, configFile)
           let path = absPath(`${qsExtendDir}/${name}.js`)
           fs.writeFileSync(path, `console.log(${name})`)
@@ -155,7 +155,6 @@ with(util) {
         const name = uuid()
         const cmd = `qs ${name}`
         it(`${cmd} 新增扩展名与解释器关联`, () => {
-          const nodePath = shelljs.which('node')
           shelljs.sed('-i', `".js"`, `".js",".newExt"`, configFile)
           let path = absPath(`${qsExtendDir}/${name}.newExt`)
           fs.writeFileSync(path, `console.log(${name})`)
