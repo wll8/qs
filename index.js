@@ -136,7 +136,7 @@ async function runCmd({
       taskAdd,
     )
   } else { // 移交命令和参数给系统, 让系统去执行, 例 `qs echo 123`
-    process.env.PATH = `${qsExtendDir}${isWin ? ';' : ':'}${process.env.PATH}`
+    process.env.PATH = `${qsExtendDir}${path.delimiter}${process.env.PATH}`
     await run.spawnWrap([binArg1, ...binArgMore], defaultArg, taskAdd)
     return process.exit()
   }
