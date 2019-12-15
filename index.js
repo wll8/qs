@@ -80,7 +80,10 @@ async function runCmd({
       }
     }
     { // 查找 ext 目录下的脚本文件
-      const configExtList = cfg.get('exer').map(item => item.ext).flat()
+      let configExtList = cfg.get('exer').map(item => item.ext)
+      while (configExtList.some(Array.isArray)) {
+        configExtList = [].concat(...configExtList)
+      }
       const extList = (process.env.PATHEXT || '').toLocaleLowerCase().split(';').concat(configExtList)
       for (let index = 0; index < extList.length; index++) {
         const ext = extList[index]
@@ -101,6 +104,7 @@ async function runCmd({
   if(bin) { // 运行 ext 目录中的程序, 脚本与解释器请参考 config.exer
     let exer = getExer(bin) || ''
     let nodeArgArr = []
+    let runMainEd = false // 是否经过 runMain 方法
     if (nodeArg) {
       // 转换字符串参数为数组, 供 spawnWrap 使用
       nodeArgArr = (Array.isArray(nodeArg) ? nodeArg : [nodeArg]).reduce((acc, arg) => {
@@ -121,13 +125,13 @@ async function runCmd({
           console.log = console._log
           Module.runMain()
         }
-        return process.exit()
+        runMainEd = true
       } else { // 如果有 node 参数时, 需要添加参数并启动 node
         exer = [exer, ...nodeArgArr, bin]
       }
     }
 
-    await run.spawnWrap(
+    runMainEd === false && await run.spawnWrap(
       [
         ...(getType(exer, 'array') ? exer : [exer, bin]),
         ...binArgMore,
