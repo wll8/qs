@@ -45,12 +45,12 @@ async function runCmd({
     },
     argParse,
     argParse: {
-      nodeArg,
+      exerArg,
       taskAdd,
     },
   } = global.qs
   const defaultArg = [{cwd: process.cwd()}]
-  const {bin} = findBin()
+  let {bin} = findBin()
 
   function findBin() { // 查找 ext 目录中的可执行路径, 结果可能是脚本或二进制
     { // 查找不存在于 package.json 中的程序, 主要是 js 或 package.json 的 bin 字段指定的文件
@@ -103,34 +103,34 @@ async function runCmd({
 
   if(bin) { // 运行 ext 目录中的程序, 脚本与解释器请参考 config.exer
     let exer = getExer(bin) || ''
-    let nodeArgArr = []
+    let exerArgArr = []
     let runMainEd = false // 是否经过 runMain 方法
-    if (nodeArg) {
+    if(Boolean(exer) === false) { // 如果解释器 exer 不存在则与 bin 交换位置, 直接运行 bin
+      exer = bin
+      bin = ''
+    }
+    if(exerArg) {
       // 转换字符串参数为数组, 供 spawnWrap 使用
-      nodeArgArr = (Array.isArray(nodeArg) ? nodeArg : [nodeArg]).reduce((acc, arg) => {
+      exerArgArr = (Array.isArray(exerArg) ? exerArg : [exerArg]).reduce((acc, arg) => {
         return acc.concat(arg.split(/\s+/))
       }, [])
+      exer = [exer, ...exerArgArr, bin]
     }
-    if(/^node(\.|)/i.test(path.basename(exer))) { // 解释器是 node 时的逻辑
-      if(nodeArg === undefined) { // 无需启动 node
-        const Module = require('module')
-        if (obj2str(argParse) === '{}') {
-          require('yargs').reset()
-        }
-        process.argv = [
-          process.argv[0],
-          bin // node 脚本路径。 `runMain()`会将其设置为新的 main
-        ].concat(binArgMore) // 脚本的其他选项
-        { // 还原 log 重写 并运行 runMain
-          console.log = console._log
-          Module.runMain()
-        }
-        runMainEd = true
-      } else { // 如果有 node 参数时, 需要添加参数并启动 node
-        exer = [exer, ...nodeArgArr, bin]
+    if(Boolean(exerArg) === false && /^node(\.|)/i.test(path.basename(exer))) { // 无需启动 node 执行 js 程序
+      const Module = require('module')
+      if (obj2str(argParse) === '{}') {
+        require('yargs').reset()
       }
+      process.argv = [
+        process.argv[0],
+        bin // node 脚本路径。 `runMain()`会将其设置为新的 main
+      ].concat(binArgMore) // 脚本的其他选项
+      { // 还原 log 重写 并运行 runMain
+        console.log = console._log ? console._log : console.log
+        Module.runMain()
+      }
+      runMainEd = true
     }
-
     runMainEd === false && await run.spawnWrap(
       [
         ...(getType(exer, 'array') ? exer : [exer, bin]),

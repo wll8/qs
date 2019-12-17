@@ -1,5 +1,5 @@
 # qs - quick start
-命令, 可执行文件管理工具.
+命令, 可执行文件管理工具, 支持 `Node.js v10+` .
 
 ``` sh
 $ qs -n hi echo hello
