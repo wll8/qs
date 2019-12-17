@@ -196,7 +196,7 @@ with(util) {
       const name = uuid()
       const cmd = `qs ${name} -v`
       it(`${cmd} 查看 node 版本号`, async () => {
-        shelljs.cp(String(shelljs.which('node')), `${os.homedir()}/.qs/ext/${name}`)
+        shelljs.cp(String(shelljs.which('node')), `${os.homedir()}/.qs/ext/${name}${isWin ? '.exe' : '' }`)
         assert.ok(execSync(`qs ${name} -v`) === execSync(`node -v`))
       })
     })

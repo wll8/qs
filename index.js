@@ -107,7 +107,7 @@ async function runCmd({
     let runMainEd = false // 是否经过 runMain 方法
     if(
       (Boolean(exer) === false) // 如果解释器 exer 不存在, 则把 bin 作为解释器运行, 移除 bin
-      || (exer === bin) // 如果解释器与命令是同一文件时, 则保留 exer, 移除 bin
+      || (exer.toLowerCase() === bin.toLowerCase()) // 如果解释器与命令是同一文件时, 则保留 exer, 移除 bin
     ) {
       exer = bin
       bin = ''
