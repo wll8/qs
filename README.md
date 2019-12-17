@@ -37,7 +37,7 @@ hello world
 - `qs --task-remove <id|name>` -- 删除任务
 - `qs --config [k[=v]]` -- 查看、修改配置
 - `qs --config-reset` -- 重置配置
-- `qs --node-arg=<string>` -- 设置 node 启动参数
+- `qs --exer-arg=<string>` -- 设置解释器启动参数
 
 ## 详情
 #### qs 与 pm2 npm npx shx alias 有什么区别?
