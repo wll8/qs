@@ -105,7 +105,10 @@ async function runCmd({
     let exer = getExer(bin) || ''
     let exerArgArr = []
     let runMainEd = false // 是否经过 runMain 方法
-    if(Boolean(exer) === false) { // 如果解释器 exer 不存在则与 bin 交换位置, 直接运行 bin
+    if(
+      (Boolean(exer) === false) // 如果解释器 exer 不存在, 则把 bin 作为解释器运行, 移除 bin
+      || (exer === bin) // 如果解释器与命令是同一文件时, 则保留 exer, 移除 bin
+    ) {
       exer = bin
       bin = ''
     }
@@ -116,7 +119,7 @@ async function runCmd({
       }, [])
       exer = [exer, ...exerArgArr, bin]
     }
-    if(Boolean(exerArg) === false && /^node(\.|)/i.test(path.basename(exer))) { // 无需启动 node 执行 js 程序
+    if(Boolean(exerArg) === false && /^node(|\.exe)$/i.test(path.basename(exer))) { // 无需启动 node 执行 js 程序
       const Module = require('module')
       if (obj2str(argParse) === '{}') {
         require('yargs').reset()
@@ -131,11 +134,12 @@ async function runCmd({
       }
       runMainEd = true
     }
+    const spawnWrapArgv = [
+      ...(getType(exer, 'array') ? exer : [exer, bin]),
+      ...binArgMore,
+    ].filter(item => item !== '')
     runMainEd === false && await run.spawnWrap(
-      [
-        ...(getType(exer, 'array') ? exer : [exer, bin]),
-        ...binArgMore,
-      ],
+      spawnWrapArgv,
       defaultArg,
       taskAdd,
     )

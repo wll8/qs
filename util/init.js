@@ -35,7 +35,7 @@ async function initCfg({cfg, qsPath, execWrap, configReset}) {
             exer: 'node',
           },
           {
-            ext: ['.py'],
+            ext: ['.py', '.pyc'],
             exer: 'python',
           },
         ]

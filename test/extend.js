@@ -192,5 +192,13 @@ with(util) {
         )
       })
     })
+    describe('使用二进制程序', () => {
+      const name = uuid()
+      const cmd = `qs ${name} -v`
+      it(`${cmd} 查看 node 版本号`, async () => {
+        shelljs.cp(String(shelljs.which('node')), `${os.homedir()}/.qs/ext/${name}`)
+        assert.ok(execSync(`qs ${name} -v`) === execSync(`node -v`))
+      })
+    })
   })
 }

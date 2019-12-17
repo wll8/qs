@@ -94,6 +94,7 @@ function allTestAfter() {
 }
 
 module.exports = {
+  os,
   packgeAdmin,
   qsJs,
   qsDataDir,
