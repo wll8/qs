@@ -225,13 +225,13 @@ function createFileOrDir(filepath, str) { // Create file. If there is `/` after 
 }
 
 
-function deepGet(object, path, defaultValue) {
-  let res = (!Array.isArray(path)
-    ? path
+function deepGet(object, keys, defaultValue) {
+  let res = (!Array.isArray(keys)
+    ? keys
       .replace(/\[/g, '.')
       .replace(/\]/g, '')
       .split('.')
-    : path
+    : keys
   ).reduce((o, k) => (o || {})[k], object)
   return res !== undefined ? res : defaultValue
 }
