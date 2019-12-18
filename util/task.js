@@ -34,7 +34,7 @@ module.exports = ({util, pid, argParse}) => {
   class Task {
     constructor () {
       return (async () => { // Async/Await Class Constructor
-        this.START_TIME = dateFormater('YYYY-MM-DD HH:mm:ss', new Date())
+        this.CREATE_TIME = dateFormater('YYYY-MM-DD HH:mm:ss', new Date())
         this.PSLIST = await psList()
         return this
       })()
@@ -61,7 +61,7 @@ module.exports = ({util, pid, argParse}) => {
       taskInfo.taskId = newTaskId
       taskInfo.runCount = 1
       taskInfo.status = 'runing'
-      taskInfo.startTime = this.START_TIME
+      taskInfo.createTime = this.CREATE_TIME
       taskList.push(taskInfo)
       this.writeTaskList(taskList)
     }
