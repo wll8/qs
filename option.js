@@ -90,11 +90,11 @@ module.exports = async () => {
           if(item[key] === undefined) { // 仅使用输入的 key 进行匹配
             isFind = false
             return
-          } else if (explicit) {
-            isFind = item[key] === get[key]
           } else if(regexp) {
             const re = new RegExp(get[key])
             isFind = re.test(item[key])
+          } else {
+            isFind = item[key] == get[key]
           }
         })
         return isFind

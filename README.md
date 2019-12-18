@@ -24,7 +24,6 @@ hello world
 - `qs -h --help` -- 显示帮助信息
 - `qs -r --raw-cmd` -- 以原始命令运行, 避免存储任务时变量被解析
   - 例: `qs -a -r "ls ./*"` linux 上列出当前目录所有文件, 并保存命令到任务列表中
-- `qs --explicit` -- 查找任务时使用精确匹配
 - `qs --regexp` -- 查找任务时使用正则匹配(默认)
 - `qs --task [kv...]` -- 显示或查找、修改任务
 - `qs --task-show-id` -- 添加任务时输出 taskId

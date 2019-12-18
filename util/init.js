@@ -151,10 +151,6 @@ async function initArg ({util, argv}) {
           describe: '以原始命令运行, 避免存储任务时变量被解析',
           type: 'array',
         },
-        'explicit': {
-          describe: '查找任务时使用精确匹配',
-          type: 'boolean',
-        },
         'regexp': {
           describe: '查找任务时使用正则匹配',
           type: 'boolean',
@@ -210,7 +206,6 @@ async function initArg ({util, argv}) {
           type: 'string',
         },
       })
-      .conflicts('explicit', 'regexp') // 互斥
       .argv
       if(argParse.version) { // 输出版本, 并退出程序
         print(require(qsPath('./package.json')).version)

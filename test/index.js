@@ -21,7 +21,7 @@ with (util) {
       const options = ['qs', 'qs -h', 'qs --help']
       options.forEach(cmd => it(cmd, () => {
         assert.ok(
-          execSync(cmd, false).includes('查找任务时使用精确匹配', false)
+          execSync(cmd, false).includes('显示版本号', false)
         )
       }))
     })
@@ -187,6 +187,19 @@ with (util) {
         it(cmd, () => {
           assert.ok(
             execSync(cmd, false).includes(taskName)
+          )
+        })
+      }
+      {
+        let taskName = uuid()
+        execSync(`qs -n ${taskName}1 echo ${taskName}`)
+        execSync(`qs -n ${taskName}2 echo ${taskName}`)
+        execSync(`qs -n ${taskName}3 echo ${taskName}`)
+        let cmd = `qs --regexp=false --task taskName=${taskName}1`
+        it(`${cmd} 精确查找任务`, () => {
+          assert.ok(
+            (execSync(cmd).match(/execList/g) || []).length === 1
+            && (execSync(`qs --task taskName=${taskName}`).match(/execList/g) || []).length === 3
           )
         })
       }
