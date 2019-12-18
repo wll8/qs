@@ -294,6 +294,27 @@ with (util) {
         })
       }
     })
+    describe('查看命令路径', () => {
+      {
+        const name = uuid()
+        const cmd = `qs --which ${name}`
+        it(`${cmd} ext 目录命令路径`, () => {
+          let path = absPath(`${qsExtendDir}/${name}.js`)
+          fs.writeFileSync(path, `console.log(${name})`)
+          assert.ok(
+            execSync(cmd).includes(path)
+          )
+        })
+      }
+      {
+        const cmd = `qs --which node`
+        it(`${cmd} 系统中命令路径`, () => {
+          assert.ok(
+            execSync(cmd).includes(String(shelljs.which('node') || ''))
+          )
+        })
+      }
+    })
   })
 
 }

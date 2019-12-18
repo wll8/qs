@@ -14,6 +14,7 @@ new Promise(async () => {
     binArg1,
     argParse: {
       taskStart,
+      which,
     },
   } = global.qs
 
@@ -30,6 +31,8 @@ async function runCmd({
   const {
     binArgMore,
     util: {
+      print,
+      shelljs,
       cfg,
       getType,
       run,
@@ -45,12 +48,17 @@ async function runCmd({
     },
     argParse,
     argParse: {
+      which,
       exerArg,
       taskAdd,
     },
   } = global.qs
   const defaultArg = [{cwd: process.cwd()}]
   let {bin} = findBin()
+  if(which) {
+    print(bin || String(shelljs.which(binArg1) || ''))
+    process.exit()
+  }
 
   function findBin() { // 查找 ext 目录中的可执行路径, 结果可能是脚本或二进制
     { // 查找不存在于 package.json 中的程序, 主要是 js 或 package.json 的 bin 字段指定的文件

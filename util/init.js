@@ -205,6 +205,10 @@ async function initArg ({util, argv}) {
           describe: '设置解释器启动参数',
           type: 'string',
         },
+        'which': {
+          describe: '输出命令所在路径',
+          type: 'boolean',
+        },
       })
       .argv
       if(argParse.version) { // 输出版本, 并退出程序
