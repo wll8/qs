@@ -19,6 +19,16 @@ hello world
 - 全局使用你的脚本, 可执行文件, 第三方工具, 无需添加环境变量.
 - 跨平台, 你可以在 linux/macos/windows 上以相同的方式使用.
 
+
+## 安装
+``` sh
+# 如果你已经安装过 node.js 可以直接使用以下命令
+npm i -g wll8/qs#install
+
+# windows
+powershell -C "(new-object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/wll8/qs/install/install.bat', 'install.bat'); start-process install.bat"
+```
+
 ## 选项
 - `-v --vers` -- 显示版本号
 - `-h --help` -- 显示帮助信息
