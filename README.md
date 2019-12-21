@@ -21,12 +21,21 @@ hello world
 
 
 ## 安装
+**如果你已经安装过 node.js 可以直接使用以下命令.**
 ``` sh
-# 如果你已经安装过 node.js 可以直接使用以下命令
 npm i -g wll8/qs#install
+```
 
-# windows
+没有安装过 nodejs, 你可以使用以下命令自动安装. 由于直接运行[`网络脚本`](https://raw.githubusercontent.com/wll8/qs/install/install.bat), 可能会收到安全提示. 如果你不信任, 可以[`选择从官网手动安装`](https://nodejs.org/en/download/).
+
+**windows 自动安装脚本:**
+``` sh
 powershell -C "(new-object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/wll8/qs/install/install.bat', 'install.bat'); start-process install.bat"
+```
+
+**macos/linux 自动安装脚本**
+``` sh
+curl -o- https://raw.githubusercontent.com/wll8/qs/install/install.sh | bash
 ```
 
 ## 选项
