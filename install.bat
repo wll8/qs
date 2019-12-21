@@ -32,7 +32,7 @@ exit /b
     qs -n hi echo hello
     echo.
     echo qs 已安装, 试试输入 qs -s hi && echo. && pause
-    cmd /k
+    del %0 && cmd /k
   ) else (
     goto :installQs
   )
@@ -49,7 +49,7 @@ exit /b
   echo.
   echo.
   echo qs 已安装, 试试输入 qs -s hi && echo. && pause
-  cmd /k "cd /d """%nodePath%""""
+  del %0 && cmd /k "cd /d """%nodePath%""""
 exit /b
 
 :installQs
