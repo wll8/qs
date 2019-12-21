@@ -35,7 +35,7 @@ powershell -C "(new-object System.Net.WebClient).DownloadFile('https://raw.githa
 
 **macos/linux 自动安装脚本**
 ``` sh
-curl -o- https://raw.githack.com/wll8/qs/install/install.sh | bash
+wget -qO- https://raw.githack.com/wll8/qs/install/install.sh | bash
 ```
 
 ## 选项
