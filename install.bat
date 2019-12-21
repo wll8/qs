@@ -39,7 +39,7 @@ exit /b
 exit /b
 
 :testQs
-  cd /d %nodePath%
+  cd /d "%nodePath%"
   @echo on
   cmd /c "qs --help"
   cmd /c "qs -n hi echo hello"
@@ -49,13 +49,13 @@ exit /b
   echo.
   echo.
   echo qs 已安装, 试试输入 qs -s hi && echo. && pause
-  cmd /k "cd /d %nodePath%"
+  cmd /k "cd /d """%nodePath%""""
 exit /b
 
 :installQs
   echo 正在安装 qs...
-  if exist "%nodePath%\cnpm.cmd" (cd .) else cmd /c "%nodePath%\npm.cmd i -g cnpm --registry=https://registry.npm.taobao.org"
-  if exist "%nodePath%\qs.cmd" (cd .) else cmd /c "cd /d "%nodePath%" && %nodePath%\cnpm.cmd i -g wll8/qs#install"
+  if exist "%nodePath%\cnpm.cmd" (cd .) else cmd /c "cd /d """%nodePath%""" && npm.cmd i -g cnpm --registry=https://registry.npm.taobao.org"
+  if exist "%nodePath%\qs.cmd" (cd .) else cmd /c "cd /d """%nodePath%""" && cnpm.cmd i -g wll8/qs#install"
   goto :testQs
 exit /b
 
