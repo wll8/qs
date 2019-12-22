@@ -1,6 +1,6 @@
 {
   "name": "qs",
-  "version": "0.0.5",
+  "version": "0.0.1",
   "description": "命令, 可执行文件管理工具.",
   "main": "index.js",
   "bin": {
