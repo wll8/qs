@@ -55,7 +55,7 @@ exit /b
 :installQs
   echo 正在安装 qs...
   if exist "%nodePath%\cnpm.cmd" (cd .) else cmd /c "cd /d """%nodePath%""" && npm.cmd i -g cnpm --registry=https://registry.npm.taobao.org"
-  if exist "%nodePath%\qs.cmd" (cd .) else cmd /c "cd /d """%nodePath%""" && cnpm.cmd i -g wll8/qs#install"
+  if exist "%nodePath%\qs.cmd" (cd .) else cmd /c "cd /d """%nodePath%""" && cnpm.cmd i -g wll8/qs#master"
   goto :testQs
 exit /b
 

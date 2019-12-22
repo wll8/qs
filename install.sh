@@ -14,7 +14,7 @@ which qs 1>/dev/null 2>&1
 if [ $? != 0 ]
 then
   npm install cnpm -g --registry=https://r.npm.taobao.org
-  cnpm i -g wll8/qs#develop
+  cnpm i -g wll8/qs#master
 fi
 
 set -x
