@@ -137,7 +137,6 @@ async function runCmd({
         bin // node 脚本路径。 `runMain()`会将其设置为新的 main
       ].concat(binArgMore) // 脚本的其他选项
       { // 还原 log 重写 并运行 runMain
-        console.log = console._log ? console._log : console.log
         Module.runMain()
       }
       runMainEd = true

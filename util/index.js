@@ -1,3 +1,4 @@
+logHelper()
 const shelljs = require('shelljs')
 const fs = require('fs')
 const http = require('http')
@@ -339,7 +340,11 @@ function print(info) { // 用于输出有用信息, 而不是调试信息
   ].forEach(item => item.slice(0, -1).includes(type) && item.slice(-1)[0]())
 }
 
-function resetLog() { // 重写 console.log 方法, 打印时附带日期, 所在行
+function logHelper(isUse = true) { // 重写 console.log 方法, 打印时附带日期, 所在行
+  if(isUse === false) {
+    console.log = console._log ? console._log : console.log
+    return
+  }
   const log = console.log
   console._log = log
   console.log = (...arg) => {
@@ -351,13 +356,25 @@ function resetLog() { // 重写 console.log 方法, 打印时附带日期, 所�
     const stack = getStackTrace() || ''
     const matchResult = stack.match(/\(.*?\)/g) || []
     const line = (matchResult[1] || '()').match(/^\((.*)\)$/)[1]
-    log.apply(console, [
-      new Date().toLocaleString(),
-      '\r\n',
-      line,
-      '\r\n',
-      ...arg,
-    ])
+    if( // 重写时忽略的调用栈路径
+      line.match(/node_modules/)
+      || line.match(/\.qs/)
+    ) {
+      log(...arg)
+      return undefined
+    } else {
+      log(new Date().toLocaleString())
+      log(`> ${line}`)
+      log(...arg)
+
+      // log.apply(console, [
+      //   new Date().toLocaleString(),
+      //   '\r\n',
+      //   line,
+      //   '\r\n',
+      //   ...arg,
+      // ])
+    }
   }
 }
 
@@ -384,7 +401,6 @@ function list(val) {
 }
 
 module.exports = async () => {
-  resetLog()
   return {
     getType,
     path,
