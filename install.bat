@@ -1,4 +1,4 @@
-color f0 && chcp 936 && cls && @echo off
+@echo off && chcp 936 && cls
 title 安装 nodejs
 REM mode con cols=120 lines=30
 cd /d %homepath%
@@ -29,9 +29,7 @@ exit /b
   for /f "delims=" %%a in ('where node') do set "nodePath=%%~dpa"
   if %errorlevel%==0 (
     qs --help
-    qs -n hi echo hello
-    echo.
-    echo qs 已安装, 试试输入 qs -s hi && echo. && pause
+    echo. && echo 安装完成
     del %0 && cmd /k
   ) else (
     goto :installQs
@@ -42,13 +40,8 @@ exit /b
   cd /d "%nodePath%"
   @echo on
   cmd /c "qs --help"
-  cmd /c "qs -n hi echo hello"
-  cmd /c "qs -s hi"
-  cmd /c "qs -s hi -- world"
   @echo off
-  echo.
-  echo.
-  echo qs 已安装, 试试输入 qs -s hi && echo. && pause
+  echo. && echo 安装完成
   del %0 && cmd /k "cd /d """%nodePath%""""
 exit /b
 

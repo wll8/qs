@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-which node 1>/dev/null 2>&1
+type node 1>/dev/null 2>&1
 if [ $? != 0 ]
 then
   wget -qO- https://raw.githack.com/nvm-sh/nvm/v0.35.2/install.sh | bash
@@ -10,18 +10,17 @@ then
   nvm install --lts
   node -v
 fi
-which qs 1>/dev/null 2>&1
+type qs 1>/dev/null 2>&1
 if [ $? != 0 ]
 then
-  npm install cnpm -g --registry=https://r.npm.taobao.org
+  type cnpm 1>/dev/null 2>&1
+  if [ $? != 0 ]
+  then
+    npm install cnpm -g --registry=https://r.npm.taobao.org
+  fi
   cnpm i -g wll8/qs#master
 fi
 
-set -x
 qs --help
-qs -n hi echo hello
-qs -s hi
-qs -s hi -- world
-set +x
-
+echo && echo 安装完成
 bash
