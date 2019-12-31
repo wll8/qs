@@ -3,7 +3,7 @@
 type node 1>/dev/null 2>&1
 if [ $? != 0 ]
 then
-  wget -qO- https://raw.githack.com/nvm-sh/nvm/v0.35.2/install.sh | bash
+  wget -qO- https://min.gitcdn.xyz/repo/nvm-sh/nvm/v0.35.2/install.sh | bash
   source ~/.bashrc 1>/dev/null 2>&1
   source ~/.zshrc 1>/dev/null 2>&1
   source ~/.profile 1>/dev/null 2>&1
