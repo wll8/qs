@@ -55,7 +55,7 @@ async function runCmd({
   } = global.qs
   const defaultArg = [{cwd: process.cwd()}]
   let {bin} = findBin()
-  if(which) {
+  if(which) { // qs --which
     print(bin || String(shelljs.which(binArg1) || ''))
     process.exit()
   }
@@ -101,6 +101,14 @@ async function runCmd({
             type: 'ext',
             bin,
           }
+        }
+      }
+    }
+    { // win 下查询 *.lnk
+      if(isWin) {
+        const lnk = qsPath(`${qsExtendDir}/${binArg1}.lnk`)
+        if(hasFile(lnk)) {
+          return {bin: lnk}
         }
       }
     }
