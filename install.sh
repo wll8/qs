@@ -22,5 +22,4 @@ then
 fi
 
 qs --help
-echo && echo 安装完成
-bash
+echo && echo 安装完成 && bash && bash
