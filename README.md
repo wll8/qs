@@ -21,25 +21,6 @@ hello world
 - 全局使用你的脚本, 可执行文件, 第三方工具, 无需添加环境变量.
 - 跨平台, 你可以在 linux/macos/windows 上以相同的方式使用.
 
-
-## 安装
-**如果你已经安装过 node.js 可以直接使用以下命令.**
-``` sh
-npm i -g wll8/qs#master
-```
-
-没有安装过 nodejs, 你可以使用以下命令自动安装. 由于直接运行[网络脚本](https://min.gitcdn.xyz/repo/wll8/qs/master/install.bat), 可能会收到安全提示. 如果你不信任, 可以[选择从官网手动安装](https://nodejs.org/en/download/).
-
-**windows 自动安装脚本:**
-``` sh
-powershell -C "(new-object System.Net.WebClient).DownloadFile('https://min.gitcdn.xyz/repo/wll8/qs/master/install.bat', 'install.bat'); start-process install.bat"
-```
-
-**macos/linux 自动安装脚本**
-``` sh
-wget -qO- https://min.gitcdn.xyz/repo/wll8/qs/master/install.sh | bash
-```
-
 ## 选项
 - `-v --vers` -- 显示版本号
 - `-h --help` -- 显示帮助信息
@@ -60,10 +41,153 @@ wget -qO- https://min.gitcdn.xyz/repo/wll8/qs/master/install.sh | bash
 - `--exer-arg=<string>` -- 设置解释器启动参数
 - `--which` -- 输出命令所在路径
 
-## 详情
-#### qs 与 pm2 npm npx shx alias 有什么区别?
-  - pm2 专于 node 进程管理.
-  - npm 用于管理 npmjs 相关的依赖, 没有任务存储.
-  - npx 可以直接运行未安装的 npmjs 工具, 不能运行系统命令, 如 win 上 `npx dir`.
-  - shx 仅用于提供一些 linux 命令, 不能运行系统命令, 如 win 上 `npx dir`.
-  - alias 设置命令为别名, 不能自动保存运行目录.
+## 安装与体验
+qs 需要你的 node 版本 v10 以上. 
+如果你安装过 nodejs 那么可以直接使用 `npm i -g wll8/qs#master` 从 npmjs 注册表中安装. 
+如果你没有安装过 nodejs , 那么可以使用下面的一键脚本进行安装. 这会为你自动安装 node 和 qs. 
+
+### 从 node 安装
+npm 的原始镜像地址在中国比较慢, 你可以使用 cnpm 或者切换镜像地址来缓解这个问题. 
+
+``` sh
+npm i -g wll8/qs#master # 常规安装方式
+yarn global add wll8/qs#master  # 如果你更喜欢 yarn ?
+cnpm i -g wll8/qs#master # 中国大陆安装方式
+npx wll8/qs#master # 听说你不想安装, 只想体验一下?
+```
+
+小贴士:
+- `npm i -g wll8/qs#master` 安装 master 分支.
+- `npm i -g qs` 表示安装 npmjs 注册表中的最 qs 新版本.
+- 再次声明, 需要 `node v10+`, 你可以使用 `node -v` 查看你的 node 版本.
+
+### windows 一键脚本
+从网络直接运行脚本, 会被认为这是一个不安全的操作. 如果你不信任`这个脚本`, 那么你可以手动从`官网`下载安装 node 以及 qs . 
+
+``` bash
+powershell -C "(new-object System.Net.WebClient).DownloadFile('https://min.gitcdn.xyz/repo/wll8/qs/master/install.bat', 'install.bat'); start-process install.bat"
+``` 
+
+### mac/linux 一键脚本
+
+``` sh
+wget -qO- https://min.gitcdn.xyz/repo/wll8/qs/master/install.sh | bash
+```
+
+### 体验
+以下操作演示了 qs 运行和保存系统命令.
+
+``` sh
+qs echo good # 使用 qs 运行系统命令 `echo good`
+qs -n hi echo hello # 运行 `echo hello` 这条命令, 并且把它保存起来, 保存的名字叫 `hi` .
+qs -s hi # 使用 hi 这个名字来重新执行 `echo hello` 这条命令
+qs -s hi -- world # 执行命令时拼接 `world` 这个参数, 相当于 `echo hello world`. 可以简写为 `qs -s hi world`
+qs --task # 查看存储的任务
+qs --task-remove hi # 删除 hi 这个任务
+```
+
+小贴士:
+1. 执行系统命令时, qs 可以正常使用 `管道` 以及 `I/O流` .
+1. 当然, qs 并不仅仅用来执行系统命令.
+
+## 扩展功能
+扩展功能让你在任何位置运行自定义程序甚至是任意文件. 
+你只需要把想运行的程序放置在 qs 扩展目录中即可, 不必添加环境变量. 
+
+扩展目录位于 `你的用户目录/.qs/ext/` . 
+在 windows 上可以使用 `cd /d %homepath%\.qs\ext\` 直接进入. 
+在 macos/linux 上可以使用 `cd ~/.qs/ext` 直接进入. 
+
+小贴士:
+1. 当你运行过 qs, 才会在你的电脑上生成扩展目录
+1. `start %homepath%\.qs\ext\` 或 `open ~/.qs/ext` 可以在 windows 或 macos 上使用文件管理器直接打开这个目录.
+
+### js 脚本 && package.json 中定义的脚本
+若无特殊说明, 以下的文件创建操作都在 qs 扩展目录下.
+
+#### 当前目录下的同名 js 文件
+对于一些简单的程序, 我们使用一个单文件即可完成, 所以你直接创建一个 js 文件即可.
+
+- 创建一个名为 hq 的 js 文件: `hq.js` , 
+- 内容为 `console.log('hi qs~')` , 当然其他内容也可以.
+- 运行命令 `qs hq` , 即可输出 `hi qs~` .
+- 恭喜, 你的第一个 "qs 插件" 已经完成了 ^_^ .
+
+#### 兼容 package.json 的可执行文件声明方式
+对于复杂的程序, 你希望像标准的 node 工具库一样创建他们, 这很好. qs 支持 npm 的 package 执行文件解析, 并且为了更方便, qs 的规则更宽松一些.
+
+假设你的一个 t2 目录, 在这个目录中有 `package.json` 文件, 内容如下:
+
+``` sh
+bash$> tree t2
+t2
+├── m.js
+├── fn1.js
+├── fn2.js
+└── packge.json
+
+bash$> cat packge.json
+{
+  "main": "m.js",
+  "bin": {
+    "a": "fn1.js",
+    "b": "fn2.js"
+  }
+}
+
+bash$> qs a # 这时候会运行 fn1.js 这个文件
+```
+
+如果没有指定 bin , 那么 qs 会使用 main 字段, 则运行 `qs t2` 则执行 m.js .
+
+qs 遵循的规则和顺序(优先级与先后顺序一致):
+1. 同名目录中 package 中的 bin
+1. 同名目录中 package 中的 main
+1. 不同名目录中 package 中的 bin
+1. 同名目录中 index.js
+
+小贴士:
+不要被上面的规则吓到, 因为你不必在意, 因为你几乎不会导致它们冲突, 你说呢?
+
+### 脚本的参数接收
+还记得一开始的 `qs -s hi -- world` 吗? 它就是向 hi 这个任务传送 `world` 这个参数.
+
+你可以创建一个脚本例如 `arg.js` 来体验它:
+
+``` sh
+bash$> echo "console.log(process.argv.slice(2))">~/.qs/ext/arg.js
+bash$> qs arg 1 2 3
+[ '1', '2', '3' ]
+```
+
+### 设置解释器的启动参数
+对于`解释器`, 请参考 `config.exer` .
+使用 qs 的 `--exer-arg` 参数即可为解释器传送启动参数, 例如:
+
+``` sh
+bash$> echo "print(123)">~/.qs/ext/t4.py # 创建一个 py 文件
+bash$> qs --exer-arg=-v t4 # 向 python 传送 -v 参数, 相当于 `python -v ~/.qs/ext/t4.py`
+```
+
+小贴士:
+1. 对于安装在 ext 中的程序, 可以直接进行调试, 例 `qs --exer-arg=--inspect-brk hs` 则启动 node 工具库 http-server 的调试状态. qs 会查询实际运行的脚本入口, 并把它交给解释器 node 运行.
+1. 你可以使用 `--which` 查询包含 ext 外的程序脚本入口, 例 `qs --which pm2` .
+
+### 按照 config.exer 配置的方式运行脚本
+如果你不希望使用默认的解释器, 你可以修改它们. 这是一个常用的操作, 例如你需要使用另一个版本的解释器.
+那么你可以在 `config.exer` 中进行配置.
+
+例如: 
+``` js
+[
+  {
+    ext: ['.py', '.pyc'], // 文件类型(后缀), 可以有多个
+    exer: 'python', // 解释器, 可以是全局命令, 或者解释器的绝对路径
+  }
+]
+```
+
+小贴士:
+- 对于没有配置在 exer 中的文件类型, qs 会直接使用命令打开它.
+- 在 windows 上, bat 脚本使用 cmd. mac/linux 使用 sh.
+- 可以使用它实现某类文件的默认打开方式.
