@@ -63,11 +63,11 @@ qs tp -t js --openDir # 使用 js 模版运行创建项目，使用默认编辑�
 qs tp -t js -d . # 在当前目录创建项目
 qs tp -t js -f abc.js # 设置入口文件名为 abc.js
 qs tp -t js -f abc.ts # 以 ts 为模版创建项目
-qs tp -t js -m lodash axios # 添加并自动安装依赖到项目目录
+# qs tp -t js -m lodash axios # 添加并自动安装依赖到项目目录
 qs init # 初始化 qs 核心功能
-qs init -e # 初始化 qs 扩展功能(使用 qs api 编写于 qs 目录, 如 qs ss)
-qs init -o # 初始化 qs 其他功能(安装到 qs 目录的第三方工具, 如 qs ssh)
-qs admin -c '' # 查看当前所有 qs 配置
+# qs init -e # 初始化 qs 扩展功能(使用 qs api 编写于 qs 目录, 如 qs ss)
+# qs init -o # 初始化 qs 其他功能(安装到 qs 目录的第三方工具, 如 qs ssh)
+qs admin -c "" # 查看当前所有 qs 配置
 qs admin -c openExe # 查看当前 qs 所配置的默认编辑器
 qs admin -c openExe=code # 修改 qs 默认的编辑器为 vscode, 你可以配置为绝对路径, 或环境命令
 qs admin --resetConfig  # 重置 qs 的所有配置
