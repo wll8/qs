@@ -1,24 +1,51 @@
 {
   "name": "qs-cli",
-  "version": "0.0.1",
-  "description": "",
+  "version": "1.0.0",
+  "description": "命令, 可执行文件管理工具.",
   "main": "index.js",
   "bin": {
     "qs": "index.js"
   },
   "dependencies": {
-    "browser-sync": "^2.26.7",
-    "chalk": "^2.4.2",
-    "commander": "^2.20.0",
-    "nodemon": "^1.19.1",
     "ps-list": "^6.3.0",
-    "shelljs": "^0.8.3"
+    "shelljs": "^0.8.3",
+    "yargs": "^14.2.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "husky": "^3.0.9",
+    "mocha": "^6.2.2",
+    "mochawesome": "^4.1.0"
+  },
   "scripts": {
-    "start": "nodemon --watch \"index.js\" --exec \"node index.js\""
+    "reset": "qs --config-reset",
+    "test": "mocha -b -R mochawesome -t 0 --ignore test/util.js --reporter-options reportDir=test/res,reportFilename=index"
   },
-  "keywords": [],
+  "engines": {
+    "node": ">= 10.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/wll8/qs/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/wll8/qs.git"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test"
+    }
+  },
+  "keywords": [
+    "task",
+    "manage",
+    "cli",
+    "command line",
+    "tools"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  }
 }

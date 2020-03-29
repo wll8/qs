@@ -1,201 +1,233 @@
 #!/usr/bin/env node
 
-;(async () => {
-  global.qs = await globalInit()
+new Promise(async () => {
+  if(global.qs === undefined) {
+    global.qs = await globalInit()
+  } else {
+    console.error(`global.qs 变量被占用, 请尝试更新 qs: \r\nnpm i -g qs`)
+    process.exit()
+  }
   const {
     util: {
-      print,
-      run,
-      nodeBin,
-      cfg: {
-        get: {
-          moduleManage,
-          dataDir,
-        }
-      },
-      hasModules,
-      dateFormater,
       qsPath,
     },
-    arg1,
-    argMore,
+    binArg1,
+    argParse: {
+      taskStart,
+      which,
+    },
   } = global.qs
 
-  // 初始化命令
-  if( (arg1 === 'init') && !argMore.length && !hasModules('./') ) {
-    await run.execFileSync(`${moduleManage} i`)
-    return
+  await require(qsPath('./option.js'))()
+  if(binArg1 && !taskStart) {
+    await runCmd({binArg1})
   }
 
-  // 判断 qs 依赖目录是否存在, 不存在则提示需要初始化
-  if(!hasModules('./')) {
-    print('qs init')
-    return
+})
+
+async function runCmd({
+  binArg1,
+}) {
+  const {
+    binArgMore,
+    util: {
+      print,
+      shelljs,
+      cfg,
+      getType,
+      run,
+      isWin,
+      qsExtendDir,
+      nodeBin,
+      hasFile,
+      qsPath,
+      nodeBinNoMainPackage,
+      obj2str,
+      getExer,
+      path,
+    },
+    argParse,
+    argParse: {
+      which,
+      exerArg,
+      taskAdd,
+    },
+  } = global.qs
+  const defaultArg = [{cwd: process.cwd()}]
+  let {bin} = findBin()
+  if(which) { // qs --which
+    print(bin || String(shelljs.which(binArg1) || ''))
+    process.exit()
   }
 
-  // -------------- start
+  function findBin() { // 查找 ext 目录中的可执行路径, 结果可能是脚本或二进制
+    { // 查找不存在于 package.json 中的程序, 主要是 js 或 package.json 的 bin 字段指定的文件
+      let bin = nodeBinNoMainPackage(binArg1)
+      if(bin) {
+        return {
+          type: 'file',
+          bin,
+        }
+      }
+    }
+    { // 以 ext/package.json 查找 package.dependencies 中的程序
+      const package = qsPath(`${qsExtendDir}/package.json`)
+      const hasDependencies = hasFile(package) && require(package).dependencies
+      const hasNodeModules = hasFile(`${qsExtendDir}/node_modules`)
+      if(hasDependencies && hasNodeModules) {
+        let bin = nodeBin(binArg1)
+        if(bin) {
+          return {
+            type: 'node_modules',
+            bin,
+          }
+        }
+      }
+      if(hasDependencies && (hasNodeModules === false)) {
+        print('package.dependencies 中的程序似乎没有安装')
+      }
+    }
+    { // 查找 ext 目录下的脚本文件
+      let configExtList = cfg.get('exer').map(item => item.ext)
+      while (configExtList.some(Array.isArray)) {
+        configExtList = [].concat(...configExtList)
+      }
+      const extList = (process.env.PATHEXT || '').toLocaleLowerCase().split(';').concat(configExtList)
+      for (let index = 0; index < extList.length; index++) {
+        const ext = extList[index]
+        const bin = qsPath(`${qsExtendDir}/${binArg1}${ext}`)
+        if(hasFile(bin)) {
+          return {
+            type: 'ext',
+            bin,
+          }
+        }
+      }
+    }
+    { // win 下查询 *.lnk
+      if(isWin) {
+        const lnk = qsPath(`${qsExtendDir}/${binArg1}.lnk`)
+        if(hasFile(lnk)) {
+          return {bin: lnk}
+        }
+      }
+    }
+    { // 如果没有找到 js 可以处理的程序, 则返回空对象
+      return {}
+    }
+  }
 
-  const program = require('commander')
-
-  {
-    if( // 记录任务的条件
-      arg1 // 存在参数
-      && !arg1.match(/^-/) // 这个参数不是选项
-      && !['init', 'admin'].includes(arg1) // 不包含这些参数
+  if(bin) { // 运行 ext 目录中的程序, 脚本与解释器请参考 config.exer
+    let exer = getExer(bin) || ''
+    let exerArgArr = []
+    let runMainEd = false // 是否经过 runMain 方法
+    if(
+      (Boolean(exer) === false) // 如果解释器 exer 不存在, 则把 bin 作为解释器运行, 移除 bin
+      || (exer.toLowerCase() === bin.toLowerCase()) // 如果解释器与命令是同一文件时, 则保留 exer, 移除 bin
     ) {
-      const Task = require(qsPath('./util/task.js'))
-      const task = await new Task()
-      global.qs.task = task
-      await task.saveProcess()
+      exer = bin
+      bin = ''
     }
-  }
-
-  program
-    .version(require(qsPath('./package')).version , '-v, --vers', 'output the current version')
-    .usage('<command> [options]')
-
-  program
-    .command('tp')
-    .description('Select a template to create a project')
-    .option('-n, --name <taskName>', 'Task Name, No repetition allowed')
-    .option('-t, --template <templateName>', 'Template type')
-    .option('--openDir', 'Open the directory')
-    .option('-d, --directory <directoryName>', 'Specify folders (default: "{dataDir}/{template}__{dateFormater}/")')
-    .option('-f, --fileName [fileName]', 'Specify a filename, Select template automatically according to suffix', 'index.js')
-    .option('-m, --module <moduleName,moduleName2...>', 'Add and automatically install dependencies, separating multiple with commas', list) // 如果是浏览器环境, 则从 cdn 查找并引用
-    .option('--es5 [config]', 'Save and convert to Es5 file')
-    .option('--local', '保存 cdn 到本地')
-    .action((arg) => {
-      const argRes = cleanArgs(arg)
-      argRes.template ? require(qsPath('./core/tp.js'))(argRes) : arg.outputHelp()
-    })
-
-  program
-    .command('html')
-    .action(async (arg) => {
-      const shelljs = require('shelljs')
-      const date = dateFormater('YYYYMMDDHHmmss', new Date())
-      const dataDirDate = `${dataDir}/${date}/`
-      shelljs.mkdir('-p', dataDirDate)
-      shelljs.cp('-r', qsPath('./template/html/*'), dataDirDate)
-      shelljs.exec(`code ${dataDirDate}`)
-      await run.execFileSync(`node ${nodeBin('browser-sync', './')} start --no-notify --server --files "**/**"`, dataDirDate)
-    })
-
-  program
-    .command('vue')
-    .action(async (arg) => {
-      const shelljs = require('shelljs')
-      const date = dateFormater('YYYYMMDDHHmmss', new Date())
-      const dataDirDate = `${dataDir}/${date}/`
-      shelljs.mkdir('-p', dataDirDate)
-      shelljs.cp('-r', qsPath('./template/vue/*'), dataDirDate)
-      shelljs.exec(`code ${dataDirDate}`)
-      await run.execFileSync(`node ${nodeBin('browser-sync', './')} start --no-notify --server --files "**/**"`, dataDirDate)
-    })
-
-  program
-    .command('admin')
-    .description('admin')
-    .option('-c --config <key[=val]>', 'View or change configuration')
-    .option('--resetConfig', 'Reset to default configuration')
-    .option('--deleteNodeModouse', 'Delete all node_modules')
-    .option('-t --task [cmd[=arg]]', '管理通过 qs 创建的任务列表')
-    .action((arg) => {
-      cleanArgs(arg, require(qsPath('./core/admin.js'))) || arg.outputHelp()
-    })
-
-  program
-    .command('init')
-    .description('Initializer')
-    .option('-e, --extend', 'Function of Initialization Extendsion')
-    .option('-o, --other', 'Initialize other functions')
-    .action((arg) => {
-      cleanArgs(arg, require(qsPath('./core/init.js')))
-    })
-
-  program.on('--help', () => {
-    print()
-    print(`  Run qs <command> --help for detailed usage of given command.`)
-    print()
-  })
-
-  program
-    .command('*')
-    .description('More features')
-    .action(async function(){
-      const extendFile = {
-        ss: './extend/ss/ss.js',
-      }[arg1]
-      if(extendFile) { // extend function
-        hasModules(`./extend/${arg1}/`) ? require(qsPath(extendFile)) : print('qs init -e')
-      } else { // other function
-        hasModules('./other/') ? require(qsPath('./other/index.js'))({arg1: arg1, argMore: argMore}) : print('qs init -o')
+    if(exerArg) {
+      // 转换字符串参数为数组, 供 spawnWrap 使用
+      exerArgArr = (Array.isArray(exerArg) ? exerArg : [exerArg]).reduce((acc, arg) => {
+        return acc.concat(arg.split(/\s+/))
+      }, [])
+      exer = [exer, ...exerArgArr, bin]
+    }
+    if(Boolean(exerArg) === false && /^node(|\.exe)$/i.test(path.basename(exer))) { // 无需启动 node 执行 js 程序
+      const Module = require('module')
+      if (obj2str(argParse) === '{}') {
+        require('yargs').reset()
       }
-
-    })
-
-  program.parse(process.argv)
-
-  if (arg1 === undefined) {
-    program.outputHelp()
+      process.argv = [
+        process.argv[0],
+        bin // node 脚本路径。 `runMain()`会将其设置为新的 main
+      ].concat(binArgMore) // 脚本的其他选项
+      { // 还原 log 重写 并运行 runMain
+        Module.runMain()
+      }
+      runMainEd = true
+    }
+    const spawnWrapArgv = [
+      ...(getType(exer, 'array') ? exer : [exer, bin]),
+      ...binArgMore,
+    ].filter(item => item !== '')
+    runMainEd === false && await run.spawnWrap(
+      spawnWrapArgv,
+      defaultArg,
+      taskAdd,
+    )
+  } else { // 移交命令和参数给系统, 让系统去执行, 例 `qs echo 123`
+    process.env.PATH = `${qsExtendDir}${path.delimiter}${process.env.PATH}`
+    await run.spawnWrap([binArg1, ...binArgMore], defaultArg, taskAdd)
+    return process.exit()
   }
 
-})();
+}
 
-function cleanArgs (obj, cb) { // Options for paraing user input
-  const args = {}
-  obj.options && obj.options.forEach(o => {
-    const long = o.long.replace(/^--/, '')
-    const key = long.replace(/-(\w)/g, (_, c) => c ? c.toUpperCase() : '')
-    if (typeof obj[key] !== 'function' && typeof obj[key] !== 'undefined') {
-      args[long] = obj[key]
+async function autoInstallPackage (bin) {
+  // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
+  const {
+    util: {
+      qsExtendDir,
+      run,
+      hasFile,
+      cfg,
+      qsPath,
+    },
+  } = global.qs
+  let re =  new RegExp(`${qsExtendDir}/(.*?)/`)
+  let dirName = (bin.match(re) || [])[1]
+  if(dirName) {
+    let package = qsExtendDir + '/' + dirName + '/package.json'
+    let node_modules = qsExtendDir + '/' + dirName + '/node_modules'
+
+    if(hasFile(package) && require(package).dependencies && !hasFile(node_modules)) { // 自动安装依赖
+      let cmd = `${cfg.get('moduleManage')} i --production`
+      await run.spawnWrap(cmd, [{cwd: qsPath(qsExtendDir + '/' + dirName)}])
     }
-  })
-  if(JSON.stringify(args) !== '{}') {
-    cb && cb(args)
-    return args
-  } else {
-    return undefined
   }
 }
 
-function list(val) {
-  return val.split(',').filter(item => item)
-}
+async function globalInit(init) { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
+  const {pid = process.pid, argv = process.argv} = init || {}
+  const {
+    initArg,
+    initUtil,
+    initTask,
+    initCfg,
+  } = require(`${__dirname}/util/init.js`)
+  let util = await initUtil()
+  const {
+    cfg,
+    qsPath,
+    execWrap,
+  } = util
+  let {
+    argParse,
+    binArg1,
+    rawArg1,
+    binArgMore,
+    rawArgMore,
+  } = await initArg({util, argv})
+  let task = await initTask({util, argParse, pid, binArg1})
+  const qs = (() =>  {// 设置对象的 key 为只读
+    let qs = {
+      binArg1,
+      rawArg1,
+      argParse,
+      binArgMore,
+      rawArgMore,
+      util,
+      task,
+      pid,
+    }
+    // Object.keys(qs).forEach(key => qs[key] = {value: qs[key]})
+    // return Object.create({}, qs)
+    return qs
+  })();
 
-async function globalInit() { // 把一些经常用到的方法保存到全局, 避免多次初始化影响性能, 不使用到的尽量不初始化
-  const [arg1, ...argMore] = process.argv.slice(2)
-  const util = await require('./util/index.js')()
-  const qs = Object.create({}, {
-    arg1: {value: arg1},
-    argMore: {value: argMore},
-    util: {value: {
-      ...util,
-      run: await new (require(util.qsPath('./util/run.js')))({
-        execAsync: util.execAsync,
-        execFileSync: util.execFileSync,
-        spawnWrap: util.spawnWrap,
-      }),
-    }},
-  })
-  await initCfg()
-  async function initCfg() {
-    { // moduleManage 包管理工具
-      let {moduleManage} = util.cfg.get
-      if(!moduleManage) { // 判断应该使用什么包管理工具
-        moduleManage = ((await qs.util.run.execAsync('cnpm -v')).error ? 'npm' : 'cnpm')
-        util.cfg.set('moduleManage', moduleManage)
-      }
-    }
-    { // dataDir 初始化数据保存目录
-      const os = require('os')
-      let {dataDir} = util.cfg.get
-      if(!dataDir) {
-        dataDir = `${os.homedir()}/.qs/`
-        util.cfg.set('dataDir', dataDir)
-      }
-    }
-  }
+  await initCfg({qsPath, cfg, execWrap})
   return qs
 }
