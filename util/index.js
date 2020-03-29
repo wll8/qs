@@ -90,6 +90,7 @@ function nodeBin(cli, dir = './other/') {
 
 function createFileOrDir(filepath, str) { // Create file. If there is `/` after the path, it is considered a directory.
   const shelljs = require('shelljs')
+  filepath = filepath.replace(/\\/g, '/')
   if(filepath.match(/\/$/)) { // Create directory
     shelljs.mkdir('-p', filepath)
   } else { // Create directory and file

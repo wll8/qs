@@ -49,7 +49,7 @@ module.exports = async (arg) => {
     await run.shelljsExec(`${openExe} ${fileName}`, [], true)
   }
 
-  const cmd = `${nodeBin('nodemon', './')} -q --watch "${fileName}" --exec "node ${fileName}"`
+  const cmd = `node ${nodeBin('nodemon', './')} -q --watch "${fileName}" --exec "node ${fileName}"`
   await run.execFileSync(cmd, [], true)
 }
 

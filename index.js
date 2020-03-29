@@ -79,7 +79,7 @@
       shelljs.mkdir('-p', dataDirDate)
       shelljs.cp('-r', qsPath('./template/html/*'), dataDirDate)
       shelljs.exec(`code ${dataDirDate}`)
-      await run.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDirDate)
+      await run.execFileSync(`node ${nodeBin('browser-sync', './')} start --no-notify --server --files "**/**"`, dataDirDate)
     })
 
   program
@@ -89,9 +89,9 @@
       const date = dateFormater('YYYYMMDDHHmmss', new Date())
       const dataDirDate = `${dataDir}/${date}/`
       shelljs.mkdir('-p', dataDirDate)
-      shelljs.cp('-r', qsPath('./template/html/*'), dataDirDate)
+      shelljs.cp('-r', qsPath('./template/vue/*'), dataDirDate)
       shelljs.exec(`code ${dataDirDate}`)
-      await run.execFileSync(`${nodeBin('browser-sync', './')} start --no-notify --server --files '**/**'`, dataDirDate)
+      await run.execFileSync(`node ${nodeBin('browser-sync', './')} start --no-notify --server --files "**/**"`, dataDirDate)
     })
 
   program
