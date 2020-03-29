@@ -1,9 +1,11 @@
 # qs - quick start
-一个 nodejs 开发的命令行, 可执行文件管理工具.
+给你的工作取一个名字, 在命令行中通过这个名字快速开始你的工作.
 
 支持 `Node.js v10+` .
 
 ``` sh
+$ npm i -g qs-cli
+
 $ qs -n hi echo hello
 hello
 
@@ -43,23 +45,21 @@ hello world
 
 ## 安装与体验
 qs 需要你的 node 版本 v10 以上. 
-如果你安装过 nodejs 那么可以直接使用 `npm i -g wll8/qs#master` 从 npmjs 注册表中安装. 
+如果你安装过 nodejs 那么可以直接使用 `npm i -g qs-cli` 从 npmjs 注册表中安装. 
 如果你没有安装过 nodejs , 那么可以使用下面的一键脚本进行安装. 这会为你自动安装 node 和 qs. 
 
 ### 从 node 安装
 npm 的原始镜像地址在中国比较慢, 你可以使用 cnpm 或者切换镜像地址来缓解这个问题. 
 
 ``` sh
-npm i -g wll8/qs#master # 常规安装方式
-yarn global add wll8/qs#master  # 如果你更喜欢 yarn ?
-cnpm i -g wll8/qs#master # 中国大陆安装方式
-npx wll8/qs#master # 听说你不想安装, 只想体验一下?
+npm i -g qs-cli # 常规安装方式
+yarn global add qs-cli  # 如果你更喜欢 yarn ?
+npx qs-cli # 听说你不想安装, 只想体验一下?
 ```
 
 小贴士:
-1. `npm i -g wll8/qs#master` 安装 master 分支.
-1. `npm i -g qs` 表示安装 npmjs 注册表中的最 qs 新版本.
-1. 再次声明, 需要 `node v10+`, 你可以使用 `node -v` 查看你的 node 版本.
+1. `npm i -g wll8/qs#develop` 安装 develop 分支.
+1. `npm i -g qs-cli` 表示安装 npmjs 注册表中的最 qs 新版本.
 
 ### windows 一键脚本
 从网络直接运行脚本, 会被认为这是一个不安全的操作. 如果你不信任`这个脚本`, 那么你可以手动从`官网`下载安装 node 以及 qs . 
@@ -161,10 +161,10 @@ qs 遵循的规则和顺序(优先级与先后顺序一致):
 
 下面演示了如何使用 json 工具库.
 ``` sh
-$> cd ~/.qs/ext/ # 进入扩展目录
-$> npm init -y # 生成 packge.json 文件
-$> cnpm i -S json # 安装 json 工具库
-$> curl httpbin.org/get|qs json headers # 使用 json 工具库
+$ cd ~/.qs/ext/ # 进入扩展目录
+$ npm init -y # 生成 packge.json 文件
+$ cnpm i -S json # 安装 json 工具库
+$ curl httpbin.org/get|qs json headers # 使用 json 工具库
 ```
 
 ### 脚本的参数接收
