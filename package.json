@@ -1,9 +1,11 @@
 {
-  "name": "qs",
+  "name": "qs-cli",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
-  "bin": "index.js",
+  "bin": {
+    "qs": "index.js"
+  },
   "dependencies": {
     "browser-sync": "^2.26.7",
     "chalk": "^2.4.2",
