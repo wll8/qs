@@ -57,9 +57,9 @@ npx wll8/qs#master # 听说你不想安装, 只想体验一下?
 ```
 
 小贴士:
-- `npm i -g wll8/qs#master` 安装 master 分支.
-- `npm i -g qs` 表示安装 npmjs 注册表中的最 qs 新版本.
-- 再次声明, 需要 `node v10+`, 你可以使用 `node -v` 查看你的 node 版本.
+1. `npm i -g wll8/qs#master` 安装 master 分支.
+1. `npm i -g qs` 表示安装 npmjs 注册表中的最 qs 新版本.
+1. 再次声明, 需要 `node v10+`, 你可以使用 `node -v` 查看你的 node 版本.
 
 ### windows 一键脚本
 从网络直接运行脚本, 会被认为这是一个不安全的操作. 如果你不信任`这个脚本`, 那么你可以手动从`官网`下载安装 node 以及 qs . 
@@ -102,16 +102,22 @@ qs --task-remove hi # 删除 hi 这个任务
 1. 当你运行过 qs, 才会在你的电脑上生成扩展目录
 1. `start %homepath%\.qs\ext\` 或 `open ~/.qs/ext` 可以在 windows 或 macos 上使用文件管理器直接打开这个目录.
 
-### js 脚本 && package.json 中定义的脚本
+### js 与 package.json
 若无特殊说明, 以下的文件创建操作都在 qs 扩展目录下.
 
 #### 当前目录下的同名 js 文件
 对于一些简单的程序, 我们使用一个单文件即可完成, 所以你直接创建一个 js 文件即可.
 
-- 创建一个名为 hq 的 js 文件: `hq.js` , 
-- 内容为 `console.log('hi qs~')` , 当然其他内容也可以.
-- 运行命令 `qs hq` , 即可输出 `hi qs~` .
-- 恭喜, 你的第一个 "qs 插件" 已经完成了 ^_^ .
+1. 创建一个名为 hq 的 js 文件: `demo.js` , 
+1. 内容为 `console.log('hi qs~')` , 当然其他内容也可以.
+1. 运行命令 `qs demo` , 即可输出 `hi qs~` .
+1. 恭喜, 你的第一个 `qs 插件` 已经完成了 ^_^ .
+
+``` sh
+$ echo "console.log('hi qs~')">~/.qs/ext/demo.js
+$ qs demo
+hi qs~
+```
 
 #### 兼容 package.json 的可执行文件声明方式
 对于复杂的程序, 你希望像标准的 node 工具库一样创建他们, 这很好. qs 支持 npm 的 package 执行文件解析, 并且为了更方便, qs 的规则更宽松一些.
@@ -119,14 +125,14 @@ qs --task-remove hi # 删除 hi 这个任务
 假设你的一个 t2 目录, 在这个目录中有 `package.json` 文件, 内容如下:
 
 ``` sh
-bash$> tree t2
+$ tree t2
 t2
 ├── m.js
 ├── fn1.js
 ├── fn2.js
 └── packge.json
 
-bash$> cat packge.json
+$ cat packge.json
 {
   "main": "m.js",
   "bin": {
@@ -135,7 +141,7 @@ bash$> cat packge.json
   }
 }
 
-bash$> qs a # 这时候会运行 fn1.js 这个文件
+$ qs a # 这时候会运行 fn1.js 这个文件
 ```
 
 如果没有指定 bin , 那么 qs 会使用 main 字段, 则运行 `qs t2` 则执行 m.js .
@@ -147,7 +153,19 @@ qs 遵循的规则和顺序(优先级与先后顺序一致):
 1. 同名目录中 index.js
 
 小贴士:
-不要被上面的规则吓到, 因为你不必在意, 因为你几乎不会导致它们冲突, 你说呢?
+1. 不要被上面的规则吓到, 因为你不必在意, 因为你几乎不会导致它们冲突, 你说呢?
+
+#### 直接使用第三方 npm 工具库
+如果你不想编写简单的 js 脚本, 也不像编写完整的 js工具库, 因为 npm 注册表已经存在一个很棒的工具. 
+你只需要在扩展目录中添加, 即可使用它们.
+
+下面演示了如何使用 json 工具库.
+``` sh
+$> cd ~/.qs/ext/ # 进入扩展目录
+$> npm init -y # 生成 packge.json 文件
+$> cnpm i -S json # 安装 json 工具库
+$> curl httpbin.org/get|qs json headers # 使用 json 工具库
+```
 
 ### 脚本的参数接收
 还记得一开始的 `qs -s hi -- world` 吗? 它就是向 hi 这个任务传送 `world` 这个参数.
@@ -155,8 +173,8 @@ qs 遵循的规则和顺序(优先级与先后顺序一致):
 你可以创建一个脚本例如 `arg.js` 来体验它:
 
 ``` sh
-bash$> echo "console.log(process.argv.slice(2))">~/.qs/ext/arg.js
-bash$> qs arg 1 2 3
+$ echo "console.log(process.argv.slice(2))">~/.qs/ext/arg.js
+$ qs arg 1 2 3
 [ '1', '2', '3' ]
 ```
 
@@ -165,8 +183,8 @@ bash$> qs arg 1 2 3
 使用 qs 的 `--exer-arg` 参数即可为解释器传送启动参数, 例如:
 
 ``` sh
-bash$> echo "print(123)">~/.qs/ext/t4.py # 创建一个 py 文件
-bash$> qs --exer-arg=-v t4 # 向 python 传送 -v 参数, 相当于 `python -v ~/.qs/ext/t4.py`
+$ echo "print(123)">~/.qs/ext/t4.py # 创建一个 py 文件
+$ qs --exer-arg=-v t4 # 向 python 传送 -v 参数, 相当于 `python -v ~/.qs/ext/t4.py`
 ```
 
 小贴士:
@@ -188,6 +206,15 @@ bash$> qs --exer-arg=-v t4 # 向 python 传送 -v 参数, 相当于 `python -v ~
 ```
 
 小贴士:
-- 对于没有配置在 exer 中的文件类型, qs 会直接使用命令打开它.
-- 在 windows 上, bat 脚本使用 cmd. mac/linux 使用 sh.
-- 可以使用它实现某类文件的默认打开方式.
+1. 对于没有配置在 exer 中的文件类型, qs 会直接使用命令打开它.
+1. 在 windows 上, bat 脚本使用 cmd. mac/linux 使用 sh.
+1. 可以使用它实现某类文件的默认打开方式.
+
+## FQA
+### qs 与 pm2 npm npx shx alias 有什么区别?
+- pm2 专于 node 进程管理.
+- npm 用于管理 npmjs 相关的依赖, 没有任务存储.
+- npx 可以直接运行未安装的 npmjs 工具, 不能运行系统命令, 如 win 上 `npx dir`.
+- shx 仅用于提供一些 linux 命令, 不能运行系统命令, 如 win 上 `npx dir`.
+- alias 设置命令为别名, 不能自动保存运行目录.
+- qs 把上面罗列的这些**区别**加起来~
