@@ -2,6 +2,7 @@ const {
   util: {
     QsError,
     setTitle,
+    qsDataDir,
     qsTaskPath,
     qsConfigPath,
     qsPath,
@@ -22,6 +23,7 @@ const {
     regexp,
     config,
     configReset,
+    open,
   },
   rawArgMore,
   task: taskFn,
@@ -30,6 +32,10 @@ const fs = require('fs')
 const shelljs = require('shelljs')
 
 module.exports = async () => {
+  if(open) {
+    require('./lib/opener.js')(qsPath([qsDataDir, open]))
+  }
+
   if(config === '') { // 查看所有配置
     print(`path: ${qsConfigPath}`)
     print(cfg.get())

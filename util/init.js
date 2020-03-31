@@ -209,6 +209,11 @@ async function initArg ({util, argv}) {
           describe: '输出命令所在路径',
           type: 'boolean',
         },
+        'o': {
+          alias: 'open',
+          describe: '打开 qs 中的文件或目录',
+          type: 'string',
+        },
       })
       .argv
       if(argParse.version) { // 输出版本, 并退出程序
