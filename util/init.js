@@ -207,7 +207,7 @@ async function initArg ({util, argv}) {
         },
         'which': {
           describe: '输出命令所在路径',
-          type: 'boolean',
+          type: 'string',
         },
         'o': {
           alias: 'open',
