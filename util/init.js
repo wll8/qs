@@ -229,7 +229,12 @@ async function initArg ({util, argv}) {
     let [binArg1, ...binArgMore] = argParse.rawCmd ? handleRaw(argParse.rawCmd) : argParse._
     let [rawArg1, ...rawArgMore] = argv.slice(2)
     if(!rawArg1) { // 没有任何参数时显示帮助
-      yargs.showHelp(str => print(str))
+      const version = require(qsPath('./package.json')).version
+      yargs.showHelp(str => print(
+        require('fs').readFileSync(qsPath('./util/qsText.txt'), 'utf8')
+        .replace(/( -- v)(\d+\.\d+\.\d+)/, `$1${version}`)
+        + `\r\n${str}\r\n`
+      ))
     } else {
       const res = {argParse, binArg1, binArgMore, rawArg1, rawArgMore}
       return resolve(res)
