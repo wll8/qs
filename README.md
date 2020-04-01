@@ -2,7 +2,12 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/qs-cli"><img src="https://img.shields.io/npm/v/qs-cli.svg?sanitize=true" alt="Version"></a>
   <a href="https://www.npmjs.com/package/qs-cli"><img src="https://img.shields.io/npm/l/qs-cli.svg?sanitize=true" alt="License"></a>
-  <div align="center"><video width="500" height="282" controls src="https://gitcdn.xyz/repo/wll8/static/master/Video_20200331231620_qs_demo.mp4"></video></div>
+  <div align="center">
+    <a href="https://gitcdn.xyz/repo/wll8/static/master/Video_20200331231620_qs_demo.mp4">
+      <img alt="qs 演示 gif" width="500" height="282" src="https://raw.githubusercontent.com/wll8/static/master/Video_20200123214014_hi_qs.gif" />
+      <div>演示视频请点击</div>
+    </a>
+  </div>
 <p>
 
 快速打开各种类型的文件, 运行任务.
