@@ -1,5 +1,11 @@
 # qs - quick start
-给你的工作取一个名字, 在命令行中通过这个名字快速开始你的工作.
+<p align="center">
+  <a href="https://www.npmjs.com/package/qs-cli"><img src="https://img.shields.io/npm/v/qs-cli.svg?sanitize=true" alt="Version"></a>
+  <a href="https://www.npmjs.com/package/qs-cli"><img src="https://img.shields.io/npm/l/qs-cli.svg?sanitize=true" alt="License"></a>
+  <div align="center"><video width="500" height="282" controls src="https://gitcdn.xyz/repo/wll8/static/master/Video_20200331231620_qs_demo.mp4"></video></div>
+<p>
+
+快速打开各种类型的文件, 运行任务.
 
 支持 `Node.js v10+` .
 
@@ -17,36 +23,38 @@ hello world
 ```
 
 ## 功能特点
-- 保存控制台命令, 以供任意位置快速使用, 无需再进入原来的目录.
-- 记录任务的运行次数, 时间.
+- 全局使用你的脚本, 可执行文件, 第三方工具, 支持传递参数, 无需添加环境变量.
+- 保存控制台命令, 在任意位置快速使用, 无需再进入原来的目录.
+- 记录任务的运行信息, 例如次数, 时间.
 - 删除或停止任务, 无需 kill/taskkill/ctrl+c.
-- 全局使用你的脚本, 可执行文件, 第三方工具, 无需添加环境变量.
 - 跨平台, 你可以在 linux/macos/windows 上以相同的方式使用.
 
+更多功能请参考文档.
+
 ## 选项
-- `-v --vers` -- 显示版本号
-- `-h --help` -- 显示帮助信息
-- `-r --raw-cmd` -- 以原始命令运行, 避免存储任务时变量被解析
+- `-v, --vers, --version` -- 显示版本号
+- `-h, --help` -- 显示帮助信息
+- `-r, --raw-cmd` -- 以原始命令运行, 避免存储任务时变量被解析
   - 例: `qs -a -r "ls ./*"` linux 上列出当前目录所有文件, 并保存命令到任务列表中
 - `--regexp` -- 查找任务时使用正则匹配(默认)
 - `--task [kv...]` -- 显示或查找、修改任务
 - `--task-show-id` -- 添加任务时输出 taskId
-- `-a --task-add` -- 添加到任务记录
+- `-a, --task-add` -- 添加到任务记录
   - 例: `qs -a echo 123` 保存 `echo 123` 这条记录(及运行目录), 以方便再次运行
-- `-n --task-name <name>` -- 添加任务时创建任务名称, 包含 -a
-- `-d --task-des <info>` -- 添加任务记录并创建任务描述, 包含 -a
-- `-s --task-start <id|name>` -- 启动任务
-- `-k --task-kill <id|name>` -- 停止任务
+- `-n, --task-name <name>` -- 添加任务时创建任务名称, 包含 -a
+- `-d, --task-des <info>` -- 添加任务记录并创建任务描述, 包含 -a
+- `-s, --task-start <id|name>` -- 启动任务
+- `-k, --task-kill <id|name>` -- 停止任务
 - `--task-remove <id|name>` -- 删除任务
 - `--config [k[=v]]` -- 查看、修改配置
 - `--config-reset` -- 重置配置
 - `--exer-arg=<string>` -- 设置解释器启动参数
 - `--which` -- 输出命令所在路径
+- `-o, --open` -- 打开 qs 中的文件或目录
 
 ## 安装与体验
-qs 需要你的 node 版本 v10 以上. 
-如果你安装过 nodejs 那么可以直接使用 `npm i -g qs-cli` 从 npmjs 注册表中安装. 
-如果你没有安装过 nodejs , 那么可以使用下面的一键脚本进行安装. 这会为你自动安装 node 和 qs. 
+如果你安装过 nodejs 那么可以直接使用 `npm i -g qs-cli` 从 npmjs 注册表中安装.  
+如果你没有安装过 nodejs , 那么可以使用下面的一键脚本进行安装. 这会为你自动安装 node 和 qs.  
 
 ### 从 node 安装
 npm 的原始镜像地址在中国比较慢, 你可以使用 cnpm 或者切换镜像地址来缓解这个问题. 
@@ -91,16 +99,12 @@ qs --task-remove hi # 删除 hi 这个任务
 1. 当然, qs 并不仅仅用来执行系统命令.
 
 ## 扩展功能
-扩展功能让你在任何位置运行自定义程序甚至是任意文件. 
-你只需要把想运行的程序放置在 qs 扩展目录中即可, 不必添加环境变量. 
-
-扩展目录位于 `你的用户目录/.qs/ext/` . 
-在 windows 上可以使用 `cd /d %homepath%\.qs\ext\` 直接进入. 
-在 macos/linux 上可以使用 `cd ~/.qs/ext` 直接进入. 
+扩展功能让你在任何位置运行自定义程序甚至是任意文件.  
+你只需要把想运行的程序放置在 qs 扩展目录中即可, 不必添加环境变量.  
+扩展目录位于 `~/.qs/ext/` , 你可以使用 `qs -o ext` 打开它.  
 
 小贴士:
 1. 当你运行过 qs, 才会在你的电脑上生成扩展目录
-1. `start %homepath%\.qs\ext\` 或 `open ~/.qs/ext` 可以在 windows 或 macos 上使用文件管理器直接打开这个目录.
 
 ### js 与 package.json
 若无特殊说明, 以下的文件创建操作都在 qs 扩展目录下.
@@ -108,7 +112,7 @@ qs --task-remove hi # 删除 hi 这个任务
 #### 当前目录下的同名 js 文件
 对于一些简单的程序, 我们使用一个单文件即可完成, 所以你直接创建一个 js 文件即可.
 
-1. 创建一个名为 hq 的 js 文件: `demo.js` , 
+1. 创建一个 js 文件: `demo.js` , 
 1. 内容为 `console.log('hi qs~')` , 当然其他内容也可以.
 1. 运行命令 `qs demo` , 即可输出 `hi qs~` .
 1. 恭喜, 你的第一个 `qs 插件` 已经完成了 ^_^ .
@@ -156,10 +160,10 @@ qs 遵循的规则和顺序(优先级与先后顺序一致):
 1. 不要被上面的规则吓到, 因为你不必在意, 因为你几乎不会导致它们冲突, 你说呢?
 
 #### 直接使用第三方 npm 工具库
-如果你不想编写简单的 js 脚本, 也不像编写完整的 js工具库, 因为 npm 注册表已经存在一个很棒的工具. 
-你只需要在扩展目录中添加, 即可使用它们.
+如果你不想编写简单的 js 脚本, 也不像编写完整的 js工具库, 因为 npm 注册表已经存在一个很棒的工具.   
+你只需要在扩展目录中添加, 即可使用它们.  
 
-下面演示了如何使用 json 工具库.
+下面演示了如何使用 json 工具库.  
 ``` sh
 $ cd ~/.qs/ext/ # 进入扩展目录
 $ npm init -y # 生成 packge.json 文件
@@ -168,9 +172,9 @@ $ curl httpbin.org/get|qs json headers # 使用 json 工具库
 ```
 
 ### 脚本的参数接收
-还记得一开始的 `qs -s hi -- world` 吗? 它就是向 hi 这个任务传送 `world` 这个参数.
+还记得一开始的 `qs -s hi -- world` 吗? 它就是向 hi 这个任务传送 `world` 这个参数.  
 
-你可以创建一个脚本例如 `arg.js` 来体验它:
+你可以创建一个脚本例如 `arg.js` 来体验它:  
 
 ``` sh
 $ echo "console.log(process.argv.slice(2))">~/.qs/ext/arg.js
@@ -179,8 +183,8 @@ $ qs arg 1 2 3
 ```
 
 ### 设置解释器的启动参数
-对于`解释器`, 请参考 `config.exer` .
-使用 qs 的 `--exer-arg` 参数即可为解释器传送启动参数, 例如:
+对于`解释器`, 请参考 `config.exer` .  
+使用 qs 的 `--exer-arg` 参数即可为解释器传送启动参数, 例如:  
 
 ``` sh
 $ echo "print(123)">~/.qs/ext/t4.py # 创建一个 py 文件
@@ -192,8 +196,8 @@ $ qs --exer-arg=-v t4 # 向 python 传送 -v 参数, 相当于 `python -v ~/.qs/
 1. 你可以使用 `--which` 查询包含 ext 外的程序脚本入口, 例 `qs --which pm2` .
 
 ### 按照 config.exer 配置的方式运行脚本
-如果你不希望使用默认的解释器, 你可以修改它们. 这是一个常用的操作, 例如你需要使用另一个版本的解释器.
-那么你可以在 `config.exer` 中进行配置.
+如果你不希望使用默认的解释器, 你可以修改它们. 这是一个常用的操作, 例如你需要使用另一个版本的解释器.  
+那么你可以在 `config.exer` 中进行配置.  
 
 例如: 
 ``` js
@@ -211,10 +215,10 @@ $ qs --exer-arg=-v t4 # 向 python 传送 -v 参数, 相当于 `python -v ~/.qs/
 1. 可以使用它实现某类文件的默认打开方式.
 
 ## FQA
-### qs 与 pm2 npm npx shx alias 有什么区别?
+### qs 与 pm2 npm npx shx alias stringifying 有什么区别?
 - pm2 专于 node 进程管理.
 - npm 用于管理 npmjs 相关的依赖, 没有任务存储.
 - npx 可以直接运行未安装的 npmjs 工具, 不能运行系统命令, 如 win 上 `npx dir`.
 - shx 仅用于提供一些 linux 命令, 不能运行系统命令, 如 win 上 `npx dir`.
 - alias 设置命令为别名, 不能自动保存运行目录.
-- qs 把上面罗列的这些**区别**加起来~
+- qs 不是 querystring.
