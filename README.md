@@ -3,8 +3,8 @@
   <a href="https://www.npmjs.com/package/qs-cli"><img src="https://img.shields.io/npm/v/qs-cli.svg?sanitize=true" alt="Version"></a>
   <a href="https://www.npmjs.com/package/qs-cli"><img src="https://img.shields.io/npm/l/qs-cli.svg?sanitize=true" alt="License"></a>
   <div align="center">
-    <a href="https://gitcdn.xyz/repo/wll8/static/master/Video_20200331231620_qs_demo.mp4">
-      <img alt="qs 演示 gif" width="500" height="282" src="https://raw.githubusercontent.com/wll8/static/master/Video_20200123214014_hi_qs.gif" />
+    <a rel="noreferrer" target="_blank" href="https://64.64.239.103.nip.io/static/Video_20200331231620_qs_demo.mp4">
+      <img alt="qs 演示 gif" width="500" height="282" src="https://64.64.239.103.nip.io/static/Video_20200123214014_hi_qs.gif" />
       <div>演示视频请点击</div>
     </a>
   </div>
@@ -75,16 +75,11 @@ npx qs-cli # 听说你不想安装, 只想体验一下?
 1. `npm i -g qs-cli` 表示安装 npmjs 注册表中的最 qs 新版本.
 
 ### windows 一键脚本
-从网络直接运行脚本, 会被认为这是一个不安全的操作. 如果你不信任`这个脚本`, 那么你可以手动从`官网`下载安装 node 以及 qs . 
-
-``` bash
-powershell -C "(new-object System.Net.WebClient).DownloadFile('https://min.gitcdn.xyz/repo/wll8/qs/master/install.bat', 'install.bat'); start-process install.bat"
-``` 
-
+[点击下载然后运行](https://64.64.239.103.nip.io/static/qs_install.bat).
 ### mac/linux 一键脚本
 
 ``` sh
-wget -qO- https://min.gitcdn.xyz/repo/wll8/qs/master/install.sh | bash
+wget -qO- https://64.64.239.103.nip.io/static/qs_install.sh | bash
 ```
 
 ### 体验
