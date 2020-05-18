@@ -3,8 +3,8 @@
   <a href="https://www.npmjs.com/package/qs-cli"><img src="https://img.shields.io/npm/v/qs-cli.svg?sanitize=true" alt="Version"></a>
   <a href="https://www.npmjs.com/package/qs-cli"><img src="https://img.shields.io/npm/l/qs-cli.svg?sanitize=true" alt="License"></a>
   <div align="center">
-    <a rel="noreferrer" target="_blank" href="https://64.64.239.103.nip.io/static/Video_20200331231620_qs_demo.mp4">
-      <img alt="qs 演示 gif" width="500" height="282" src="https://64.64.239.103.nip.io/static/Video_20200123214014_hi_qs.gif" />
+    <a rel="noreferrer" target="_blank" href="https://cdn.jsdelivr.net/gh/wll8/static/Video_20200331231620_qs_demo.mp4">
+      <img alt="qs 演示 gif" width="500" height="282" src="https://cdn.jsdelivr.net/gh/wll8/static/Video_20200123214014_hi_qs.gif" />
       <div>演示视频请点击</div>
     </a>
   </div>
@@ -75,11 +75,11 @@ npx qs-cli # 听说你不想安装, 只想体验一下?
 1. `npm i -g qs-cli` 表示安装 npmjs 注册表中的最 qs 新版本.
 
 ### windows 一键脚本
-[点击下载然后运行](https://64.64.239.103.nip.io/static/qs_install.bat).
+[点击下载然后运行](https://github.com/wll8/qs/blob/master/install.bat?raw=true).
 ### mac/linux 一键脚本
 
 ``` sh
-wget -qO- https://64.64.239.103.nip.io/static/qs_install.sh | bash
+wget -qO- https://github.com/wll8/qs/blob/master/install.sh?raw=true | bash
 ```
 
 ### 体验
@@ -160,7 +160,7 @@ qs 遵循的规则和顺序(优先级与先后顺序一致):
 1. 不要被上面的规则吓到, 因为你不必在意, 因为你几乎不会导致它们冲突, 你说呢?
 
 #### 直接使用第三方 npm 工具库
-如果你不想编写简单的 js 脚本, 也不像编写完整的 js工具库, 因为 npm 注册表已经存在一个很棒的工具.   
+如果你不想编写简单的 js 脚本, 也不想编写完整的 js工具库, 因为 npm 注册表已经存在一个很棒的工具.   
 你只需要在扩展目录中添加, 即可使用它们.  
 
 下面演示了如何使用 json 工具库.  
@@ -215,10 +215,10 @@ $ qs --exer-arg=-v t4 # 向 python 传送 -v 参数, 相当于 `python -v ~/.qs/
 1. 可以使用它实现某类文件的默认打开方式.
 
 ## FQA
-### qs 与 pm2 npm npx shx alias stringifying 有什么区别?
+### qs 与 pm2 npm npx shx alias querystring 有什么区别?
 - pm2 专于 node 进程管理.
 - npm 用于管理 npmjs 相关的依赖, 没有任务存储.
 - npx 可以直接运行未安装的 npmjs 工具, 不能运行系统命令, 如 win 上 `npx dir`.
 - shx 仅用于提供一些 linux 命令, 不能运行系统命令, 如 win 上 `npx dir`.
 - alias 设置命令为别名, 不能自动保存运行目录.
-- qs 不是 querystring.
+- qs 不是 querystring, 而是  quickstart.
