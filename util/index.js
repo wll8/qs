@@ -102,11 +102,22 @@ async function runCmd({
       ...(getType(exer, 'array') ? exer : [exer, bin]),
       ...binArgMore,
     ].filter(item => item !== '')
-    runMainEd === false && await run.spawnWrap(
-      spawnWrapArgv,
-      defaultArg,
-      taskAdd,
-    )
+    if(runMainEd === false) {
+      if(
+        (isWin === false)
+        && hasFile(exer)
+        && exer.includes(qsExtendDir)
+        && (await fileMode(exer).canExecute === false)
+      ) { // 不是 windows 平台, 并且命令存在于 ext 目录中, 并且不是可执行文件时, 直接使用 open 打开
+        require('../lib/opener.js')(exer)
+      } else {
+        await run.spawnWrap(
+          spawnWrapArgv,
+          defaultArg,
+          taskAdd,
+        )
+      }
+    }
   } else { // 移交命令和参数给系统, 让系统去执行, 例 `qs echo 123`
     process.env.PATH = `${qsExtendDir}${path.delimiter}${process.env.PATH}`
     await run.spawnWrap([binArg1, ...binArgMore], defaultArg, taskAdd)
@@ -453,6 +464,28 @@ function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文
 async function cmdToArr(cmd) {
   const {stdout} = await execWrap(`node ${qsPath('./util/getArgv.js')} getArgv_json ${cmd}`)
   return Array.isArray(cmd) ? cmd : JSON.parse(stdout)
+}
+
+function fileMode(file) {
+  const fs = require(`fs`)
+  const checkPermission = async (mask, cb) => {
+    return new Promise((resolve, reject) => {
+      fs.stat (file, (error, stats) => {
+        if (error){
+          console.log(`error`, error)
+          reject(error)
+        }else{
+          const res = !!(mask & parseInt ((stats.mode & parseInt (`777`, 8)).toString (8)[0]))
+          res ? resolve(true) : resolve(false)
+        }
+      })
+    })
+  }
+  return {
+    canExecute: checkPermission (1),
+    canRead: checkPermission(4),
+    canWrite: checkPermission(2),
+  }
 }
 
 function spawnWrap(cmd, option = {}, other = {}) { // 可以进行交互
