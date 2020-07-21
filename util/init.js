@@ -38,6 +38,11 @@ async function initCfg({cfg, qsPath, execWrap, configReset}) {
             ext: ['.py', '.pyc'],
             exer: 'python',
           },
+          {
+            ext: ['.java'],
+            exer: 'java',
+            template: 'javac ${main} && ${exer} ${exerArg} ${main.removeSuffix} ${mainArg}',
+          },
         ]
       )
     }

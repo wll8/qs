@@ -67,9 +67,10 @@ async function runCmd({
   const defaultArg = [{cwd: process.cwd()}]
 
   if(bin) { // 运行 ext 目录中的程序, 脚本与解释器请参考 config.exer
-    let exer = getExer(bin) || ''
+    let {exerPath: exer, exer: exerRef, template} = getExer(bin) || {}
     let exerArgArr = []
     let runMainEd = false // 是否经过 runMain 方法
+    // todo 把 mianArg 处理为字符串, 比如命令行参数 `1 2 "4 5"` => [`1`,`2`,`4 5`] => `1 2 "4 5"` 能正确还原
     if(
       (Boolean(exer) === false) // 如果解释器 exer 不存在, 则把 bin 作为解释器运行, 移除 bin
       || (exer.toLowerCase() === bin.toLowerCase()) // 如果解释器与命令是同一文件时, 则保留 exer, 移除 bin
@@ -111,8 +112,15 @@ async function runCmd({
       ) { // 不是 windows 平台, 并且命令存在于 ext 目录中, 并且不是可执行文件时, 直接使用 open 打开
         require('../lib/opener.js')(exer)
       } else {
+        const parseTemplateRes = parseTemplate(template, {
+          exer,
+          exerPath: exer,
+          exerArg,
+          main: bin,
+          mainArg: binArgMore.join(` `),
+        })
         await run.spawnWrap(
-          spawnWrapArgv,
+          parseTemplateRes, // todo 若解析带空格或引号参数有误, 请改为些参数此: spawnWrapArgv
           defaultArg,
           taskAdd,
         )
@@ -228,7 +236,7 @@ function getExer(file) { // 获取脚本的执行器
   const findMethodList = [
     file => { // 配置后缀
       const table = cfg.get('exer')
-      const exer = (table.find(item => item.ext.includes(path.extname(file))) || {}).exer
+      const exer = (table.find(item => item.ext.includes(path.extname(file))) || {})
       return exer
     },
     file => { // 二进制: 默认其就是可执行文件
@@ -251,10 +259,11 @@ function getExer(file) { // 获取脚本的执行器
     return exer
   })
 
-  if(exer) { // 获取执行器的绝对路径
-    exer = String(shelljs.which(exer) || '')
+  const res = getType(exer, `object`) ? exer : {exer}
+  if(res.exer) { // 获取执行器的绝对路径
+    res.exerPath = String(shelljs.which(res.exer) || '')
   }
-  return exer
+  return res
 }
 
 function delRequireCache(filePath) {
@@ -553,6 +562,21 @@ function getFiles (dir, files_){ // 获取指定目录下的所有文件
     }
   }
   return files_
+}
+
+function strRender(str, data) { // 简单的模版, 例: fn(`age{{age}}`, {age: `20`}) => `age20`
+  return str.replace(/\${(.*?)}/g, (match, key) => (data[key.trim()] || ``))
+}
+
+function removeSuffix(str) { // 删除后缀名
+  return str.replace(/(.*)(\..+)$/, '$1')
+}
+
+function parseTemplate(template = '${exer} ${exerArg} ${main} ${mainArg}', data) { // 传入 data, 根据 exer 解析 template
+  data[`main.removeSuffix`] = removeSuffix(data.main)
+  const strRenderRes = strRender(template, data)
+  const handleRawRes = handleRaw([strRenderRes])
+  return handleRawRes
 }
 
 function print(info) { // 用于输出有用信息, 而不是调试信息
