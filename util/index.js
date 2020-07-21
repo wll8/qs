@@ -20,6 +20,56 @@ const {
 
 const PRINT = new Console({ stdout: process.stdout, stderr: process.stderr })
 
+function filePath() { // 文件路径处理
+
+  function getPathName(path, suffix = true){ // 从文件路径中获取文件名
+    // suffix: 是否需要后缀
+    if(suffix) {
+      return path.replace(/(.*\/)(.+)$/, `$2`)
+    } else {
+      return path.replace(/(.*\/)(.+)?\..+$/, `$2`)
+    }
+  }
+
+  function getPathDir(path){ // 获取文件所在目录
+    return path.replace(/(.*\/)(.+\/)?.+$/, `$1`)
+  }
+
+  function removeSuffix(str) { // 删除后缀名
+    return str.replace(/(.*)(\..+)$/, '$1')
+  }
+
+  return {
+    getPathName,
+    getPathDir,
+    removeSuffix,
+  }
+
+}
+
+function handleObjValue(template, data) { // 根据点.操作符处理 data 对象中的值, 例如 a.b.c , a 是要处理的值, 后面的 b 和 c 是处理 a 的方法
+  const filePathObj = filePath()
+  const hadnleObj = {
+    removeSuffix: filePathObj.removeSuffix, // 删除后缀名
+    name: filePathObj.getPathName, // 获取带后缀的文件名
+    dir: filePathObj.getPathDir, // 获取目录
+  }
+
+  const templateRes = template.replace(/\${(.*?)}/g, (match, key) => {
+    key = key.trim()
+    let [mainKey, ...keyAction] = key.split(`.`)
+    let hadnleMainKey = keyAction.reduce((acc, cur) => {
+      return hadnleObj[cur](acc)
+    }, data[mainKey.trim()])
+    data[key] = hadnleMainKey
+    return hadnleMainKey
+  })
+  return {
+    templateRes,
+    data,
+  }
+}
+
 async function autoInstallPackage (bin) {
   // 如果扩展目录存在 package.json 且存在 dependencies 但没有 node_modules 时, 自动安装依赖
   const {
@@ -113,11 +163,10 @@ async function runCmd({
         require('../lib/opener.js')(exer)
       } else {
         const parseTemplateRes = parseTemplate(template, {
-          exer,
           exerPath: exer,
           exerArg,
-          main: bin,
-          mainArg: binArgMore.join(` `),
+          mainPath: bin,
+          mainArg: binArgMore.map(item => `"${item}"`).join(` `),
         })
         await run.spawnWrap(
           parseTemplateRes, // todo 若解析带空格或引号参数有误, 请改为些参数此: spawnWrapArgv
@@ -581,12 +630,11 @@ function removeSuffix(str) { // 删除后缀名
   return str.replace(/(.*)(\..+)$/, '$1')
 }
 
-function parseTemplate(template = '${exer} ${exerArg} ${main} ${mainArg}', data) { // 传入 data, 根据 exer 解析 template
-  data[`main.removeSuffix`] = removeSuffix(data.main)
-  const strRenderRes = strRender(template, data)
-  const handleRawRes = handleRaw([strRenderRes])
-  return handleRawRes
-}
+function parseTemplate(template = '${exerPath} ${exerArg} ${mainPath} ${mainArg}', data) { // 传入 data, 根据 exer 解析 template
+  const dataRes = handleObjValue(template, data).data
+  const strRenderRes = strRender(template, dataRes)
+  return strRenderRes
+  }
 
 function print(info) { // 用于输出有用信息, 而不是调试信息
   const type = getType(info)

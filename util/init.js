@@ -41,7 +41,7 @@ async function initCfg({cfg, qsPath, execWrap, configReset}) {
           {
             ext: ['.java'],
             exer: 'java',
-            template: 'javac ${main} && ${exer} ${exerArg} ${main.removeSuffix} ${mainArg}',
+            template: 'cd ${mainPath.dir} && javac ${mainPath.name} && ${exerPath} ${mainPath.name.removeSuffix} ${mainArg} && rm -f ${mainPath.removeSuffix}.class',
           },
         ]
       )
