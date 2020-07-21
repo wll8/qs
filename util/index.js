@@ -217,9 +217,9 @@ function findBin(binName) { // 查找 ext 目录中的可执行路径, 结果可
 function getPathName(path, suffix = true){ // 从文件路径中获取文件名
   // suffix: 是否需要后缀
   if(suffix) {
-    return path.replace(/(.*\/)(.+)?\..+$/, `$2`) || path
-  } else {
     return path.replace(/(.*\/)(.+)$/, `$2`)
+  } else {
+    return path.replace(/(.*\/)(.+)?\..+$/, `$2`)
   }
 }
 
