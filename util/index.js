@@ -202,7 +202,7 @@ function findBin(binName) { // 查找 ext 目录中的可执行路径, 结果可
   { // 忽略后缀名进行文件匹配
     const getFilesRes = getFiles(qsExtendDir)
     const findRes = getFilesRes.find(item => {
-      const fileName = item.replace(/(.*\/)(.+)?\..+$/, `$2`) || item
+      const fileName = getPathName(item, false)
       return binName === fileName
     })
     if(findRes) {
@@ -211,6 +211,15 @@ function findBin(binName) { // 查找 ext 目录中的可执行路径, 结果可
   }
   { // 如果没有找到 js 可以处理的程序, 则返回空对象
     return {}
+  }
+}
+
+function getPathName(path, suffix = true){ // 从文件路径中获取文件名
+  // suffix: 是否需要后缀
+  if(suffix) {
+    return path.replace(/(.*\/)(.+)?\..+$/, `$2`) || path
+  } else {
+    return path.replace(/(.*\/)(.+)$/, `$2`)
   }
 }
 
