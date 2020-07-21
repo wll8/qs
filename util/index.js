@@ -117,25 +117,15 @@ async function runCmd({
   const defaultArg = [{cwd: process.cwd()}]
 
   if(bin) { // 运行 ext 目录中的程序, 脚本与解释器请参考 config.exer
-    let {exerPath: exer, exer: exerRef, template} = getExer(bin) || {}
-    let exerArgArr = []
-    let runMainEd = false // 是否经过 runMain 方法
-    // todo 把 mianArg 处理为字符串, 比如命令行参数 `1 2 "4 5"` => [`1`,`2`,`4 5`] => `1 2 "4 5"` 能正确还原
+    let {exerPath, template} = getExer(bin) || {}
     if(
-      (Boolean(exer) === false) // 如果解释器 exer 不存在, 则把 bin 作为解释器运行, 移除 bin
-      || (exer.toLowerCase() === bin.toLowerCase()) // 如果解释器与命令是同一文件时, 则保留 exer, 移除 bin
+      (Boolean(exerPath) === false) // 如果解释器 exer 不存在, 则把 bin 作为解释器运行, 移除 bin
+      || (exerPath.toLowerCase() === bin.toLowerCase()) // 如果解释器与命令是同一文件时, 则保留 exer, 移除 bin
     ) {
-      exer = bin
+      exerPath = bin
       bin = ''
     }
-    if(exerArg) {
-      // 转换字符串参数为数组, 供 spawnWrap 使用
-      exerArgArr = (Array.isArray(exerArg) ? exerArg : [exerArg]).reduce((acc, arg) => {
-        return acc.concat(arg.split(/\s+/))
-      }, [])
-      exer = [exer, ...exerArgArr, bin]
-    }
-    if(Boolean(exerArg) === false && /^node(|\.exe)$/i.test(path.basename(exer))) { // 无需启动 node 执行 js 程序
+    if(/^node(|\.exe)$/i.test(path.basename(exerPath))) { // 无需启动 node 执行 js 程序
       const Module = require('module')
       if (obj2str(argParse) === '{}') {
         require('yargs').reset()
@@ -147,33 +137,27 @@ async function runCmd({
       { // 还原 log 重写 并运行 runMain
         Module.runMain()
       }
-      runMainEd = true
+      process.exit()
     }
-    const spawnWrapArgv = [
-      ...(getType(exer, 'array') ? exer : [exer, bin]),
-      ...binArgMore,
-    ].filter(item => item !== '')
-    if(runMainEd === false) {
-      if(
-        (isWin === false)
-        && hasFile(exer)
-        && exer.includes(qsExtendDir)
-        && (await fileMode(exer).canExecute === false)
-      ) { // 不是 windows 平台, 并且命令存在于 ext 目录中, 并且不是可执行文件时, 直接使用 open 打开
-        require('../lib/opener.js')(exer)
-      } else {
-        const parseTemplateRes = parseTemplate(template, {
-          exerPath: exer,
-          exerArg,
-          mainPath: bin,
-          mainArg: binArgMore.map(item => `"${item}"`).join(` `),
-        })
-        await run.spawnWrap(
-          parseTemplateRes, // todo 若解析带空格或引号参数有误, 请改为些参数此: spawnWrapArgv
-          defaultArg,
-          taskAdd,
-        )
-      }
+    if(
+      (isWin === false)
+      && hasFile(exerPath)
+      && exerPath.includes(qsExtendDir)
+      && (await fileMode(exerPath).canExecute === false)
+    ) { // 不是 windows 平台, 并且命令存在于 ext 目录中, 并且不是可执行文件时, 直接使用 open 打开
+      require('../lib/opener.js')(exerPath)
+    } else {
+      const parseTemplateRes = parseTemplate(template, {
+        exerPath,
+        exerArg,
+        mainPath: bin,
+        mainArg: binArgMore.map(item => `"${item}"`).join(` `),
+      })
+      await run.spawnWrap(
+        parseTemplateRes,
+        defaultArg,
+        taskAdd,
+      )
     }
   } else { // 移交命令和参数给系统, 让系统去执行, 例 `qs echo 123`
     process.env.PATH = `${qsExtendDir}${path.delimiter}${process.env.PATH}`
