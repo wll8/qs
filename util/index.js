@@ -191,6 +191,16 @@ function findBin(binName) { // 查找 ext 目录中的可执行路径, 结果可
       }
     }
   }
+  { // 忽略后缀名进行文件匹配
+    const getFilesRes = getFiles(qsExtendDir)
+    const findRes = getFilesRes.find(item => {
+      const fileName = item.replace(/(.*\/)(.+)?\..+$/, `$2`) || item
+      return binName === fileName
+    })
+    if(findRes) {
+      return {bin: findRes}
+    }
+  }
   { // 如果没有找到 js 可以处理的程序, 则返回空对象
     return {}
   }
@@ -527,6 +537,22 @@ function execWrap(cmd, option = {}, other = {}) { // 同步运行, 不能实时�
       resolve({error, stdout, stderr})
     });
   })
+}
+
+function getFiles (dir, files_){ // 获取指定目录下的所有文件
+  const isSub = false // 是否遍历子目录
+  const fs = require(`fs`)
+  files_ = files_ || []
+  const files = fs.readdirSync(dir)
+  for (let i in files){
+    const name = dir + '/' + files[i]
+    if (isSub && fs.statSync(name).isDirectory()){
+      getFiles(name, files_)
+    } else {
+      files_.push(name)
+    }
+  }
+  return files_
 }
 
 function print(info) { // 用于输出有用信息, 而不是调试信息
