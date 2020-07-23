@@ -107,7 +107,7 @@ with(util) {
         const cmd = `qs ${name}`
         it(cmd, () => {
           let path = absPath(`${qsExtendDir}/${name}.py`)
-          fs.writeFileSync(path, `print ${name}`)
+          fs.writeFileSync(path, `print(${name})`)
           assert.ok(
             execSync(cmd).includes(name)
           )
@@ -181,12 +181,12 @@ with(util) {
     describe('使用 npmjs 安装的程序', () => {
       const options = [
         `qs gitday --help`,
-        `qs hs --help`,
+        `qs shx echo 1234`,
       ]
       it(options.join(' '), async () => {
-        execSync(`cd ${qsExtendDir} && ${packgeAdmin} init -y && ${packgeAdmin} i -S wll8/gitday http-server`)
+        execSync(`cd ${qsExtendDir} && ${packgeAdmin} init -y && ${packgeAdmin} i -S wll8/gitday shx`)
         const res1 = execSync(options[0], false).includes('作者')
-        const res2 = execSync(options[1], false).includes('option')
+        const res2 = execSync(options[1], false).includes('1234')
         assert.ok(
           res1 && res2
         )
