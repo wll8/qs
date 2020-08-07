@@ -1,5 +1,6 @@
 const {
   util: {
+    hasFile,
     QsError,
     setTitle,
     qsDataDir,
@@ -33,7 +34,9 @@ const shelljs = require('shelljs')
 
 module.exports = async () => {
   if(open) {
-    require('./lib/opener.js')(qsPath([qsDataDir, open]))
+    const filePath = qsPath([qsDataDir, open])
+    const openerArg = hasFile(filePath) ? filePath : open
+    require('./lib/opener.js')(openerArg)
   }
 
   if(config === '') { // 查看所有配置
