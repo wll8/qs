@@ -37,17 +37,34 @@ class Run {
       task: taskFn,
     } = global.qs
     let curtask = await taskFn.getCurlTask()
-    if(rawCmd) {
-      arg = [...arg, {rawCmd}]
+    if(cmd[0].parallel) {
+      curtask.execList = (curtask.execList || []).concat(...cmd[0].parallel.map((item, index) => {
+        let newArg
+        if(rawCmd) {
+          // 如果是并行任务的时候, 把 rawCmd 中的每个命令折开再保存到任务记录中
+          newArg = JSON.parse(JSON.stringify([...arg, { // 深拷贝, 避免重复添加 rawCmd
+            rawCmd: [rawCmd[index]]
+          }]))
+        }
+        return { method, cmd: item, arg: newArg, }
+      }))
+    } else {
+      if(rawCmd) {
+        arg = [...arg, {rawCmd}]
+      }
+      curtask.execList = (curtask.execList || []).concat({ method, cmd, arg, })
     }
-    curtask.execList = (curtask.execList || []).concat({ method, cmd, arg, })
     taskFn.updateOne(curtask.taskId, curtask)
   }
 
   mapFn(fnName, argList) {
     let [cmd, arg = [], isSave = false] = argList
     isSave && this.save(fnName, cmd, arg)
-    return this.runTable[fnName](cmd, ...arg)
+    if(cmd[0].parallel) {
+      return Promise.all(cmd[0].parallel.map(item => this.runTable[fnName](item, ...arg) ))
+    } else {
+      return this.runTable[fnName](cmd, ...arg)
+    }
   }
 
 }

@@ -520,13 +520,23 @@ const cfg = {
   }
 }
 
-function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文件, 使用解释器执行脚本, 返回执行器, 文件地址
+function handleRaw(rawList = [], options = {}) { // 字符串数组的命令拼接为脚本文件, 使用解释器执行脚本, 返回执行器, 文件地址
   const os = require('os')
   const fs = require('fs')
   const suffix = isWin ? 'cmd' : 'sh' // 解释器和后缀名都可以使用
   const file = qsPath(`${os.tmpdir()}/qs_raw_shell_${uuid()}.${suffix}`)
   fs.writeFileSync(file, rawList.join('\n'))
-  return [...(isWin ? [suffix, '/c'] : [suffix]), file]
+  const arr = [...(isWin ? [suffix, '/c'] : [suffix]), file]
+  { // 给第一项(字符串)添加其他属性, 这是一个临时方案
+    // 用于并行执行命令时的特殊处理
+    // 并行时, 生成多个脚本文件并挂载到 string 对象上
+    // 在 run.js 中判断此属性进行处理
+    arr[0] = new String(arr[0])
+    if(options.parallel) {
+      arr[0].parallel = rawList.map(item => handleRaw([item]))
+    }
+  }
+  return arr
 }
 
 async function cmdToArr(cmd) {

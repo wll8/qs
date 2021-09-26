@@ -62,6 +62,7 @@ module.exports = ({util, pid, argParse}) => {
       taskInfo.runCount = 1
       taskInfo.status = 'runing'
       taskInfo.createTime = this.CREATE_TIME
+      taskInfo.parallel = Boolean(argParse.parallel)
       taskList.push(taskInfo)
       this.writeTaskList(taskList)
     }
@@ -87,7 +88,7 @@ module.exports = ({util, pid, argParse}) => {
       const taskInfo = await this.get(taskIdOrName)
       taskInfo.execList.forEach((item, index) => { // rawCmd 运行时生成新文件, 更新路径到 cmd 字段
         const [option, other = {}] = item.arg
-        const newCmd = other.rawCmd ? handleRaw(other.rawCmd) : item.cmd
+        const newCmd = other.rawCmd ? handleRaw(other.rawCmd, {parallel: taskInfo.parallel}) : item.cmd
         taskInfo.execList[index].cmd = newCmd
       })
       this.updateOne(taskIdOrName, { // 更新任务状态
@@ -103,7 +104,7 @@ module.exports = ({util, pid, argParse}) => {
 
     }
     async runTaskIdCmd(taskIdOrName) { // 运行某个任务的 cmd 或 execList
-      const {execList = [], cmd, taskName} = await this.get(taskIdOrName)
+      const {parallel, execList = [], cmd, taskName} = await this.get(taskIdOrName)
       /**
        * 添加额外参数, 例: `qs -s n -- a1`, 即像 n 任务添加参数 a1
        * @param {string|array} cmd 命令或数组
@@ -111,10 +112,18 @@ module.exports = ({util, pid, argParse}) => {
       const _cmd = cmd => getType(cmd, 'string') ? cmd : cmd.concat(argParse._)
       setTitle(taskName || taskIdOrName)
       if(execList.length) {
-        execList.forEach(async item => {
-          const {method, cmd, arg} = item
-          await run[method](_cmd(cmd), arg)
-        })
+        if(parallel) { // 并行
+          await Promise.all(execList.map(item => {
+            const {method, cmd, arg} = item
+            return run[method](_cmd(cmd), arg)
+          }))
+        } else { // 串行
+          for (let index = 0; index < execList.length; index++) {
+            const item = execList[index];
+            const {method, cmd, arg} = item
+            await run[method](_cmd(cmd), arg)
+          }
+        }
       } else {
         await run.spawnWrap(_cmd(cmd))
       }

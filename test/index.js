@@ -69,6 +69,45 @@ with (util) {
       }
 
     })
+    describe('并发执行命令', () => {
+      {
+        const options = [
+          'qs -p "echo 123"',
+          'qs -pr "echo 123"',
+          'qs -rp "echo 123"',
+          'qs --parallel "echo 123"',
+          'qs --parallel --rawCmd "echo 123"',
+        ]
+        options.forEach(cmd => it(cmd, () => {
+          assert.ok(
+            execSync(cmd).includes('123')
+          )
+        }))
+      }
+      {
+        const options = [
+          'qs -p "echo 123" "echo 456"',
+          'qs -pr "echo 123" "echo 456"',
+          'qs -p --rawCmd "echo 123" "echo 456"',
+          'qs -rp "echo 123" "echo 456"',
+          'qs -p -r "echo 123" "echo 456"',
+          'qs -r -p "echo 123" "echo 456"',
+          'qs --parallel "echo 123" "echo 456"',
+          'qs -p "echo 123" -p "echo 456"',
+          'qs --parallel "echo 123" --parallel "echo 456"',
+          'qs --parallel "echo 123 && echo 456"',
+        ]
+        options.forEach(cmd => {
+          it(cmd, () => {
+            let res = execSync(cmd)
+            assert.ok(
+              res.includes('123') && res.includes('456')
+            )
+          })
+        })
+      }
+
+    })
     describe('添加到任务记录', () => {
       {
         const options = [

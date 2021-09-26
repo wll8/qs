@@ -151,9 +151,14 @@ async function initArg ({util, argv}) {
           alias: 'help',
           type: 'boolean',
         },
+        'p': {
+          alias: 'parallel',
+          describe: '并行执行命令，隐含 -r',
+          type: 'array',
+        },
         'r': {
           alias: 'raw-cmd',
-          describe: '以原始命令运行, 避免存储任务时变量被解析',
+          describe: '原始命令，使用字符串避免存储任务时变量被解析',
           type: 'array',
         },
         'regexp': {
@@ -228,10 +233,13 @@ async function initArg ({util, argv}) {
       if((argParse.taskName || argParse.taskDes)) {
         argParse.taskAdd = true
       }
+      if((argParse.parallel)) {
+        argParse.rawCmd = argParse.parallel.length ? argParse.parallel : argParse.rawCmd
+      }
       return {argParse, yargs}
     }
     const {argParse, yargs} = getArgs()
-    let [binArg1, ...binArgMore] = argParse.rawCmd ? handleRaw(argParse.rawCmd) : argParse._
+    let [binArg1, ...binArgMore] = argParse.rawCmd ? handleRaw(argParse.rawCmd, {parallel: argParse.parallel}) : argParse._
     let [rawArg1, ...rawArgMore] = argv.slice(2)
     if(!rawArg1) { // 没有任何参数时显示帮助
       const version = require(qsPath('./package.json')).version
