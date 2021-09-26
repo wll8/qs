@@ -322,6 +322,11 @@ function setTitle(title) {
   }
 }
 
+function uuid(sep = '') {
+  let increment = process.increment === undefined ? (process.increment = 1) : (process.increment = (process.increment + 1))
+  return `${Number(String(Date.now()).slice(-5))}_${String(Math.random()).slice(-2)}_${process.pid}_${increment}`.replace(/_/g, sep)
+}
+
 function dateFormater(formater, t) { // Formatting time
   let date = t ? new Date(t) : new Date(),
     Y = date.getFullYear() + '',
@@ -517,7 +522,7 @@ function handleRaw(rawList = []) { // 字符串数组的命令拼接为脚本文
   const os = require('os')
   const fs = require('fs')
   const suffix = isWin ? 'cmd' : 'sh' // 解释器和后缀名都可以使用
-  const file = qsPath(`${os.tmpdir()}/qs_raw_shell_${Date.now()}.${suffix}`)
+  const file = qsPath(`${os.tmpdir()}/qs_raw_shell_${uuid()}.${suffix}`)
   fs.writeFileSync(file, rawList.join('\n'))
   return [...(isWin ? [suffix, '/c'] : [suffix]), file]
 }
@@ -691,6 +696,7 @@ function list(val) {
 
 module.exports = async () => {
   return {
+    uuid,
     runCmd,
     findBin,
     getType,
