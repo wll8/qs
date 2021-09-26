@@ -135,29 +135,31 @@ async function runCmd({
         bin // node 脚本路径。 `runMain()`会将其设置为新的 main
       ].concat(binArgMore) // 脚本的其他选项
       { // 还原 log 重写 并运行 runMain
+        // 注意: 没有办法知道 Module.runMain 什么时候运行结束, `await Module.runMain()` 无效的
+        // 参考: https://stackoverflow.com/questions/59335858/how-does-nodejs-wait-for-requiremodule-runmain-to-finish-running
         Module.runMain()
       }
-      process.exit()
-    }
-    if(
-      (isWin === false)
-      && hasFile(exerPath)
-      && exerPath.includes(qsExtendDir)
-      && (await fileMode(exerPath).canExecute === false)
-    ) { // 不是 windows 平台, 并且命令存在于 ext 目录中, 并且不是可执行文件时, 直接使用 open 打开
-      require('../lib/opener.js')(exerPath)
     } else {
-      const parseTemplateRes = parseTemplate(template, {
-        exerPath,
-        exerArg,
-        mainPath: bin,
-        mainArg: binArgMore.map(item => `"${item}"`).join(` `),
-      })
-      await run.spawnWrap(
-        parseTemplateRes,
-        defaultArg,
-        taskAdd,
-      )
+      if(
+        (isWin === false)
+        && hasFile(exerPath)
+        && exerPath.includes(qsExtendDir)
+        && (await fileMode(exerPath).canExecute === false)
+      ) { // 不是 windows 平台, 并且命令存在于 ext 目录中, 并且不是可执行文件时, 直接使用 open 打开
+        require('../lib/opener.js')(exerPath)
+      } else {
+        const parseTemplateRes = parseTemplate(template, {
+          exerPath,
+          exerArg,
+          mainPath: bin,
+          mainArg: binArgMore.map(item => `"${item}"`).join(` `),
+        })
+        await run.spawnWrap(
+          parseTemplateRes,
+          defaultArg,
+          taskAdd,
+        )
+      }
     }
   } else { // 移交命令和参数给系统, 让系统去执行, 例 `qs echo 123`
     process.env.PATH = `${qsExtendDir}${path.delimiter}${process.env.PATH}`
