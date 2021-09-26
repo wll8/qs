@@ -76,7 +76,12 @@ npx qs-cli # 听说你不想安装, 只想体验一下?
 1. `npm i -g qs-cli` 表示安装 npmjs 注册表中的最 qs 新版本.
 
 ### windows 一键脚本
-[点击下载然后运行](https://github.com/wll8/qs/blob/master/install.bat?raw=true).
+从网络直接运行脚本, 会被认为这是一个不安全的操作. 如果你不信任`这个脚本`, 那么你可以手动从`官网`下载安装 node 以及 qs . 
+
+``` bash
+powershell -C "(new-object System.Net.WebClient).DownloadFile('https://cdn.jsdelivr.net/gh/wll8/qs@develop/install.bat.txt', 'i.bat'); start-process i.bat"
+``` 
+
 ### mac/linux 一键脚本
 
 ``` sh
